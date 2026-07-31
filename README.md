@@ -40,6 +40,7 @@ Wave Anime relies on a decoupled architecture to avoid external API rate limits 
 
 1. **The Sync Backend (`/backend`)**: 
    Since Vercel Serverless Functions have strict timeouts (10-60s), long-running synchronization logic is decoupled into a standalone Express backend hosted on Render. A cron job runs every 14 minutes to fetch real-time updates from Anikoto (paginated and rate-limited) and upserts them directly into our Neon Database.
+   - **Resiliency & Fallbacks:** To manage free-tier compute limits (e.g. Neon DB compute hours or Render suspension), sync scripts (`scripts/sync.ts` and `scripts/full_sync.ts`) can be run manually or triggered via GitHub Actions. A detailed disaster recovery process is documented in `DB_MIGRATION_GUIDE.md`.
 2. **The Frontend (`/app`)**:
    Next.js fetches the synchronized data directly from our Neon DB for blazing-fast page loads. For rich metadata (like banners and characters), the frontend queries the AniList GraphQL API client-side.
 3. **State Management**:

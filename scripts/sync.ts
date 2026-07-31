@@ -30,13 +30,19 @@ async function runSyncJob() {
         break;
       }
 
+      type AnikotoItem = {
+        mal_id?: number | string;
+        is_sub?: number;
+        is_dub?: number;
+      };
+
       // Extract records
-      const records = items.map((item: any) => ({
+      const records = items.map((item: AnikotoItem) => ({
         anime_id: String(item.mal_id),
         is_sub: item.is_sub || 0,
         is_dub: item.is_dub || 0,
         updated_at: new Date(),
-      })).filter((r: any) => r.anime_id && r.anime_id !== 'undefined');
+      })).filter((r: { anime_id: string }) => r.anime_id && r.anime_id !== 'undefined');
 
       if (records.length > 0) {
         // Drizzle onConflictDoUpdate batching rule applied:

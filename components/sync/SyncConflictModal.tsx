@@ -77,7 +77,7 @@ export function SyncConflictModal() {
             <div className="flex items-center justify-between mb-3">
               <div className="flex items-center gap-2">
                 <Monitor className="w-4 h-4 text-cyber-cyan" />
-                <span className="font-label-caps text-xs text-cyber-cyan uppercase tracking-widest">Other Device</span>
+                <span className="font-label-caps text-xs text-cyber-cyan uppercase tracking-widest">Cloud</span>
               </div>
             </div>
             <div className="font-headline-lg text-xl text-white mb-1">EP {serverEp}</div>
@@ -106,7 +106,7 @@ export function SyncConflictModal() {
             <div className="flex items-center justify-between mb-3">
               <div className="flex items-center gap-2">
                 <Smartphone className="w-4 h-4 text-neon-crimson" />
-                <span className="font-label-caps text-xs text-neon-crimson uppercase tracking-widest">This Device</span>
+                <span className="font-label-caps text-xs text-neon-crimson uppercase tracking-widest">Local</span>
               </div>
             </div>
             <div className="font-headline-lg text-xl text-white mb-1">EP {localEp}</div>
@@ -137,13 +137,13 @@ export function SyncConflictModal() {
                 onClick={() => resolveAllConflicts("server")}
                 className="font-label-caps text-xs px-3 py-1.5 border border-cyber-cyan/50 text-cyber-cyan hover:bg-cyber-cyan/10 transition-colors clip-chip"
               >
-                Use Other Devices
+                Use Cloud
               </button>
               <button
                 onClick={() => resolveAllConflicts("local")}
                 className="font-label-caps text-xs px-3 py-1.5 border border-neon-crimson/50 text-neon-crimson hover:bg-neon-crimson/10 transition-colors clip-chip"
               >
-                Use This Device
+                Use Local
               </button>
             </div>
           </div>

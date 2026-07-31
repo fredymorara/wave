@@ -36,13 +36,20 @@ async function runSyncJob() {
         is_dub?: number;
       };
 
-      // Extract records
-      const records = items.map((item: AnikotoItem) => ({
-        anime_id: String(item.mal_id),
-        is_sub: item.is_sub || 0,
-        is_dub: item.is_dub || 0,
-        updated_at: new Date(),
-      })).filter((r: { anime_id: string }) => r.anime_id && r.anime_id !== 'undefined');
+      // Extract and deduplicate records by anime_id
+      const recordsMap = new Map();
+      items.forEach((item: AnikotoItem) => {
+        const animeId = String(item.mal_id);
+        if (animeId && animeId !== 'undefined') {
+          recordsMap.set(animeId, {
+            anime_id: animeId,
+            is_sub: item.is_sub || 0,
+            is_dub: item.is_dub || 0,
+            updated_at: new Date(),
+          });
+        }
+      });
+      const records = Array.from(recordsMap.values());
 
       if (records.length > 0) {
         // Drizzle onConflictDoUpdate batching rule applied:

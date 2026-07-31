@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>NEON_STREAM - Now Playing</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&amp;family=Outfit:wght@400;500;600&amp;family=Space+Grotesk:wght@500;600;700;900&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "on-tertiary-fixed": "#320047",
+                        "on-secondary-fixed": "#002022",
+                        "inverse-surface": "#e5e1e7",
+                        "secondary-fixed": "#7df4ff",
+                        "on-tertiary": "#520071",
+                        "on-tertiary-fixed-variant": "#74009f",
+                        "surface-container-highest": "#353439",
+                        "on-secondary-fixed-variant": "#004f54",
+                        "tertiary-fixed": "#f8d8ff",
+                        "surface": "#131317",
+                        "surface-container-lowest": "#0e0e12",
+                        "on-primary-fixed-variant": "#92001e",
+                        "error-container": "#93000a",
+                        "on-error-container": "#ffdad6",
+                        "primary-fixed-dim": "#ffb3b2",
+                        "outline-variant": "#5f3e3e",
+                        "secondary-container": "#00eefc",
+                        "primary-fixed": "#ffdad8",
+                        "surface-dim": "#131317",
+                        "data-purple": "#BD00FF",
+                        "tertiary-fixed-dim": "#ecb2ff",
+                        "void-black": "#020204",
+                        "outline": "#af8786",
+                        "on-error": "#690005",
+                        "surface-container-low": "#1b1b1f",
+                        "on-tertiary-container": "#480063",
+                        "tertiary": "#ecb2ff",
+                        "tertiary-container": "#cf5cff",
+                        "on-primary-fixed": "#410008",
+                        "primary-container": "#ff525c",
+                        "primary": "#ffb3b2",
+                        "error": "#ffb4ab",
+                        "on-secondary": "#00363a",
+                        "inverse-on-surface": "#303034",
+                        "on-primary-container": "#5b000f",
+                        "surface-variant": "#353439",
+                        "neon-crimson": "#FF003C",
+                        "background": "#131317",
+                        "surface-bright": "#39393d",
+                        "surface-glass": "rgba(10, 10, 15, 0.7)",
+                        "cyber-cyan": "#00F0FF",
+                        "inverse-primary": "#bf002a",
+                        "surface-tint": "#ffb3b2",
+                        "on-background": "#e5e1e7",
+                        "on-secondary-container": "#00686f",
+                        "secondary": "#d3fbff",
+                        "surface-container": "#1f1f23",
+                        "surface-container-high": "#2a292e",
+                        "on-surface": "#e5e1e7",
+                        "secondary-fixed-dim": "#00dbe9",
+                        "on-surface-variant": "#e9bcba",
+                        "on-primary": "#680012"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "stack-sm": "8px",
+                        "stack-md": "16px",
+                        "margin-tablet": "32px",
+                        "margin-desktop": "64px",
+                        "gutter": "24px",
+                        "stack-lg": "32px",
+                        "margin-mobile": "16px",
+                        "unit": "4px"
+                    },
+                    "fontFamily": {
+                        "headline-lg": ["Space Grotesk"],
+                        "body-md": ["Outfit"],
+                        "display-lg-mobile": ["Space Grotesk"],
+                        "headline-xl": ["Space Grotesk"],
+                        "label-caps": ["JetBrains Mono"],
+                        "display-lg": ["Space Grotesk"],
+                        "body-lg": ["Outfit"],
+                        "label-md": ["JetBrains Mono"]
+                    },
+                    "fontSize": {
+                        "headline-lg": ["24px", { "lineHeight": "1.2", "fontWeight": "600" }],
+                        "body-md": ["16px", { "lineHeight": "1.5", "fontWeight": "400" }],
+                        "display-lg-mobile": ["40px", { "lineHeight": "1.1", "fontWeight": "700" }],
+                        "headline-xl": ["32px", { "lineHeight": "1.2", "fontWeight": "600" }],
+                        "label-caps": ["12px", { "lineHeight": "1.0", "letterSpacing": "0.1em", "fontWeight": "500" }],
+                        "display-lg": ["64px", { "lineHeight": "1.1", "letterSpacing": "-0.02em", "fontWeight": "700" }],
+                        "body-lg": ["18px", { "lineHeight": "1.6", "fontWeight": "400" }],
+                        "label-md": ["14px", { "lineHeight": "1.4", "fontWeight": "400" }]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        body { background-color: #020204; color: #e5e1e7; }
+        .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 300, 'GRAD' 0, 'opsz' 24; }
+        .icon-fill { font-variation-settings: 'FILL' 1, 'wght' 400; }
+        .thin-icon { font-variation-settings: 'wght' 200; }
+        
+        /* Custom scrollbar for cyberpunk feel */
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: #131317; }
+        ::-webkit-scrollbar-thumb { background: rgba(255, 0, 60, 0.3); border-radius: 0; }
+        ::-webkit-scrollbar-thumb:hover { background: #FF003C; }
+
+        /* Component specific custom styling */
+        .clip-corner { clip-path: polygon(10px 0, 10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px, 0 10px); }
+        .scanline-focus:focus-within::before {
+            content: ''; position: absolute; bottom: 0; left: 0; width: 100%; height: 2px;
+            background: linear-gradient(90deg, transparent, #FF003C, transparent);
+            animation: scan 2s linear infinite;
+        }
+        @keyframes scan { 0% { transform: translateX(-100%); } 100% { transform: translateX(100%); } }
+    </style>
+</head>
+<body class="antialiased min-h-screen flex flex-col">
+<!-- TopNavBar -->
+<nav class="fixed top-0 w-full z-50 bg-surface-glass backdrop-blur-xl border-b border-neon-crimson/30 shadow-[0_0_15px_rgba(255,0,60,0.2)] flex justify-between items-center px-margin-desktop py-4 max-w-full">
+<div class="flex items-center gap-margin-tablet">
+<a class="font-headline-xl text-headline-xl text-neon-crimson tracking-tighter italic font-black hover:drop-shadow-[0_0_8px_#FF003C] transition-all duration-300 scale-105 active:scale-95" href="#">NEON_STREAM</a>
+<div class="hidden md:flex gap-stack-lg items-center">
+<a class="font-label-caps text-label-caps text-on-surface-variant hover:text-cyber-cyan transition-colors hover:drop-shadow-[0_0_8px_#FF003C] duration-300" href="#">Browse</a>
+<a class="font-label-caps text-label-caps text-on-surface-variant hover:text-cyber-cyan transition-colors hover:drop-shadow-[0_0_8px_#FF003C] duration-300" href="#">Seasonal</a>
+<a class="font-label-caps text-label-caps text-neon-crimson border-b-2 border-neon-crimson pb-1 hover:drop-shadow-[0_0_8px_#FF003C] transition-all duration-300" href="#">Simulcast</a>
+<a class="font-label-caps text-label-caps text-on-surface-variant hover:text-cyber-cyan transition-colors hover:drop-shadow-[0_0_8px_#FF003C] duration-300" href="#">Movies</a>
+<a class="font-label-caps text-label-caps text-on-surface-variant hover:text-cyber-cyan transition-colors hover:drop-shadow-[0_0_8px_#FF003C] duration-300" href="#">Manga</a>
+</div>
+</div>
+<div class="flex items-center gap-stack-lg">
+<button class="text-on-surface-variant hover:text-cyber-cyan transition-colors hover:drop-shadow-[0_0_8px_#FF003C] duration-300 scale-105 active:scale-95">
+<span class="material-symbols-outlined" data-icon="search">search</span>
+</button>
+<button class="text-on-surface-variant hover:text-cyber-cyan transition-colors hover:drop-shadow-[0_0_8px_#FF003C] duration-300 scale-105 active:scale-95">
+<span class="material-symbols-outlined" data-icon="notifications">notifications</span>
+</button>
+<button class="text-on-surface-variant hover:text-cyber-cyan transition-colors hover:drop-shadow-[0_0_8px_#FF003C] duration-300 scale-105 active:scale-95">
+<span class="material-symbols-outlined" data-icon="settings">settings</span>
+</button>
+<div class="w-10 h-10 rounded-none overflow-hidden border border-neon-crimson/50 hover:border-neon-crimson transition-colors cursor-pointer relative group">
+<img alt="Cyberpunk User Profile" class="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-300" data-alt="A high-contrast cyberpunk avatar portrait of a character with glowing cyan ocular implants and neon crimson synthetic hair, set against a dark grid-like background. The lighting is dramatic, emphasizing the sharp, geometric features of the face in a gritty, netrunner aesthetic." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDDlJxA4Cxxc7q0GPv1lOIwrrjOEIRPCO5Lw7lPLW7M3l_mHJUVyG4VirmUUUkCmOpHURpyplYBhAcWzM08nD5u1TWPC1c-_V-mXnrkUg_dZq8QTp9sQR-UNfUGh4EV1mOvBIV1mDue-KhiTwFlKEXWYHqgAtuSaGggeY1DGlEjzoDVWHeW1ewEFWp6J4lG0FiXOtbKSuVTYNJwzBQvOfg-pKqwggiEjTcGKpR8UE1T7EvgVW_vSlSt"/>
+</div>
+</div>
+</nav>
+<!-- Main Content Canvas -->
+<main class="flex-grow pt-[88px] flex flex-col">
+<!-- Video Player Section (Immersive) -->
+<section class="w-full bg-void-black relative group flex-shrink-0" style="aspect-ratio: 21/9; max-height: 80vh;">
+<!-- Video Content Placeholder -->
+<div class="w-full h-full bg-cover bg-center absolute inset-0" data-alt="A breathtaking, ultra-wide cinematic shot of a sprawling cyberpunk megacity at night, seen from a high vantage point. The scene is dominated by towering, oppressive brutalist skyscrapers illuminated by harsh, glowing neon signs in vivid crimson and piercing cyan. Rain streaks across the imaginary camera lens, distorting the reflections of flying vehicles leaving light trails. The aesthetic is gritty, high-tech, low-life anime style, rendered in 4K high fidelity with deep void-black shadows and intense light blooms." style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuAoW2dRp_3KWWCy97889sEK0pd2mSWBDC0PO2RjNf-BeW7e3X7mkIsQp0qbe6rBKvpmaUHLFEC_oE_gx8El7NAnDUHcPv_0HRVu0UvzlmXnEc47_HXuidUaDyRnfgHB0_kB_UHUVQA325TykY8s1C3mq4Qxhl0zczqGeg6La-v3nkfkMBGNzb8ZpzzSCapdMRgr6u8advaqITD1AWcNxgDYqNiS3GcOXa6ChS5MR2DEvR3FsypEZUXf')"></div>
+<!-- Vignette for depth -->
+<div class="absolute inset-0 bg-gradient-to-t from-void-black via-transparent to-transparent pointer-events-none opacity-80"></div>
+<!-- Skip Intro Overlay -->
+<button class="absolute bottom-24 right-margin-desktop bg-surface-glass border border-neon-crimson/50 text-on-surface font-label-caps px-6 py-2 opacity-0 group-hover:opacity-100 transition-all duration-300 z-20 hover:bg-neon-crimson hover:text-void-black hover:drop-shadow-[0_0_15px_#FF003C]">
+    SKIP INTRO
+</button>
+<!-- Auto-play Overlay (Next Episode) - Positioned bottom right -->
+<div class="absolute bottom-32 right-margin-desktop bg-surface-glass backdrop-blur-xl border border-neon-crimson/40 p-stack-md flex flex-col gap-stack-sm w-72 transform translate-y-4 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-500 z-20 shadow-[0_0_20px_rgba(255,0,60,0.15)] hidden">
+<div class="flex justify-between items-center mb-1">
+<span class="font-label-caps text-label-caps text-on-surface-variant uppercase tracking-widest text-[10px]">Up Next In</span>
+<span class="font-headline-lg text-headline-lg text-neon-crimson drop-shadow-[0_0_5px_#FF003C]">12s</span>
+</div>
+<div class="flex gap-stack-sm h-20">
+<img alt="Next Episode Thumbnail" class="w-1/3 h-full object-cover border border-outline-variant" data-alt="A dramatic close-up anime still of a cyborg protagonist drawing a glowing crimson katana. Their eyes reflect a stark cyan light. The background is a blurred, dark industrial alleyway, emphasizing intense action and tension in a cyberpunk setting." src="https://lh3.googleusercontent.com/aida-public/AB6AXuB070dY9c4uhFWONbYuhIMXvFS15PjsqNm1mnwZqR1tja_-bfYXzjlq4ivEtR2n6y9FQYO4vLbOwwu2LdIJ-DHeAGBATfv9jAtAu4siRiBiBww_NjZh740bBcrgNM8QljqrkC8fJpvnWRF8GZBRsH8VtmhSJo7y3lyO-V7jO6PCFJanrHI3r2OPvLo5NWwRqLQ-uWo6-pnRmHP_Kk9Iig99YSIzdK-0Ij3ejLpaoK3qTqykt3nHXWf7"/>
+<div class="flex flex-col justify-center overflow-hidden">
+<span class="font-label-caps text-label-caps text-cyber-cyan truncate">Ep 13 - System Collapse</span>
+<span class="font-body-md text-body-md text-on-surface-variant text-xs line-clamp-2 mt-1">The mainframe defenses fall as the breach widens.</span>
+</div>
+</div>
+<button class="mt-2 w-full bg-neon-crimson text-void-black font-label-caps text-label-caps py-2 uppercase hover:drop-shadow-[0_0_15px_#FF003C] hover:bg-white transition-all duration-300 flex items-center justify-center gap-2">
+<span class="material-symbols-outlined icon-fill text-[18px]">play_arrow</span> Play Now
+                </button>
+</div>
+<!-- Player Controls (Bottom Overlay) -->
+<div class="absolute bottom-0 w-full bg-surface-glass backdrop-blur-xl border-t border-neon-crimson/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300 px-stack-md py-stack-sm flex flex-col gap-unit z-10">
+<!-- Progress Bar Area -->
+<div class="w-full h-unit bg-surface-container-highest cursor-pointer relative group/progress">
+<div class="absolute top-0 left-0 h-full w-[65%] bg-neon-crimson drop-shadow-[0_0_8px_#FF003C] relative">
+<!-- Playhead glow -->
+<div class="absolute right-0 top-1/2 -translate-y-1/2 w-2 h-4 bg-white opacity-0 group-hover/progress:opacity-100 drop-shadow-[0_0_10px_#FF003C] transition-opacity"></div>
+</div>
+<!-- Buffer bar -->
+<div class="absolute top-0 left-0 h-full w-[75%] bg-outline-variant opacity-50 z-[-1]"></div>
+</div>
+<!-- Controls Layout -->
+<div class="flex justify-between items-center pt-2">
+<!-- Left Controls -->
+<div class="flex items-center gap-stack-md">
+<button class="text-on-surface hover:text-cyber-cyan hover:drop-shadow-[0_0_8px_#00F0FF] transition-all">
+<span class="material-symbols-outlined thin-icon icon-fill" data-icon="pause">pause</span>
+</button>
+<button class="text-on-surface hover:text-cyber-cyan hover:drop-shadow-[0_0_8px_#00F0FF] transition-all flex items-center gap-2 group/vol">
+<span class="material-symbols-outlined thin-icon" data-icon="volume_up">volume_up</span>
+<!-- Volume Slider (Hidden on small, expands on hover) -->
+<div class="w-0 overflow-hidden group-hover/vol:w-20 transition-all duration-300 h-1 bg-surface-container-highest flex items-center">
+<div class="h-full w-3/4 bg-cyber-cyan drop-shadow-[0_0_5px_#00F0FF]"></div>
+</div>
+</button>
+<span class="font-label-caps text-label-caps text-on-surface-variant tracking-widest text-[10px]">16:42 / 24:00</span>
+</div>
+<!-- Right Controls -->
+<div class="flex items-center gap-stack-md">
+<!-- Audio Selector -->
+<div class="flex items-center gap-1 border border-outline-variant p-[2px]">
+<button class="px-2 py-1 bg-cyber-cyan/20 text-cyber-cyan font-label-caps text-[10px] drop-shadow-[0_0_5px_#00F0FF]">DUB</button>
+<button class="px-2 py-1 text-on-surface-variant hover:text-white font-label-caps text-[10px] transition-colors">SUB</button>
+</div>
+<!-- Quality Selector -->
+<div class="flex items-center gap-1 border border-outline-variant p-[2px]">
+<button class="px-2 py-1 bg-neon-crimson/20 text-neon-crimson font-label-caps text-[10px] drop-shadow-[0_0_5px_#FF003C]">4K</button>
+<button class="px-2 py-1 text-on-surface-variant hover:text-white font-label-caps text-[10px] transition-colors">1080P</button>
+</div>
+<button class="text-on-surface hover:text-cyber-cyan hover:drop-shadow-[0_0_8px_#00F0FF] transition-all group/tooltip relative">
+<span class="material-symbols-outlined thin-icon" data-icon="closed_caption">closed_caption</span>
+</button>
+<button class="text-on-surface hover:text-cyber-cyan hover:drop-shadow-[0_0_8px_#00F0FF] transition-all">
+<span class="material-symbols-outlined thin-icon" data-icon="settings">settings</span>
+</button>
+<button class="text-on-surface hover:text-cyber-cyan hover:drop-shadow-[0_0_8px_#00F0FF] transition-all">
+<span class="material-symbols-outlined thin-icon" data-icon="branding_watermark">branding_watermark</span> <!-- Cinema Mode proxy -->
+</button>
+<button class="text-on-surface hover:text-cyber-cyan hover:drop-shadow-[0_0_8px_#00F0FF] transition-all ml-stack-sm">
+<span class="material-symbols-outlined thin-icon" data-icon="fullscreen">fullscreen</span>
+</button>
+</div>
+</div>
+</div>
+</section>
+<!-- Meta & Interaction Layer -->
+<div class="w-full bg-surface-container-lowest border-b border-surface-variant px-margin-desktop py-stack-md flex flex-col md:flex-row justify-between items-start md:items-center gap-stack-md">
+<div>
+<div class="flex items-center gap-stack-sm mb-1">
+<span class="font-label-caps text-label-caps text-cyber-cyan uppercase tracking-widest border border-cyber-cyan px-2 py-1 text-[10px] clip-corner bg-cyber-cyan/10">Simulcast</span>
+<span class="font-label-caps text-label-caps text-on-surface-variant">SEASON 2 • EP 12</span>
+</div>
+<h1 class="font-headline-xl text-headline-xl text-on-surface drop-shadow-[0_0_10px_rgba(255,255,255,0.1)]">Ghost in the Shell: Stand Alone Complex</h1>
+</div>
+<div class="flex items-center gap-stack-md">
+<button class="flex items-center gap-2 border border-outline-variant px-4 py-2 hover:border-cyber-cyan text-on-surface-variant hover:text-cyber-cyan transition-all group clip-corner">
+<span class="material-symbols-outlined text-[18px] group-hover:drop-shadow-[0_0_5px_#00F0FF]" data-icon="add">add</span>
+<span class="font-label-caps text-label-caps">My List</span>
+</button>
+<button class="flex items-center gap-2 border border-outline-variant px-4 py-2 hover:border-neon-crimson text-on-surface-variant hover:text-neon-crimson transition-all group clip-corner">
+<span class="material-symbols-outlined text-[18px] group-hover:drop-shadow-[0_0_5px_#FF003C]" data-icon="share">share</span>
+<span class="font-label-caps text-label-caps">Share</span>
+</button>
+</div>
+</div>
+<!-- Content Grid Below Player -->
+<div class="flex-grow bg-background px-margin-desktop py-stack-lg max-w-[1920px] mx-auto w-full grid grid-cols-1 lg:grid-cols-12 gap-gutter">
+<!-- Left Column: Context & Comments (8 cols) -->
+<div class="lg:col-span-8 flex flex-col gap-stack-lg">
+<!-- Description -->
+<div class="bg-surface-glass border border-surface-variant p-stack-lg">
+<h3 class="font-headline-lg text-headline-lg text-on-surface mb-stack-sm">Data Intercept: Synopsis</h3>
+<p class="font-body-md text-body-md text-on-surface-variant leading-relaxed mb-stack-md">
+                        Section 9 is breached. As the Laughing Man virus propagates through the central hub, Major Kusanagi must execute a hard-dive into the infected subnet. Meanwhile, Batou defends the physical perimeter against rogue Tachikomas. The line between ghost and machine blurs entirely in this critical juncture.
+                    </p>
+<div class="flex flex-wrap gap-stack-sm mt-stack-md">
+<span class="font-label-caps text-label-caps text-on-surface bg-surface-container px-3 py-1 border border-outline/30 clip-corner hover:border-cyber-cyan cursor-pointer transition-colors">Sci-Fi</span>
+<span class="font-label-caps text-label-caps text-on-surface bg-surface-container px-3 py-1 border border-outline/30 clip-corner hover:border-cyber-cyan cursor-pointer transition-colors">Cyberpunk</span>
+<span class="font-label-caps text-label-caps text-on-surface bg-surface-container px-3 py-1 border border-outline/30 clip-corner hover:border-cyber-cyan cursor-pointer transition-colors">Action</span>
+<span class="font-label-caps text-label-caps text-on-surface bg-surface-container px-3 py-1 border border-outline/30 clip-corner hover:border-cyber-cyan cursor-pointer transition-colors">Psychological</span>
+</div>
+</div>
+<!-- Comment Section -->
+<div class="bg-surface border-t border-neon-crimson/20 pt-stack-lg">
+<div class="flex justify-between items-center mb-stack-md">
+<h3 class="font-headline-lg text-headline-lg text-on-surface flex items-center gap-2">
+<span class="material-symbols-outlined text-neon-crimson" data-icon="forum">forum</span> Terminal Chatter
+                        </h3>
+<span class="font-label-caps text-label-caps text-on-surface-variant">2,048 Protocols Active</span>
+</div>
+<!-- Input Area -->
+<div class="flex gap-stack-md mb-stack-lg relative scanline-focus">
+<div class="w-10 h-10 flex-shrink-0 bg-surface-container-high border border-outline-variant">
+<img alt="Your Avatar" class="w-full h-full object-cover" data-alt="A low-resolution, glitch-art style avatar of a masked hacker. The mask is sleek black with a single glowing horizontal red slit for eyes, heavily digitized and pixelated, fitting a cyberpunk terminal user." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAQP1xmLh05LdIGGWhRlp-wLNcAgGsGuCN_wY2GCkTBmTpd1A2EgqhFHR8f7GwLFIhN2neYLveOv-U2_-CIfcS1cqz1UXeNv-ZNkF3TSQbsze5VEw0tTlSvkEGauPD19vxyhNldbW3Q1sU887hU5osM9dVeuRg7sip-9xQPFUBEt8J6dwx3Hv9vZE2CoM_2rR1Qb9KAw1FEcYQpsajq4fYfpa6MAn9OLT3Z0Il9BGuGGJcQ1E6gvZAB"/>
+</div>
+<div class="flex-grow relative">
+<input class="w-full bg-surface-glass border-b border-surface-variant focus:border-neon-crimson focus:ring-0 text-on-surface font-body-md py-2 px-0 transition-colors placeholder:text-on-surface-variant/50 focus:outline-none" placeholder="Transmit thought to the network..." type="text"/>
+<button class="absolute right-0 top-1/2 -translate-y-1/2 text-cyber-cyan hover:drop-shadow-[0_0_8px_#00F0FF] transition-all">
+<span class="material-symbols-outlined" data-icon="send">send</span>
+</button>
+</div>
+</div>
+<!-- Comment List -->
+<div class="flex flex-col gap-stack-md">
+<!-- Comment Item 1 -->
+<div class="flex gap-stack-md group">
+<div class="w-8 h-8 flex-shrink-0 bg-surface-container border border-outline-variant">
+<img alt="User" class="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all" data-alt="A profile picture showing a glowing neon sign of a skull crossed with wires, rendered in bright cyan and deep purple, typical of a cyberpunk gang emblem." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCr1NpgqlKDfOBD7zIxEbwyHS_hNSIP3wg9y10assM-7B3aHvJVNT-jAIRqx0OrAWECLzD5UWsExHJCYbwl4K2nI2qzVhKopWLrkXHqzdNvKMGu6QvUQFIIGuRmmKkc9yRyEha8brKHDh8hQK4tUFLyHjVpLNljvj539Da6eGBDBXhhnP4sQqBV3c163ZkZcXF6Zx_hYzdyqC2FpNkXqMZPiFSS4KVbSXHH1m_rzCjiXJ5mQmY0AVS-"/>
+</div>
+<div class="flex-grow">
+<div class="flex items-baseline gap-2 mb-1">
+<span class="font-label-caps text-label-caps text-neon-crimson">NETRUNNER_99</span>
+<span class="font-label-caps text-[10px] text-on-surface-variant">2 mins ago</span>
+</div>
+<p class="font-body-md text-body-md text-on-surface/90">The animation sequence during the hard-dive was insane. Studio outdid themselves. Anyone else catch the subtle hex code flash at 14:02?</p>
+<div class="flex gap-stack-md mt-2 text-on-surface-variant font-label-caps text-[10px]">
+<button class="hover:text-cyber-cyan flex items-center gap-1 transition-colors"><span class="material-symbols-outlined text-[14px]" data-icon="thumb_up">thumb_up</span> 142</button>
+<button class="hover:text-neon-crimson flex items-center gap-1 transition-colors"><span class="material-symbols-outlined text-[14px]" data-icon="reply">reply</span> Reply</button>
+</div>
+</div>
+</div>
+<!-- Comment Item 2 -->
+<div class="flex gap-stack-md group">
+<div class="w-8 h-8 flex-shrink-0 bg-surface-container border border-outline-variant">
+<img alt="User" class="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all" data-alt="A profile image of an anime eye, extreme close-up, with digital data rings spinning around the pupil in glowing orange and yellow, reflecting a futuristic HUD." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBeZ_hcJ-bbM8TkqSDKAx5jFjEi6RrzNGqmaNWFjJMMC2o5AEjk11mmcGfvNK2MvV0_37_RWdBL2c8VM_YLMUFDvhl0HdVb8B3ayzsw48R6BoDJam7tqNA9VFhl_vQN1UQRrydt_1XaQmBxdHtu8cGEBneWfrHUIfsvcGDisJD7QhizrKzq3MAxfGRY70x94gZy29JGaaQYO2j1CgYDe6RkqikbdIgx6f49ksCJNopyQS2thfNcM1m8"/>
+</div>
+<div class="flex-grow">
+<div class="flex items-baseline gap-2 mb-1">
+<span class="font-label-caps text-label-caps text-cyber-cyan">GHOST_HACK</span>
+<span class="font-label-caps text-[10px] text-on-surface-variant">15 mins ago</span>
+</div>
+<p class="font-body-md text-body-md text-on-surface/90">I swear if Batou's Tachikoma doesn't make it... I'm rioting. The philosophical themes in this arc are hitting way too close to home.</p>
+<div class="flex gap-stack-md mt-2 text-on-surface-variant font-label-caps text-[10px]">
+<button class="hover:text-cyber-cyan flex items-center gap-1 transition-colors"><span class="material-symbols-outlined text-[14px]" data-icon="thumb_up">thumb_up</span> 89</button>
+<button class="hover:text-neon-crimson flex items-center gap-1 transition-colors"><span class="material-symbols-outlined text-[14px]" data-icon="reply">reply</span> Reply</button>
+</div>
+</div>
+</div>
+</div>
+<button class="w-full mt-stack-md border border-outline-variant py-2 font-label-caps text-label-caps text-on-surface hover:border-cyber-cyan hover:text-cyber-cyan transition-all text-center">Load More Protocols</button>
+</div>
+</div>
+<!-- Right Column: Navigation / Up Next (4 cols) -->
+<div class="lg:col-span-4 flex flex-col gap-stack-lg">
+<div class="bg-surface-container-lowest border border-surface-variant p-stack-md sticky top-[100px]">
+<div class="flex flex-col xl:flex-row xl:items-center justify-between gap-stack-sm mb-stack-md border-b border-surface-variant pb-3">
+<h3 class="font-label-caps text-label-caps text-on-surface-variant uppercase tracking-widest flex items-center gap-2">
+        Directory: Season 2
+    </h3>
+<select class="bg-surface-container border border-outline-variant text-on-surface font-label-caps text-[10px] py-1 px-2 focus:border-neon-crimson outline-none cursor-pointer">
+<option>Episodes 1-12</option>
+<option>Episodes 13-24</option>
+</select>
+</div>
+<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2 gap-stack-md max-h-[600px] overflow-y-auto pr-2">
+<!-- Episode Card (Active) -->
+<div class="flex flex-col bg-surface-container border border-neon-crimson relative overflow-hidden group cursor-pointer drop-shadow-[0_0_5px_rgba(255,0,60,0.2)]">
+<div class="w-full aspect-video relative">
+<img alt="Ep 12" class="w-full h-full object-cover" data-alt="A dark, moody still showing a rainy cyberpunk street. A lone figure in a trench coat stands under a glowing neon sign that reads 'NOODLES' in futuristic kanji. Deep blues and intense reds dominate the palette." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDCxKzx_Mri_skxKye4zb_ccGt9vYl_WG-SEDynGtfIhcZx_HOK6VUH-JDxjp_4j05Nu1EK-o5R9YeAuWvqB2Ga98i5aCJP190mwljn5BXXZJ5P-b7COLRuHqA8h_jPEIcU1sowrXdUuAuVKoAjjOtuUTH-Ql-Xjn76SsSWBQ9kGkDxDQ8CkRA9qBcn0iLF1r7gEBX28kxXjhl3dKonzunphy78Cl6PQ8KHuOg4ztyoZnAElgBYZZRL"/>
+<div class="absolute inset-0 bg-void-black/40 flex items-center justify-center">
+<span class="material-symbols-outlined text-white icon-fill drop-shadow-[0_0_5px_#FF003C]" data-icon="play_arrow">play_arrow</span>
+</div>
+<!-- Progress Bar -->
+<div class="absolute bottom-0 left-0 w-full h-1 bg-surface-container-highest">
+<div class="h-full bg-neon-crimson w-[65%]"></div>
+</div>
+</div>
+<div class="p-2 flex flex-col justify-center flex-grow overflow-hidden bg-surface-container">
+<span class="font-label-caps text-[10px] text-neon-crimson mb-1">NOW PLAYING</span>
+<h4 class="font-headline-lg text-[14px] text-on-surface truncate leading-tight">12. Hard Dive</h4>
+<span class="font-label-caps text-[10px] text-on-surface-variant mt-1">24m</span>
+</div>
+</div>
+<!-- Episode Card -->
+<div class="flex flex-col bg-transparent border border-surface-variant hover:border-cyber-cyan transition-all group cursor-pointer">
+<div class="w-full aspect-video relative opacity-80 group-hover:opacity-100 transition-opacity">
+<img alt="Ep 13" class="w-full h-full object-cover" data-alt="A high-octane action shot of a spider-like mechanized tank firing heavy artillery in a ruined warehouse. Muzzle flash illuminates the dark, gritty environment in bright yellow and white bursts against a cool, blue-tinted background." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCSngpWOkW5TIxxNDV3SJnMgi-y-rSLU57Uo0nP7_thyNYA8IJF6J-GEgr5AjJTlmU4YEhnFxXihmhZ_4bhBqCHTVwk4Jmf1Y6eAvZs0TEZjYDOtXIRjivRIDsJX2rCZYyN2iprksNPWDSUKTY6p5Bnn4xERtm-8JUbQOST2X5WnAGUvzbpRx_vFKU--_6AVgzWXar9vLfAlfCXYJmEA2cVBPdNkSHtSlD-ajHCNpvPN3g0JyC82kGO"/>
+<!-- Progress Bar (Empty) -->
+<div class="absolute bottom-0 left-0 w-full h-1 bg-surface-container-highest"></div>
+</div>
+<div class="p-2 flex flex-col justify-center flex-grow overflow-hidden bg-surface-container-low group-hover:bg-surface-container transition-colors">
+<span class="font-label-caps text-[10px] text-on-surface-variant mb-1 group-hover:text-cyber-cyan transition-colors">NEXT</span>
+<h4 class="font-headline-lg text-[14px] text-on-surface/70 group-hover:text-on-surface truncate leading-tight transition-colors">13. System Collapse</h4>
+<span class="font-label-caps text-[10px] text-on-surface-variant mt-1">24m</span>
+</div>
+</div>
+<!-- Episode Card -->
+<div class="flex flex-col bg-transparent border border-surface-variant hover:border-cyber-cyan transition-all group cursor-pointer">
+<div class="w-full aspect-video relative opacity-80 group-hover:opacity-100 transition-opacity">
+<img alt="Ep 14" class="w-full h-full object-cover" data-alt="A serene but eerie shot of endless server racks stretching into digital infinity. The servers pulse with faint green and cyan lights in an otherwise pitch-black void, representing the deep web or a massive AI mainframe." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCdNbk9ftk9gVfkh8znECFOoczUdxhupmBgo0W2kOJ9Y1kj86OEG8QRM0RLSdDv-hOhwbhuKQ1mgWM_Q27wDGThiIGcstYn5VoErQCTEV8Y7o719r4UgWg5vElCXgu7ahzbB8_IpXmWNvh3pZXHlgQLZQP55mj2G22B0Mxk_sVfv-qXY83jbJ50ditIlQN-Vk3lA9KL_CQNxpD_4VBQeqitfOFdlTaS8u6N1lScJCAQECpC9pL26xzE"/>
+<!-- Progress Bar (Empty) -->
+<div class="absolute bottom-0 left-0 w-full h-1 bg-surface-container-highest"></div>
+</div>
+<div class="p-2 flex flex-col justify-center flex-grow overflow-hidden bg-surface-container-low group-hover:bg-surface-container transition-colors">
+<span class="font-label-caps text-[10px] text-on-surface-variant mb-1">UPCOMING</span>
+<h4 class="font-headline-lg text-[14px] text-on-surface/70 group-hover:text-on-surface truncate leading-tight transition-colors">14. Ghost Trace</h4>
+<span class="font-label-caps text-[10px] text-on-surface-variant mt-1">24m</span>
+</div>
+</div>
+<!-- Episode Card -->
+<div class="flex flex-col bg-transparent border border-surface-variant hover:border-cyber-cyan transition-all group cursor-pointer">
+<div class="w-full aspect-video relative opacity-80 group-hover:opacity-100 transition-opacity">
+<img alt="Ep 15" class="w-full h-full object-cover" data-alt="A close-up profile of an android face undergoing repairs. Sparks fly as mechanical tools work on exposed synthetic tissue and wiring. The lighting is harsh, clinical white contrasting with the dark metallic skull beneath." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDsSTgqDBwlWlNQ8kN7Omz_Tyg_DnBftcyiPENFZWAiQ8j2hCwyAXlyig8iWc_8B_vsLCi8xyrCog6CyE5M3ldderh5QLP-hqMNopWOoyrkNHH9RKJoi1uQ2zjNHwXYYMxuJ4YzzeixMTy_0fEJzHPlS0aFoIRIONhq7slvIVBx75IfxfEy8iAIjrOYRifDKr7M3f4ZGOD5lOjGDVJO2fTnfsOfdRwEdVxkJKIjbsUjBMmKZ87eszgh"/>
+<!-- Progress Bar (Empty) -->
+<div class="absolute bottom-0 left-0 w-full h-1 bg-surface-container-highest"></div>
+</div>
+<div class="p-2 flex flex-col justify-center flex-grow overflow-hidden bg-surface-container-low group-hover:bg-surface-container transition-colors">
+<span class="font-label-caps text-[10px] text-on-surface-variant mb-1">UPCOMING</span>
+<h4 class="font-headline-lg text-[14px] text-on-surface/70 group-hover:text-on-surface truncate leading-tight transition-colors">15. Machina</h4>
+<span class="font-label-caps text-[10px] text-on-surface-variant mt-1">24m</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</main>
+<!-- Footer -->
+<footer class="w-full py-stack-lg bg-void-black border-t border-outline-variant flex flex-col md:flex-row justify-between items-center px-margin-desktop gap-stack-md">
+<div class="font-headline-lg text-headline-lg text-neon-crimson italic font-black tracking-tighter">
+            NEON_STREAM
+        </div>
+<div class="flex flex-wrap gap-stack-md justify-center md:justify-end">
+<a class="font-label-md text-label-md text-on-surface-variant hover:text-cyber-cyan transition-opacity duration-200" href="#">System Status</a>
+<a class="font-label-md text-label-md text-on-surface-variant hover:text-cyber-cyan transition-opacity duration-200" href="#">Encryption</a>
+<a class="font-label-md text-label-md text-on-surface-variant hover:text-cyber-cyan transition-opacity duration-200" href="#">Privacy</a>
+<a class="font-label-md text-label-md text-on-surface-variant hover:text-cyber-cyan transition-opacity duration-200" href="#">Terms</a>
+<a class="font-label-md text-label-md text-on-surface-variant hover:text-cyber-cyan transition-opacity duration-200" href="#">Discord</a>
+</div>
+<div class="font-body-md text-body-md text-on-surface-variant text-sm mt-4 md:mt-0 opacity-50">
+            © 2024 NEON_STREAM // PROTOCOL X-9
+        </div>
+</footer>
+</body></html>

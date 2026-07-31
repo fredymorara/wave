@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Neon Stream - Anime Detail</title>
+<!-- Google Fonts -->
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&amp;family=Outfit:wght@400;600&amp;family=Space+Grotesk:ital,wght@0,600;0,700;1,900&amp;display=swap" rel="stylesheet"/>
+<!-- Material Symbols -->
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "on-tertiary-fixed": "#320047",
+                        "on-secondary-fixed": "#002022",
+                        "inverse-surface": "#e5e1e7",
+                        "secondary-fixed": "#7df4ff",
+                        "on-tertiary": "#520071",
+                        "on-tertiary-fixed-variant": "#74009f",
+                        "surface-container-highest": "#353439",
+                        "on-secondary-fixed-variant": "#004f54",
+                        "tertiary-fixed": "#f8d8ff",
+                        "surface": "#131317",
+                        "surface-container-lowest": "#0e0e12",
+                        "on-primary-fixed-variant": "#92001e",
+                        "error-container": "#93000a",
+                        "on-error-container": "#ffdad6",
+                        "primary-fixed-dim": "#ffb3b2",
+                        "outline-variant": "#5f3e3e",
+                        "secondary-container": "#00eefc",
+                        "primary-fixed": "#ffdad8",
+                        "surface-dim": "#131317",
+                        "data-purple": "#BD00FF",
+                        "tertiary-fixed-dim": "#ecb2ff",
+                        "void-black": "#020204",
+                        "outline": "#af8786",
+                        "on-error": "#690005",
+                        "surface-container-low": "#1b1b1f",
+                        "on-tertiary-container": "#480063",
+                        "tertiary": "#ecb2ff",
+                        "tertiary-container": "#cf5cff",
+                        "on-primary-fixed": "#410008",
+                        "primary-container": "#ff525c",
+                        "primary": "#ffb3b2",
+                        "error": "#ffb4ab",
+                        "on-secondary": "#00363a",
+                        "inverse-on-surface": "#303034",
+                        "on-primary-container": "#5b000f",
+                        "surface-variant": "#353439",
+                        "neon-crimson": "#FF003C",
+                        "background": "#131317",
+                        "surface-bright": "#39393d",
+                        "surface-glass": "rgba(10, 10, 15, 0.7)",
+                        "cyber-cyan": "#00F0FF",
+                        "inverse-primary": "#bf002a",
+                        "surface-tint": "#ffb3b2",
+                        "on-background": "#e5e1e7",
+                        "on-secondary-container": "#00686f",
+                        "secondary": "#d3fbff",
+                        "surface-container": "#1f1f23",
+                        "surface-container-high": "#2a292e",
+                        "on-surface": "#e5e1e7",
+                        "secondary-fixed-dim": "#00dbe9",
+                        "on-surface-variant": "#e9bcba",
+                        "on-primary": "#680012"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "stack-sm": "8px",
+                        "stack-md": "16px",
+                        "margin-tablet": "32px",
+                        "margin-desktop": "64px",
+                        "gutter": "24px",
+                        "stack-lg": "32px",
+                        "margin-mobile": "16px",
+                        "unit": "4px"
+                    },
+                    "fontFamily": {
+                        "headline-lg": ["Space Grotesk"],
+                        "body-md": ["Outfit"],
+                        "display-lg-mobile": ["Space Grotesk"],
+                        "headline-xl": ["Space Grotesk"],
+                        "label-caps": ["JetBrains Mono"],
+                        "display-lg": ["Space Grotesk"],
+                        "body-lg": ["Outfit"],
+                        "label-md": ["JetBrains Mono"]
+                    },
+                    "fontSize": {
+                        "headline-lg": ["24px", { "lineHeight": "1.2", "fontWeight": "600" }],
+                        "body-md": ["16px", { "lineHeight": "1.5", "fontWeight": "400" }],
+                        "display-lg-mobile": ["40px", { "lineHeight": "1.1", "fontWeight": "700" }],
+                        "headline-xl": ["32px", { "lineHeight": "1.2", "fontWeight": "600" }],
+                        "label-caps": ["12px", { "lineHeight": "1.0", "letterSpacing": "0.1em", "fontWeight": "500" }],
+                        "display-lg": ["64px", { "lineHeight": "1.1", "letterSpacing": "-0.02em", "fontWeight": "700" }],
+                        "body-lg": ["18px", { "lineHeight": "1.6", "fontWeight": "400" }],
+                        "label-md": ["14px", { "lineHeight": "1.4", "fontWeight": "400" }]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        /* Custom Utilities */
+        .glass-panel {
+            background-color: rgba(10, 10, 15, 0.7);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+        }
+        .neon-border-bottom {
+            border-bottom: 1px solid theme('colors.neon-crimson');
+        }
+        .cyan-border {
+            border: 1px solid theme('colors.cyber-cyan');
+        }
+        .clip-chip {
+            clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px);
+        }
+    </style>
+</head>
+<body class="bg-void-black text-on-surface font-body-md min-h-screen flex flex-col antialiased selection:bg-neon-crimson selection:text-void-black">
+<!-- TopNavBar (Shared Component) -->
+<header class="fixed top-0 w-full z-50 bg-surface-glass backdrop-blur-xl border-b border-neon-crimson/30 shadow-[0_0_15px_rgba(255,0,60,0.2)]">
+<div class="flex justify-between items-center px-margin-desktop py-4 w-full max-w-full">
+<div class="flex items-center gap-gutter">
+<a class="font-headline-xl text-headline-xl text-neon-crimson tracking-tighter italic font-black hover:drop-shadow-[0_0_8px_#FF003C] transition-all duration-300 scale-105 active:scale-95 duration-200" href="#">
+                    NEON_STREAM
+                </a>
+<nav class="hidden md:flex items-center gap-stack-md font-label-caps text-label-caps ml-8">
+<!-- 'Browse' is semantically active for an anime detail page view within the catalog -->
+<a class="text-neon-crimson border-b-2 border-neon-crimson pb-1 hover:drop-shadow-[0_0_8px_#FF003C] transition-all duration-300 scale-105 active:scale-95 duration-200" href="#">
+                        Browse
+                    </a>
+<a class="text-on-surface-variant hover:text-cyber-cyan transition-colors hover:drop-shadow-[0_0_8px_#FF003C] transition-all duration-300 scale-105 active:scale-95 duration-200" href="#">
+                        Seasonal
+                    </a>
+<a class="text-on-surface-variant hover:text-cyber-cyan transition-colors hover:drop-shadow-[0_0_8px_#FF003C] transition-all duration-300 scale-105 active:scale-95 duration-200" href="#">
+                        Simulcast
+                    </a>
+<a class="text-on-surface-variant hover:text-cyber-cyan transition-colors hover:drop-shadow-[0_0_8px_#FF003C] transition-all duration-300 scale-105 active:scale-95 duration-200" href="#">
+                        Movies
+                    </a>
+<a class="text-on-surface-variant hover:text-cyber-cyan transition-colors hover:drop-shadow-[0_0_8px_#FF003C] transition-all duration-300 scale-105 active:scale-95 duration-200" href="#">
+                        Manga
+                    </a>
+</nav>
+</div>
+<div class="flex items-center gap-stack-md">
+<div class="hidden md:flex items-center border-b border-outline-variant focus-within:border-neon-crimson transition-colors pb-1">
+<span class="material-symbols-outlined text-on-surface-variant mr-2" style="font-variation-settings: 'FILL' 0;">search</span>
+<input class="bg-transparent border-none text-label-caps font-label-caps text-on-surface focus:ring-0 placeholder-on-surface-variant w-48 p-0" placeholder="SEARCH_DATABASE..." type="text"/>
+</div>
+<button class="text-on-surface-variant hover:text-cyber-cyan transition-colors hover:drop-shadow-[0_0_8px_#FF003C] scale-105 active:scale-95 duration-200">
+<span class="material-symbols-outlined">notifications</span>
+</button>
+<button class="text-on-surface-variant hover:text-cyber-cyan transition-colors hover:drop-shadow-[0_0_8px_#FF003C] scale-105 active:scale-95 duration-200">
+<span class="material-symbols-outlined">settings</span>
+</button>
+<div class="h-8 w-8 rounded-none overflow-hidden ml-2 border border-cyber-cyan">
+<img alt="Cyberpunk User Profile" class="w-full h-full object-cover" data-alt="A highly detailed avatar portrait of a cyberpunk netrunner character, illuminated by harsh pink and blue neon lights against a pitch-black background, drawn in a premium 2D anime illustration style with sharp edges and technological implants." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDZYh7rSeBu9nXNv_wYSfYQkb2SOOYgx-bG-vQy8KFSX3FU8dAx7v5TKjBaSbzozpPu95RmjrIhwpCGVOktV5L0z7iKtGYdOY-zNrvP_TmhVw-qCpaIda5fQGdbNsbJoU4iVZt-9-AHfeSsOefMFc1vwXIcM7Imdb6-UmFYayygmGfMFoi496qiqS6Xq3jDBMY2_F_fQ9k0hiovXjxm7C8HI-tcghqKO5ce-yG5Zu1p_XxrzAWrEkkb"/>
+</div>
+</div>
+</div>
+</header>
+<main class="flex-grow pt-[80px]">
+<!-- Hero Section -->
+<section class="relative w-full min-h-[716px] flex items-end pb-margin-desktop">
+<div class="absolute inset-0 z-0">
+<div class="w-full h-full bg-cover bg-center" data-alt="A breathtaking, ultra-wide landscape key visual for a sci-fi cyberpunk anime. A towering megalopolis at night, drenched in pouring rain and neon crimson illumination. Silhouettes of high-tech mechs and flying vehicles create a dynamic, dense, and gritty high-contrast background perfect for a premium streaming platform hero banner." style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuAFGtbDJzgggwqsHpw-SaFFTuBj9t9-uYgMVwNEl4Bs1RbxuiIqdVymjIAJS0dEKqj0t7-Ay8Uv7EK_MBmoHbpVIHosBVwvXRMJDecDm2EHQVs6Vjbw_JJbAe4taiQOKlQ07LLGefS9JB3ueMM5M9DUZdaJ716CxAXeP8pbugm8JRskEcqeljlUQadWOljYn8jmsDQOaPX215g6LhGj4hV0JUP7ebcACKOwu3N2SB_bol9NQgzBKSaF')"></div>
+<div class="absolute inset-0 bg-gradient-to-t from-void-black via-void-black/80 to-transparent"></div>
+<div class="absolute inset-0 bg-void-black/20 mix-blend-multiply"></div>
+</div>
+<div class="relative z-10 w-full px-margin-desktop grid grid-cols-1 md:grid-cols-12 gap-gutter items-end">
+<div class="col-span-1 md:col-span-8 flex flex-col gap-stack-lg">
+<!-- Metadata / Tags -->
+<div class="flex flex-wrap gap-stack-sm items-center font-label-caps text-label-caps">
+<span class="clip-chip bg-surface-container-low text-cyber-cyan px-4 py-1.5 uppercase tracking-widest border border-cyber-cyan/30">TV Series</span>
+<span class="clip-chip bg-surface-container-low text-on-surface-variant px-4 py-1.5 uppercase tracking-widest border border-outline-variant">Cyberpunk</span>
+<span class="clip-chip bg-surface-container-low text-on-surface-variant px-4 py-1.5 uppercase tracking-widest border border-outline-variant">Action</span>
+<div class="flex items-center gap-1 text-neon-crimson ml-4">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="font-bold">4.9</span>
+</div>
+<span class="text-on-surface-variant ml-2">2084</span>
+</div>
+<!-- Title -->
+<h1 class="font-display-lg text-display-lg-mobile md:text-display-lg text-on-surface leading-tight drop-shadow-[0_0_15px_rgba(255,0,60,0.5)]">
+                        NEURO<span class="text-neon-crimson">DRIFTER</span>
+</h1>
+<!-- Synopsis -->
+<p class="font-body-lg text-body-lg text-on-surface-variant max-w-3xl glass-panel p-6 border-l-2 border-neon-crimson rounded-none">
+                        In the sprawling underbelly of Sector 7, a rogue neural-hacker discovers a hidden protocol that could bring down the mega-corporations. Hunted by elite enforcement units, they must navigate a neon-drenched dystopia where human consciousness is the ultimate currency.
+                    </p>
+<!-- Actions -->
+<div class="flex items-center gap-stack-md mt-4">
+<button class="bg-neon-crimson text-void-black font-label-caps text-label-caps px-8 py-4 uppercase font-bold tracking-widest hover:shadow-[0_0_20px_rgba(255,0,60,0.8)] transition-all duration-300 rounded-none flex items-center gap-2">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">play_arrow</span>
+                            Watch Now
+                        </button>
+<button class="cyan-border bg-transparent text-cyber-cyan font-label-caps text-label-caps px-8 py-4 uppercase font-bold tracking-widest hover:bg-cyber-cyan/10 hover:shadow-[0_0_15px_rgba(0,240,255,0.4)] transition-all duration-300 rounded-none flex items-center gap-2">
+<span class="material-symbols-outlined">add</span>
+                            Add to List
+                        </button>
+</div>
+</div>
+</div>
+</section>
+<!-- Content Layout -->
+<section class="px-margin-desktop py-margin-desktop grid grid-cols-1 lg:grid-cols-12 gap-gutter relative">
+<!-- Left Column: Episodes -->
+<div class="lg:col-span-8 flex flex-col gap-stack-lg">
+<div class="flex items-center justify-between border-b border-outline-variant pb-4">
+<h2 class="font-headline-xl text-headline-xl text-on-surface">EPISODES <span class="text-neon-crimson font-label-caps text-label-caps text-sm align-top">S1</span></h2>
+</div>
+<div class="flex flex-col gap-unit">
+<!-- Episode Item -->
+<div class="glass-panel group flex flex-col md:flex-row gap-stack-md p-4 border border-transparent hover:border-neon-crimson hover:shadow-[0_0_15px_rgba(255,0,60,0.15)] transition-all duration-300 cursor-pointer">
+<div class="relative w-full md:w-64 h-36 shrink-0 overflow-hidden bg-surface-container">
+<img class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" data-alt="A cinematic still frame from a dark sci-fi anime. A female protagonist with glowing cybernetic eyes stands in a rain-slicked alleyway, illuminated by harsh red neon signs. The composition is tense, with a high-contrast cinematic lighting setup highlighting the intricate details of her high-tech urban gear." src="https://lh3.googleusercontent.com/aida-public/AB6AXuD_ohKqUCpN2odPxDAXbHn1MkUcLWdl_pGACxReojWKDcaSkBRo07r_Bz7yoA6swoP4dMk-VPp6yrSLOcyCZl08rxU91oRbshp2TwYBY4ebRM-ImLB683N_G9vs1XegskMCTh9nUAfe9ZjnhG2ttBNER9YUZJm-S-WTdAFYfNwz40Ysx4pPs9MZwRJ8JXQiXfG5lZEasniPoQjKNZ4pT0yJc_REcYsT5wxeuNwV0czc3LpkoZUHIoaj"/>
+<div class="absolute bottom-2 right-2 bg-void-black/80 px-2 py-1 font-label-caps text-[10px] text-on-surface border border-outline-variant">24:15</div>
+<div class="absolute inset-0 bg-void-black/40 group-hover:bg-transparent transition-colors flex items-center justify-center opacity-0 group-hover:opacity-100 duration-300">
+<div class="bg-neon-crimson rounded-full p-2 drop-shadow-[0_0_10px_#FF003C]">
+<span class="material-symbols-outlined text-void-black block" style="font-variation-settings: 'FILL' 1;">play_arrow</span>
+</div>
+</div>
+</div>
+<div class="flex flex-col justify-center flex-grow">
+<div class="font-label-caps text-label-caps text-neon-crimson mb-1">EPISODE 01</div>
+<h3 class="font-headline-lg text-headline-lg text-on-surface mb-2 group-hover:text-cyber-cyan transition-colors">Awakening Sequence</h3>
+<p class="font-body-md text-body-md text-on-surface-variant line-clamp-2">The protocol activates unexpectedly, throwing Kael into a deadly game of cat and mouse across the neon-lit rooftops of Sector 7. The enforcement unit closes in.</p>
+</div>
+</div>
+<!-- Episode Item -->
+<div class="glass-panel group flex flex-col md:flex-row gap-stack-md p-4 border border-transparent hover:border-neon-crimson hover:shadow-[0_0_15px_rgba(255,0,60,0.15)] transition-all duration-300 cursor-pointer opacity-70 hover:opacity-100">
+<div class="relative w-full md:w-64 h-36 shrink-0 overflow-hidden bg-surface-container">
+<img class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" data-alt="A cinematic still frame from a dark sci-fi anime. A high-speed chase scene featuring sleek, hovering motorcycles zooming through a dense, vertical futuristic city. Motion blur and trailing crimson taillights create a sense of extreme speed against the dark, monolithic corporate skyscrapers." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCfIDHkuafIof6KAI8VYNXTrVb2kWj3wBDN5Yx3VLbi2XzRwa8-_3cAFNzDLkncJmErrlAtDFx5gcOWcCIwkYTWw1ACgXjMel_QGoxZ1LDNIK7D4r_vycaVBwXCcnHnSqhcyRJ4j0xS6akKnIMts_tTdD0jUtUcQmZv5qRCuWOBsr-Hh_Gik0P83DZ08du_iHH9LL-r3gUSaYTpkmpn6hVmUrutYsB_soKJzsn4ILi1GgCx6HHY_F4G"/>
+<div class="absolute bottom-2 right-2 bg-void-black/80 px-2 py-1 font-label-caps text-[10px] text-on-surface border border-outline-variant">23:42</div>
+</div>
+<div class="flex flex-col justify-center flex-grow">
+<div class="font-label-caps text-label-caps text-on-surface-variant mb-1">EPISODE 02</div>
+<h3 class="font-headline-lg text-headline-lg text-on-surface mb-2 group-hover:text-cyber-cyan transition-colors">Ghost in the Shellcode</h3>
+<p class="font-body-md text-body-md text-on-surface-variant line-clamp-2">Seeking refuge in the underground data-markets, a dangerous deal is struck to decipher the hijacked neural patterns. Trust is a luxury they cannot afford.</p>
+</div>
+</div>
+</div>
+</div>
+<!-- Right Column: Details & Related -->
+<div class="lg:col-span-4 flex flex-col gap-margin-tablet">
+<!-- Cast Widget -->
+<div class="glass-panel p-6 border border-outline-variant/30">
+<h4 class="font-label-caps text-label-caps text-on-surface-variant mb-6 uppercase tracking-widest border-b border-outline-variant pb-2">Primary Assets // Cast</h4>
+<ul class="flex flex-col gap-stack-md">
+<li class="flex items-center gap-4 group">
+<div class="w-12 h-12 rounded-none overflow-hidden bg-surface-container border border-outline-variant group-hover:border-cyber-cyan transition-colors">
+<img class="w-full h-full object-cover" data-alt="A close-up character portrait of a stern, battle-scarred anime protagonist with short silver hair and a high-collared dark tech-jacket. The lighting casts dramatic, deep shadows across his face, emphasizing a high-contrast cyberpunk aesthetic." src="https://lh3.googleusercontent.com/aida-public/AB6AXuC_cWXpgsiFS4DgyTwJ5bWRhoMU62GoBgNN2myOu2xNe2sLqMZHYnvULEavYCbM4w4pxM6NWxfFO500VrGOFh0JCZEwrO6895O5xo94yopxlyOPs6lLVDjH_BJYcIcz2q3doyqAj0OrXLSdKPEZ-rJiIXd1CyU1Afl7V2WyrbGGHKcbhkGbPn0AuLUN7xf1NniTheX9O-A8OttDHSuV9QeeckOwYgNMse-2NslaCn_-2hy1jSDUtrjS"/>
+</div>
+<div>
+<div class="font-body-md text-on-surface font-semibold group-hover:text-cyber-cyan transition-colors">Kael 'Drifter'</div>
+<div class="font-label-caps text-label-caps text-on-surface-variant text-[10px]">VA: Kenjiro Tsuda</div>
+</div>
+</li>
+<li class="flex items-center gap-4 group">
+<div class="w-12 h-12 rounded-none overflow-hidden bg-surface-container border border-outline-variant group-hover:border-cyber-cyan transition-colors">
+<img class="w-full h-full object-cover" data-alt="A close-up character portrait of a female anime character with vibrant magenta hair styled in twin tails, wearing a sleek neural-interface visor. She has a mischievous expression, rendered in sharp 2D animation style with glowing rim light." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBow3H90UO3g-p-PrLu2xfFDwgYQ3Uwq-rNwa6UR6DiasWsuuAGKOrDmdOWLi6EPkEieNfOD3Xu_p4TQu1iUbJKSRuMYEUh-9ePIb4XsKQXRcMF_QlxMs3MHSZY9fBxENg45f78703vrVkeb-Bbn700NGuCnuiBWeTqb6OEpakbQfvIl-Jpsl-EXfthpIFpjwPyYSgdLOprzo-mhnAgYNtvseve-EvhMsMvlwB4LxXFoSpi3bmQBKWy"/>
+</div>
+<div>
+<div class="font-body-md text-on-surface font-semibold group-hover:text-cyber-cyan transition-colors">Lyra.exe</div>
+<div class="font-label-caps text-label-caps text-on-surface-variant text-[10px]">VA: Miyuki Sawashiro</div>
+</div>
+</li>
+</ul>
+</div>
+<!-- Related Grid -->
+<div class="flex flex-col gap-stack-md">
+<h4 class="font-label-caps text-label-caps text-on-surface-variant mb-2 uppercase tracking-widest border-b border-outline-variant pb-2">Similar Protocols</h4>
+<div class="grid grid-cols-2 gap-stack-sm">
+<div class="group relative cursor-pointer overflow-hidden border border-transparent hover:border-neon-crimson transition-colors duration-300">
+<div class="aspect-[2/3] w-full bg-surface-container">
+<img class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" data-alt="Cover art for a dark, violent mecha anime. A massive, rusted robotic unit stands amidst the ruins of a city, glowing red optical sensors piercing the thick smog. The aesthetic is heavy, industrial, and bleak, with deep blacks and stark crimson highlights." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDP6at21pZEjRSmG70qE0_oCla0E8XRpP3e0kJEugVL8PQqyLwVgAIVgl8SVm3aQwYcA8enmQgpTim1eHThASkHqrP9MI9AaUl8J1ojF8VKcl0bsqeCKb5E3gzMNw7p6HEfSzDayC4glvW84z-4Zg0Xokkyon-UJ3hwt3WvLZozozbaS2V0YJR9JUyl4BpvQTcv3xHvKQBIUg-4KQ8gH-UOOIZhBn-eHeDeCp6Ci5G5KgH2zgBbR7bQ"/>
+</div>
+<div class="absolute bottom-0 w-full p-2 bg-void-black/90 backdrop-blur-md border-t border-neon-crimson/50 transform translate-y-full group-hover:translate-y-0 transition-transform duration-300">
+<div class="font-label-caps text-[10px] text-neon-crimson mb-1">MECHA / GORE</div>
+<div class="font-body-md text-sm text-on-surface truncate">Iron Requiem</div>
+</div>
+</div>
+<div class="group relative cursor-pointer overflow-hidden border border-transparent hover:border-neon-crimson transition-colors duration-300">
+<div class="aspect-[2/3] w-full bg-surface-container">
+<img class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" data-alt="Cover art for a psychological thriller anime set in a futuristic school. A lone student stands in a stark, geometrically impossible hallway lit by cold cyan fluorescent lights. The atmosphere is sterile, eerie, and unsettling, utilizing a highly stylized, minimalist vector art approach." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBPv2dAkSGEaK0S8jV_zONQdtih40FoMaSa02uUMsoE9OKuUO4l1ceoQKw7oz4mAzJCLrnY8p1Bil6syBbauyBwC1cPXKlR5wuoAwT8dY5TT1DnoHoR7iBt007ZU1oOy5g_6CI1wRoTm2QmXNvwediFfyP-RTVDtFtWhuaQk1Ug0LQCF0ipEyF0czaUw46sHbv1_Gd7UMRtlFZDIG6ObvKJL7WPQSVS07fXnIm8EGdcBCt0-8PyaiP6"/>
+</div>
+<div class="absolute bottom-0 w-full p-2 bg-void-black/90 backdrop-blur-md border-t border-neon-crimson/50 transform translate-y-full group-hover:translate-y-0 transition-transform duration-300">
+<div class="font-label-caps text-[10px] text-cyber-cyan mb-1">PSYCHOLOGICAL</div>
+<div class="font-body-md text-sm text-on-surface truncate">Null Sec Academy</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</section>
+</main>
+<!-- Footer (Shared Component) -->
+<footer class="bg-void-black w-full py-stack-lg border-t border-outline-variant flex flex-col md:flex-row justify-between items-center px-margin-desktop gap-stack-md mt-margin-desktop z-10 relative">
+<div class="font-headline-lg text-headline-lg text-neon-crimson italic font-black">
+            NEON_STREAM
+        </div>
+<nav class="flex flex-wrap justify-center gap-stack-md font-label-md text-label-md">
+<a class="text-on-surface-variant hover:text-cyber-cyan transition-opacity duration-200" href="#">System Status</a>
+<a class="text-on-surface-variant hover:text-cyber-cyan transition-opacity duration-200" href="#">Encryption</a>
+<a class="text-on-surface-variant hover:text-cyber-cyan transition-opacity duration-200" href="#">Privacy</a>
+<a class="text-on-surface-variant hover:text-cyber-cyan transition-opacity duration-200" href="#">Terms</a>
+<a class="text-on-surface-variant hover:text-cyber-cyan transition-opacity duration-200" href="#">Discord</a>
+</nav>
+<div class="font-body-md text-body-md text-on-surface-variant text-sm">
+            © 2024 NEON_STREAM // PROTOCOL X-9
+        </div>
+</footer>
+</body></html>

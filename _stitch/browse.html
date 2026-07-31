@@ -1,0 +1,506 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>NEON_STREAM - Browse</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&amp;family=Outfit:wght@400;500;600&amp;family=Space+Grotesk:wght@500;600;700;900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              "colors": {
+                      "on-tertiary-fixed": "#320047",
+                      "on-secondary-fixed": "#002022",
+                      "inverse-surface": "#e5e1e7",
+                      "secondary-fixed": "#7df4ff",
+                      "on-tertiary": "#520071",
+                      "on-tertiary-fixed-variant": "#74009f",
+                      "surface-container-highest": "#353439",
+                      "on-secondary-fixed-variant": "#004f54",
+                      "tertiary-fixed": "#f8d8ff",
+                      "surface": "#131317",
+                      "surface-container-lowest": "#0e0e12",
+                      "on-primary-fixed-variant": "#92001e",
+                      "error-container": "#93000a",
+                      "on-error-container": "#ffdad6",
+                      "primary-fixed-dim": "#ffb3b2",
+                      "outline-variant": "#5f3e3e",
+                      "secondary-container": "#00eefc",
+                      "primary-fixed": "#ffdad8",
+                      "surface-dim": "#131317",
+                      "data-purple": "#BD00FF",
+                      "tertiary-fixed-dim": "#ecb2ff",
+                      "void-black": "#020204",
+                      "outline": "#af8786",
+                      "on-error": "#690005",
+                      "surface-container-low": "#1b1b1f",
+                      "on-tertiary-container": "#480063",
+                      "tertiary": "#ecb2ff",
+                      "tertiary-container": "#cf5cff",
+                      "on-primary-fixed": "#410008",
+                      "primary-container": "#ff525c",
+                      "primary": "#ffb3b2",
+                      "error": "#ffb4ab",
+                      "on-secondary": "#00363a",
+                      "inverse-on-surface": "#303034",
+                      "on-primary-container": "#5b000f",
+                      "surface-variant": "#353439",
+                      "neon-crimson": "#FF003C",
+                      "background": "#131317",
+                      "surface-bright": "#39393d",
+                      "surface-glass": "rgba(10, 10, 15, 0.7)",
+                      "cyber-cyan": "#00F0FF",
+                      "inverse-primary": "#bf002a",
+                      "surface-tint": "#ffb3b2",
+                      "on-background": "#e5e1e7",
+                      "on-secondary-container": "#00686f",
+                      "secondary": "#d3fbff",
+                      "surface-container": "#1f1f23",
+                      "surface-container-high": "#2a292e",
+                      "on-surface": "#e5e1e7",
+                      "secondary-fixed-dim": "#00dbe9",
+                      "on-surface-variant": "#e9bcba",
+                      "on-primary": "#680012"
+              },
+              "borderRadius": {
+                      "DEFAULT": "0.25rem",
+                      "lg": "0.5rem",
+                      "xl": "0.75rem",
+                      "full": "9999px"
+              },
+              "spacing": {
+                      "stack-sm": "8px",
+                      "stack-md": "16px",
+                      "margin-tablet": "32px",
+                      "margin-desktop": "64px",
+                      "gutter": "24px",
+                      "stack-lg": "32px",
+                      "margin-mobile": "16px",
+                      "unit": "4px"
+              },
+              "fontFamily": {
+                      "headline-lg": [
+                              "Space Grotesk"
+                      ],
+                      "body-md": [
+                              "Outfit"
+                      ],
+                      "display-lg-mobile": [
+                              "Space Grotesk"
+                      ],
+                      "headline-xl": [
+                              "Space Grotesk"
+                      ],
+                      "label-caps": [
+                              "JetBrains Mono"
+                      ],
+                      "display-lg": [
+                              "Space Grotesk"
+                      ],
+                      "body-lg": [
+                              "Outfit"
+                      ],
+                      "label-md": [
+                              "JetBrains Mono"
+                      ]
+              },
+              "fontSize": {
+                      "headline-lg": [
+                              "24px",
+                              {
+                                      "lineHeight": "1.2",
+                                      "fontWeight": "600"
+                              }
+                      ],
+                      "body-md": [
+                              "16px",
+                              {
+                                      "lineHeight": "1.5",
+                                      "fontWeight": "400"
+                              }
+                      ],
+                      "display-lg-mobile": [
+                              "40px",
+                              {
+                                      "lineHeight": "1.1",
+                                      "fontWeight": "700"
+                              }
+                      ],
+                      "headline-xl": [
+                              "32px",
+                              {
+                                      "lineHeight": "1.2",
+                                      "fontWeight": "600"
+                              }
+                      ],
+                      "label-caps": [
+                              "12px",
+                              {
+                                      "lineHeight": "1.0",
+                                      "letterSpacing": "0.1em",
+                                      "fontWeight": "500"
+                              }
+                      ],
+                      "display-lg": [
+                              "64px",
+                              {
+                                      "lineHeight": "1.1",
+                                      "letterSpacing": "-0.02em",
+                                      "fontWeight": "700"
+                              }
+                      ],
+                      "body-lg": [
+                              "18px",
+                              {
+                                      "lineHeight": "1.6",
+                                      "fontWeight": "400"
+                              }
+                      ],
+                      "label-md": [
+                              "14px",
+                              {
+                                      "lineHeight": "1.4",
+                                      "fontWeight": "400"
+                              }
+                      ]
+              }
+      },
+          },
+        }
+      </script>
+<style>
+        body {
+            background-color: theme('colors.void-black');
+            color: theme('colors.on-surface');
+            overflow-x: hidden;
+        }
+
+        .glass-panel {
+            background: rgba(10, 10, 15, 0.7);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 0, 60, 0.1);
+        }
+
+        .cyber-border {
+            border: 1px solid theme('colors.outline-variant');
+            transition: all 0.3s ease;
+        }
+
+        .cyber-border:hover, .cyber-border:focus-within {
+            border-color: theme('colors.neon-crimson');
+            box-shadow: 0 0 15px rgba(255, 0, 60, 0.2);
+        }
+
+        .anime-card {
+            transition: transform 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
+            border: 1px solid transparent;
+        }
+
+        .anime-card:hover {
+            transform: scale(1.02);
+            border-color: theme('colors.neon-crimson');
+            box-shadow: 0 0 20px rgba(255, 0, 60, 0.3);
+            z-index: 10;
+        }
+        
+        .anime-card:hover .play-overlay {
+            opacity: 1;
+        }
+
+        .play-overlay {
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            background: linear-gradient(to top, rgba(19, 19, 23, 0.9) 0%, rgba(19, 19, 23, 0) 100%);
+        }
+
+        .btn-primary {
+            background-color: theme('colors.neon-crimson');
+            color: theme('colors.on-primary');
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary:hover {
+            box-shadow: 0 0 15px theme('colors.neon-crimson');
+        }
+
+        .btn-ghost {
+            border: 1px solid theme('colors.cyber-cyan');
+            color: theme('colors.cyber-cyan');
+            transition: all 0.3s ease;
+        }
+
+        .btn-ghost:hover {
+            background-color: rgba(0, 240, 255, 0.1);
+            box-shadow: 0 0 10px rgba(0, 240, 255, 0.3);
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: theme('colors.void-black');
+        }
+        ::-webkit-scrollbar-thumb {
+            background: theme('colors.surface-variant');
+            border-radius: 0;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: theme('colors.neon-crimson');
+        }
+
+        .tag-clip {
+            clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px);
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col font-body-md text-body-md selection:bg-neon-crimson selection:text-white">
+<!-- TopNavBar -->
+<header class="fixed top-0 w-full z-50 bg-surface-glass backdrop-blur-xl border-b border-neon-crimson/30 shadow-[0_0_15px_rgba(255,0,60,0.2)]">
+<div class="flex justify-between items-center px-margin-desktop py-4 w-full max-w-full">
+<div class="flex items-center gap-stack-lg">
+<a class="font-headline-xl text-headline-xl text-neon-crimson tracking-tighter italic font-black hover:drop-shadow-[0_0_8px_#FF003C] transition-all duration-300" href="#">
+                    NEON_STREAM
+                </a>
+<nav class="hidden md:flex items-center gap-stack-md ml-stack-lg">
+<a class="font-label-caps text-label-caps text-neon-crimson border-b-2 border-neon-crimson pb-1 hover:drop-shadow-[0_0_8px_#FF003C] transition-all duration-300 scale-105 active:scale-95 duration-200" href="#">
+                        Browse
+                    </a>
+<a class="font-label-caps text-label-caps text-on-surface-variant hover:text-cyber-cyan transition-colors hover:drop-shadow-[0_0_8px_#FF003C] transition-all duration-300 scale-105 active:scale-95 duration-200" href="#">
+                        Seasonal
+                    </a>
+<a class="font-label-caps text-label-caps text-on-surface-variant hover:text-cyber-cyan transition-colors hover:drop-shadow-[0_0_8px_#FF003C] transition-all duration-300 scale-105 active:scale-95 duration-200" href="#">
+                        Simulcast
+                    </a>
+<a class="font-label-caps text-label-caps text-on-surface-variant hover:text-cyber-cyan transition-colors hover:drop-shadow-[0_0_8px_#FF003C] transition-all duration-300 scale-105 active:scale-95 duration-200" href="#">
+                        Movies
+                    </a>
+<a class="font-label-caps text-label-caps text-on-surface-variant hover:text-cyber-cyan transition-colors hover:drop-shadow-[0_0_8px_#FF003C] transition-all duration-300 scale-105 active:scale-95 duration-200" href="#">
+                        Manga
+                    </a>
+</nav>
+</div>
+<div class="flex items-center gap-stack-md">
+<div class="relative hidden md:block">
+<input class="bg-surface-container-low border-b border-outline-variant text-on-surface font-label-md text-label-md px-stack-md py-stack-sm w-64 focus:outline-none focus:border-neon-crimson focus:ring-0 placeholder-on-surface-variant/50 transition-colors" placeholder="SEARCH_DATABASE..." type="text"/>
+<span class="material-symbols-outlined absolute right-2 top-1/2 -translate-y-1/2 text-on-surface-variant text-sm pointer-events-none" data-icon="search">search</span>
+</div>
+<button class="text-on-surface-variant hover:text-cyber-cyan hover:drop-shadow-[0_0_8px_#FF003C] transition-all duration-300 scale-105 active:scale-95 duration-200">
+<span class="material-symbols-outlined" data-icon="notifications">notifications</span>
+</button>
+<button class="text-on-surface-variant hover:text-cyber-cyan hover:drop-shadow-[0_0_8px_#FF003C] transition-all duration-300 scale-105 active:scale-95 duration-200">
+<span class="material-symbols-outlined" data-icon="settings">settings</span>
+</button>
+<div class="w-10 h-10 rounded-none cyber-border overflow-hidden cursor-pointer ml-stack-sm hover:drop-shadow-[0_0_8px_#FF003C] transition-all duration-300 scale-105 active:scale-95 duration-200">
+<img alt="Cyberpunk User Profile" class="w-full h-full object-cover" data-alt="A striking digital portrait of a cyberpunk netrunner character, neon crimson and cyan rim lighting, dark futuristic aesthetic, high contrast, detailed face, avatar icon style." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAUXS020bh2AsnBe9gyKgyDaJQCl8qpCruif8NjcrdXJ6Ct7jNo_nbYOZo4DTfWjoF-fly5c7liP60vQBfonoynAd10J3SnlfKyYw3qv8cpQa3QH8R61ieCSDzZ5SIDCRWucqttOQnZ7IPmC-738uVJC0mLIfCGLHSwQ861HtLbYO6E6aQXkmS-OSmMYSscsVWm9CQr1EmYrdcsP5YjON4cKu6fhVYwYvKEhgQAKeTBpLa3qP-kCwdS"/>
+</div>
+</div>
+</div>
+</header>
+<!-- Main Content -->
+<main class="flex-grow pt-24 px-margin-tablet md:px-margin-desktop pb-margin-desktop flex flex-col md:flex-row gap-gutter">
+<!-- Sidebar Filters -->
+<aside class="w-full md:w-64 flex-shrink-0 flex flex-col gap-stack-lg">
+<div class="glass-panel p-stack-md border-l-2 border-l-neon-crimson border-y-0 border-r-0">
+<h2 class="font-headline-lg text-headline-lg text-on-surface mb-stack-md tracking-wide">FILTERS</h2>
+<div class="flex flex-col gap-stack-sm">
+<h3 class="font-label-caps text-label-caps text-on-surface-variant uppercase tracking-widest mt-stack-sm">Genres</h3>
+<label class="flex items-center gap-stack-sm cursor-pointer group">
+<input checked="" class="form-checkbox bg-surface border-outline-variant text-neon-crimson rounded-none focus:ring-0 focus:ring-offset-0 group-hover:border-neon-crimson transition-colors" type="checkbox"/>
+<span class="font-label-md text-label-md text-on-surface group-hover:text-neon-crimson transition-colors">Action</span>
+</label>
+<label class="flex items-center gap-stack-sm cursor-pointer group">
+<input checked="" class="form-checkbox bg-surface border-outline-variant text-neon-crimson rounded-none focus:ring-0 focus:ring-offset-0 group-hover:border-neon-crimson transition-colors" type="checkbox"/>
+<span class="font-label-md text-label-md text-on-surface group-hover:text-neon-crimson transition-colors">Cyberpunk</span>
+</label>
+<label class="flex items-center gap-stack-sm cursor-pointer group">
+<input class="form-checkbox bg-surface border-outline-variant text-neon-crimson rounded-none focus:ring-0 focus:ring-offset-0 group-hover:border-neon-crimson transition-colors" type="checkbox"/>
+<span class="font-label-md text-label-md text-on-surface group-hover:text-neon-crimson transition-colors">Sci-Fi</span>
+</label>
+<label class="flex items-center gap-stack-sm cursor-pointer group">
+<input class="form-checkbox bg-surface border-outline-variant text-neon-crimson rounded-none focus:ring-0 focus:ring-offset-0 group-hover:border-neon-crimson transition-colors" type="checkbox"/>
+<span class="font-label-md text-label-md text-on-surface group-hover:text-neon-crimson transition-colors">Shonen</span>
+</label>
+<label class="flex items-center gap-stack-sm cursor-pointer group">
+<input class="form-checkbox bg-surface border-outline-variant text-neon-crimson rounded-none focus:ring-0 focus:ring-offset-0 group-hover:border-neon-crimson transition-colors" type="checkbox"/>
+<span class="font-label-md text-label-md text-on-surface group-hover:text-neon-crimson transition-colors">Mecha</span>
+</label>
+</div>
+<div class="flex flex-col gap-stack-sm mt-stack-md pt-stack-md border-t border-outline-variant/30">
+<h3 class="font-label-caps text-label-caps text-on-surface-variant uppercase tracking-widest">Status</h3>
+<label class="flex items-center gap-stack-sm cursor-pointer group">
+<input checked="" class="form-radio bg-surface border-outline-variant text-cyber-cyan focus:ring-0 focus:ring-offset-0 group-hover:border-cyber-cyan transition-colors" name="status" type="radio"/>
+<span class="font-label-md text-label-md text-on-surface group-hover:text-cyber-cyan transition-colors">Any</span>
+</label>
+<label class="flex items-center gap-stack-sm cursor-pointer group">
+<input class="form-radio bg-surface border-outline-variant text-cyber-cyan focus:ring-0 focus:ring-offset-0 group-hover:border-cyber-cyan transition-colors" name="status" type="radio"/>
+<span class="font-label-md text-label-md text-on-surface group-hover:text-cyber-cyan transition-colors">Airing</span>
+</label>
+<label class="flex items-center gap-stack-sm cursor-pointer group">
+<input class="form-radio bg-surface border-outline-variant text-cyber-cyan focus:ring-0 focus:ring-offset-0 group-hover:border-cyber-cyan transition-colors" name="status" type="radio"/>
+<span class="font-label-md text-label-md text-on-surface group-hover:text-cyber-cyan transition-colors">Completed</span>
+</label>
+</div>
+<button class="w-full mt-stack-lg btn-ghost py-2 px-4 font-label-caps text-label-caps uppercase tracking-wider text-center flex items-center justify-center gap-2">
+<span class="material-symbols-outlined text-[16px]" data-icon="filter_list">filter_list</span> Apply Filters
+                </button>
+</div>
+</aside>
+<!-- Main Grid Area -->
+<div class="flex-grow flex flex-col gap-stack-lg">
+<!-- Controls Bar -->
+<div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-stack-md glass-panel p-stack-sm px-stack-md">
+<div class="font-label-md text-label-md text-on-surface-variant">
+                    Showing <span class="text-neon-crimson font-bold">124</span> results for selected filters.
+                </div>
+<div class="flex items-center gap-stack-md">
+<span class="font-label-caps text-label-caps text-on-surface-variant">SORT BY:</span>
+<select class="bg-surface-container-lowest border-b border-outline-variant text-on-surface font-label-md text-label-md py-1 pl-2 pr-8 focus:outline-none focus:border-neon-crimson focus:ring-0 appearance-none cursor-pointer">
+<option>Popularity</option>
+<option>Newest Added</option>
+<option>Highest Rating</option>
+<option>Trending Now</option>
+</select>
+</div>
+</div>
+<!-- Anime Grid -->
+<div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-stack-md">
+<!-- Card 1 -->
+<div class="anime-card relative aspect-[2/3] bg-surface-container-lowest cursor-pointer group rounded-none overflow-hidden flex flex-col">
+<div class="absolute top-2 left-2 z-20 flex gap-1">
+<span class="tag-clip bg-neon-crimson/80 text-white font-label-caps text-[10px] px-2 py-0.5 backdrop-blur-sm">SUB</span>
+<span class="tag-clip bg-cyber-cyan/80 text-void-black font-label-caps text-[10px] px-2 py-0.5 backdrop-blur-sm font-bold">HD</span>
+</div>
+<div class="flex-grow relative overflow-hidden">
+<img alt="Anime Poster" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" data-alt="High contrast cyberpunk anime poster art, a lone figure standing in a neon-lit rain-slicked city alleyway, towering skyscrapers, intense red and blue lighting, highly detailed digital illustration style, cinematic composition." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBOL5bPmBoT5LSpJYlRAwFqQCAazQSUoRi7rg66hF3oRNEHwgZmd1vICZekFGiqGRm1umuQXwV7lxCo7aZMTF65ggL_QfyQbDg4vDqSjyCpEC4dAVMY_rx87cbftOPlkroBnTg5Px_pIGYQHwGo4TA46VWxOCzhFo_UytzDdZbNd88q57DbsuEW3dLAM9sCmlGAIkDbefOA7d56YG51ueO5-VcZ4LU41cEq8iAOAFzdHPGHutKBuvcX"/>
+<div class="play-overlay absolute inset-0 flex items-center justify-center z-10">
+<button class="w-12 h-12 rounded-full bg-neon-crimson/90 text-white flex items-center justify-center hover:bg-neon-crimson transition-colors shadow-[0_0_15px_#FF003C]">
+<span class="material-symbols-outlined ml-1" data-icon="play_arrow" data-weight="fill" style="font-variation-settings: 'FILL' 1;">play_arrow</span>
+</button>
+</div>
+</div>
+<div class="glass-panel p-stack-sm absolute bottom-0 w-full z-20 border-t border-t-outline-variant/30">
+<h4 class="font-headline-lg text-[16px] text-on-surface truncate">NEON DRIFTER // 2077</h4>
+<div class="flex justify-between items-center mt-1">
+<span class="font-label-caps text-[10px] text-cyber-cyan">CYBERPUNK • ACTION</span>
+<span class="font-label-caps text-[10px] text-on-surface-variant flex items-center gap-1"><span class="material-symbols-outlined text-[10px] text-yellow-400" data-icon="star" data-weight="fill" style="font-variation-settings: 'FILL' 1;">star</span> 9.8</span>
+</div>
+</div>
+</div>
+<!-- Card 2 -->
+<div class="anime-card relative aspect-[2/3] bg-surface-container-lowest cursor-pointer group rounded-none overflow-hidden flex flex-col">
+<div class="absolute top-2 left-2 z-20 flex gap-1">
+<span class="tag-clip bg-neon-crimson/80 text-white font-label-caps text-[10px] px-2 py-0.5 backdrop-blur-sm">SUB</span>
+</div>
+<div class="flex-grow relative overflow-hidden">
+<img alt="Anime Poster" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" data-alt="Dynamic action anime poster, a glowing mecha warrior in mid-air combat against a dark cosmic background, vibrant energy blasts of crimson and purple, highly detailed mechanical design, energetic composition." src="https://lh3.googleusercontent.com/aida-public/AB6AXuA3BHextTQiCZgU6yRCqJsWC8kkmuvR22LI4yEvTwFhpiAsL8pFmxAHRR381iwK3BddxYUf6lKU7af1T18gNDUG1D1Fw7o__IgiKJcG6LeaL20g8phVN98m0HKg3krxq9idWfTe-ej4XtxK-ve8lOe2ifsyZOGSMdC1vYXTapGDzjMoxZUmvyqdHxLBMQML-QVyEfdyiBghSlpinGWGtTe1y7tDpcGX_X7thfkikyF_9qfGDbiCdPfB"/>
+<div class="play-overlay absolute inset-0 flex items-center justify-center z-10">
+<button class="w-12 h-12 rounded-full bg-neon-crimson/90 text-white flex items-center justify-center hover:bg-neon-crimson transition-colors shadow-[0_0_15px_#FF003C]">
+<span class="material-symbols-outlined ml-1" data-icon="play_arrow" data-weight="fill" style="font-variation-settings: 'FILL' 1;">play_arrow</span>
+</button>
+</div>
+</div>
+<div class="glass-panel p-stack-sm absolute bottom-0 w-full z-20 border-t border-t-outline-variant/30">
+<h4 class="font-headline-lg text-[16px] text-on-surface truncate">MECHA SYNDICATE</h4>
+<div class="flex justify-between items-center mt-1">
+<span class="font-label-caps text-[10px] text-cyber-cyan">MECHA • SCI-FI</span>
+<span class="font-label-caps text-[10px] text-on-surface-variant flex items-center gap-1"><span class="material-symbols-outlined text-[10px] text-yellow-400" data-icon="star" data-weight="fill" style="font-variation-settings: 'FILL' 1;">star</span> 8.5</span>
+</div>
+</div>
+</div>
+<!-- Card 3 -->
+<div class="anime-card relative aspect-[2/3] bg-surface-container-lowest cursor-pointer group rounded-none overflow-hidden flex flex-col">
+<div class="absolute top-2 left-2 z-20 flex gap-1">
+<span class="tag-clip bg-neon-crimson/80 text-white font-label-caps text-[10px] px-2 py-0.5 backdrop-blur-sm">DUB</span>
+<span class="tag-clip bg-cyber-cyan/80 text-void-black font-label-caps text-[10px] px-2 py-0.5 backdrop-blur-sm font-bold">4K</span>
+</div>
+<div class="flex-grow relative overflow-hidden">
+<img alt="Anime Poster" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" data-alt="Atmospheric sci-fi anime key visual, a massive floating city structure in a polluted orange sky, a silhouette of a character overlooking the edge, dystopian moody lighting, intricate architectural details." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBDivpLR7GNDvFp-tTFb_axndBX3P0X9cWqxeaS85_YA8AQvAGODIrxaSvBEbooCbm8QBr0ydva-elW-PS3sS75lQEWVMJBgsfAzzW0tjJ0qtL_skB076NlW0bZyz7ckSUAVzaqyX3VIjbtz5Lclg2WMdVpSm5WRP4UshKeJ5I4K2WXQ-06hMtpj9z7FV4ifN5juh68jFPKiCXw35pLCj2zses-Q9afSbGS8i9zKBhU6d1uE_Raj5kP"/>
+<div class="play-overlay absolute inset-0 flex items-center justify-center z-10">
+<button class="w-12 h-12 rounded-full bg-neon-crimson/90 text-white flex items-center justify-center hover:bg-neon-crimson transition-colors shadow-[0_0_15px_#FF003C]">
+<span class="material-symbols-outlined ml-1" data-icon="play_arrow" data-weight="fill" style="font-variation-settings: 'FILL' 1;">play_arrow</span>
+</button>
+</div>
+</div>
+<div class="glass-panel p-stack-sm absolute bottom-0 w-full z-20 border-t border-t-outline-variant/30">
+<h4 class="font-headline-lg text-[16px] text-on-surface truncate">AETHER CITY FALL</h4>
+<div class="flex justify-between items-center mt-1">
+<span class="font-label-caps text-[10px] text-cyber-cyan">SCI-FI • DRAMA</span>
+<span class="font-label-caps text-[10px] text-on-surface-variant flex items-center gap-1"><span class="material-symbols-outlined text-[10px] text-yellow-400" data-icon="star" data-weight="fill" style="font-variation-settings: 'FILL' 1;">star</span> 9.1</span>
+</div>
+</div>
+</div>
+<!-- Card 4 -->
+<div class="anime-card relative aspect-[2/3] bg-surface-container-lowest cursor-pointer group rounded-none overflow-hidden flex flex-col">
+<div class="absolute top-2 left-2 z-20 flex gap-1">
+<span class="tag-clip bg-neon-crimson/80 text-white font-label-caps text-[10px] px-2 py-0.5 backdrop-blur-sm">SUB</span>
+</div>
+<div class="flex-grow relative overflow-hidden">
+<img alt="Anime Poster" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" data-alt="Intense shonen anime battle scene poster, a protagonist wielding a glowing crimson katana, sparks flying, dark contrasting shadows, dynamic pose, vibrant energy effects sweeping across the frame." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDvulewMEKwtoHJ8I1B-BlsCshOxSKgktnqteNbOxn2-LkBgU-tzon8I_c6T17W86z0bATg9yHIHJw9yOKKUC_mTXd3Ej-IcMxyV90dNT7lSK-6QGvx5i8f0PSWgVf2hGLP8Wltgka-Otszh6ZLipPThPKCN6UvSAhEn-tjl8yDkLLimSF0DAkXUijcmsYdyWe0Y_gugAN5FMUrkPU5_xo15_Fpu8AfXSKGGfjI2u1XrmzSpBnyloyY"/>
+<div class="play-overlay absolute inset-0 flex items-center justify-center z-10">
+<button class="w-12 h-12 rounded-full bg-neon-crimson/90 text-white flex items-center justify-center hover:bg-neon-crimson transition-colors shadow-[0_0_15px_#FF003C]">
+<span class="material-symbols-outlined ml-1" data-icon="play_arrow" data-weight="fill" style="font-variation-settings: 'FILL' 1;">play_arrow</span>
+</button>
+</div>
+</div>
+<div class="glass-panel p-stack-sm absolute bottom-0 w-full z-20 border-t border-t-outline-variant/30">
+<h4 class="font-headline-lg text-[16px] text-on-surface truncate">BLADE RUNNER: BLACKOUT</h4>
+<div class="flex justify-between items-center mt-1">
+<span class="font-label-caps text-[10px] text-cyber-cyan">ACTION • SHONEN</span>
+<span class="font-label-caps text-[10px] text-on-surface-variant flex items-center gap-1"><span class="material-symbols-outlined text-[10px] text-yellow-400" data-icon="star" data-weight="fill" style="font-variation-settings: 'FILL' 1;">star</span> 8.9</span>
+</div>
+</div>
+</div>
+<!-- Card 5 -->
+<div class="anime-card relative aspect-[2/3] bg-surface-container-lowest cursor-pointer group rounded-none overflow-hidden flex flex-col hidden sm:flex">
+<div class="absolute top-2 left-2 z-20 flex gap-1">
+<span class="tag-clip bg-neon-crimson/80 text-white font-label-caps text-[10px] px-2 py-0.5 backdrop-blur-sm">SUB</span>
+</div>
+<div class="flex-grow relative overflow-hidden">
+<img alt="Anime Poster" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" data-alt="Cyberpunk slice of life anime cover, a brightly lit ramen stand in a dark, rain-soaked futuristic street, glowing neon signs in cyan and magenta, detailed character eating noodles, cozy but gritty atmosphere." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBGIOgQ8oM95CBCPGDTQO5n6XMzn5POT2Ig5laQH5hkHRMHknfXYEvK7KjYZ4Je7Wh0RduwD9DnqY5t5obwN0zlQD1YglCKT8dVPo0mbaPWjPEQE3WhAgudMd38Nv2OPYLD18aHYaWOPDWE6YHIxeCPQJZuf0GDzl6yxM6hbxJwKeedrzo3MJERY4jZlTPvv_YX0mY03GziuL0EO2ptM5S1Perp1e7HAecZKpMkilbLekT9yqXmVqMk"/>
+<div class="play-overlay absolute inset-0 flex items-center justify-center z-10">
+<button class="w-12 h-12 rounded-full bg-neon-crimson/90 text-white flex items-center justify-center hover:bg-neon-crimson transition-colors shadow-[0_0_15px_#FF003C]">
+<span class="material-symbols-outlined ml-1" data-icon="play_arrow" data-weight="fill" style="font-variation-settings: 'FILL' 1;">play_arrow</span>
+</button>
+</div>
+</div>
+<div class="glass-panel p-stack-sm absolute bottom-0 w-full z-20 border-t border-t-outline-variant/30">
+<h4 class="font-headline-lg text-[16px] text-on-surface truncate">MIDNIGHT RAMEN PROTOCOL</h4>
+<div class="flex justify-between items-center mt-1">
+<span class="font-label-caps text-[10px] text-cyber-cyan">SLICE OF LIFE • CYBERPUNK</span>
+<span class="font-label-caps text-[10px] text-on-surface-variant flex items-center gap-1"><span class="material-symbols-outlined text-[10px] text-yellow-400" data-icon="star" data-weight="fill" style="font-variation-settings: 'FILL' 1;">star</span> 7.8</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Pagination / Load More -->
+<div class="mt-stack-lg flex justify-center">
+<button class="btn-ghost py-3 px-8 font-label-caps text-label-caps uppercase tracking-widest text-center flex items-center justify-center gap-2">
+                    LOAD MORE DATA_PACKETS <span class="material-symbols-outlined text-[16px] animate-bounce" data-icon="keyboard_arrow_down">keyboard_arrow_down</span>
+</button>
+</div>
+</div>
+</main>
+<!-- Footer -->
+<footer class="bg-void-black w-full py-stack-lg border-t border-outline-variant flat no shadows flex flex-col md:flex-row justify-between items-center px-margin-desktop gap-stack-md mt-auto">
+<div class="font-headline-lg text-headline-lg text-neon-crimson tracking-tighter italic font-black">
+            NEON_STREAM
+        </div>
+<nav class="flex flex-wrap justify-center gap-stack-md md:gap-stack-lg">
+<a class="font-label-md text-label-md text-on-surface-variant hover:text-cyber-cyan transition-opacity duration-200 uppercase tracking-widest" href="#">System Status</a>
+<a class="font-label-md text-label-md text-on-surface-variant hover:text-cyber-cyan transition-opacity duration-200 uppercase tracking-widest" href="#">Encryption</a>
+<a class="font-label-md text-label-md text-on-surface-variant hover:text-cyber-cyan transition-opacity duration-200 uppercase tracking-widest" href="#">Privacy</a>
+<a class="font-label-md text-label-md text-on-surface-variant hover:text-cyber-cyan transition-opacity duration-200 uppercase tracking-widest" href="#">Terms</a>
+<a class="font-label-md text-label-md text-on-surface-variant hover:text-cyber-cyan transition-opacity duration-200 uppercase tracking-widest" href="#">Discord</a>
+</nav>
+<div class="font-body-md text-body-md text-on-surface-variant/50">
+            © 2024 NEON_STREAM // PROTOCOL X-9
+        </div>
+</footer>
+</body></html>

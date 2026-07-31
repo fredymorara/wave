@@ -1,0 +1,485 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>NEON_STREAM - Home</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700;900&amp;family=Outfit:wght@400;500;600&amp;family=JetBrains+Mono:wght@400;500;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "on-tertiary-fixed": "#320047",
+                        "on-secondary-fixed": "#002022",
+                        "inverse-surface": "#e5e1e7",
+                        "secondary-fixed": "#7df4ff",
+                        "on-tertiary": "#520071",
+                        "on-tertiary-fixed-variant": "#74009f",
+                        "surface-container-highest": "#353439",
+                        "on-secondary-fixed-variant": "#004f54",
+                        "tertiary-fixed": "#f8d8ff",
+                        "surface": "#131317",
+                        "surface-container-lowest": "#0e0e12",
+                        "on-primary-fixed-variant": "#92001e",
+                        "error-container": "#93000a",
+                        "on-error-container": "#ffdad6",
+                        "primary-fixed-dim": "#ffb3b2",
+                        "outline-variant": "#5f3e3e",
+                        "secondary-container": "#00eefc",
+                        "primary-fixed": "#ffdad8",
+                        "surface-dim": "#131317",
+                        "data-purple": "#BD00FF",
+                        "tertiary-fixed-dim": "#ecb2ff",
+                        "void-black": "#020204",
+                        "outline": "#af8786",
+                        "on-error": "#690005",
+                        "surface-container-low": "#1b1b1f",
+                        "on-tertiary-container": "#480063",
+                        "tertiary": "#ecb2ff",
+                        "tertiary-container": "#cf5cff",
+                        "on-primary-fixed": "#410008",
+                        "primary-container": "#ff525c",
+                        "primary": "#ffb3b2",
+                        "error": "#ffb4ab",
+                        "on-secondary": "#00363a",
+                        "inverse-on-surface": "#303034",
+                        "on-primary-container": "#5b000f",
+                        "surface-variant": "#353439",
+                        "neon-crimson": "#FF003C",
+                        "background": "#131317",
+                        "surface-bright": "#39393d",
+                        "surface-glass": "rgba(10, 10, 15, 0.7)",
+                        "cyber-cyan": "#00F0FF",
+                        "inverse-primary": "#bf002a",
+                        "surface-tint": "#ffb3b2",
+                        "on-background": "#e5e1e7",
+                        "on-secondary-container": "#00686f",
+                        "secondary": "#d3fbff",
+                        "surface-container": "#1f1f23",
+                        "surface-container-high": "#2a292e",
+                        "on-surface": "#e5e1e7",
+                        "secondary-fixed-dim": "#00dbe9",
+                        "on-surface-variant": "#e9bcba",
+                        "on-primary": "#680012"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "stack-sm": "8px",
+                        "stack-md": "16px",
+                        "margin-tablet": "32px",
+                        "margin-desktop": "64px",
+                        "gutter": "24px",
+                        "stack-lg": "32px",
+                        "margin-mobile": "16px",
+                        "unit": "4px"
+                    },
+                    "fontFamily": {
+                        "headline-lg": ["Space Grotesk"],
+                        "body-md": ["Outfit"],
+                        "display-lg-mobile": ["Space Grotesk"],
+                        "headline-xl": ["Space Grotesk"],
+                        "label-caps": ["JetBrains Mono"],
+                        "display-lg": ["Space Grotesk"],
+                        "body-lg": ["Outfit"],
+                        "label-md": ["JetBrains Mono"]
+                    },
+                    "fontSize": {
+                        "headline-lg": ["24px", { "lineHeight": "1.2", "fontWeight": "600" }],
+                        "body-md": ["16px", { "lineHeight": "1.5", "fontWeight": "400" }],
+                        "display-lg-mobile": ["40px", { "lineHeight": "1.1", "fontWeight": "700" }],
+                        "headline-xl": ["32px", { "lineHeight": "1.2", "fontWeight": "600" }],
+                        "label-caps": ["12px", { "lineHeight": "1.0", "letterSpacing": "0.1em", "fontWeight": "500" }],
+                        "display-lg": ["64px", { "lineHeight": "1.1", "letterSpacing": "-0.02em", "fontWeight": "700" }],
+                        "body-lg": ["18px", { "lineHeight": "1.6", "fontWeight": "400" }],
+                        "label-md": ["14px", { "lineHeight": "1.4", "fontWeight": "400" }]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        .clip-chip {
+            clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px);
+        }
+        
+        .card-hover-effect:hover {
+            transform: scale(1.02);
+            box-shadow: 0 0 20px rgba(255, 0, 60, 0.4);
+            border-color: #FF003C;
+        }
+
+        .btn-glow:hover {
+            box-shadow: 0 0 15px rgba(255, 0, 60, 0.6);
+        }
+        
+        .nav-glow:hover {
+            filter: drop-shadow(0 0 8px #FF003C);
+        }
+        
+        /* Ensure animations sit behind content properly */
+        .hero-bg-container {
+            z-index: 0;
+            pointer-events: none;
+        }
+        .hero-content-container {
+            z-index: 10;
+        }
+        
+        /* Hide scrollbar for carousels */
+        .hide-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .hide-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+    </style>
+</head>
+<body class="bg-void-black text-on-surface font-body-md min-h-screen flex flex-col antialiased selection:bg-neon-crimson selection:text-white">
+<!-- TopNavBar -->
+<nav class="fixed top-0 w-full z-50 bg-surface-glass backdrop-blur-xl border-b border-neon-crimson/30 shadow-[0_0_15px_rgba(255,0,60,0.2)]">
+<div class="flex justify-between items-center px-margin-mobile md:px-margin-desktop py-4 w-full max-w-full">
+<div class="flex items-center gap-gutter">
+<a class="font-headline-xl text-headline-xl text-neon-crimson tracking-tighter italic font-black" href="#">
+                    NEON_STREAM
+                </a>
+<div class="hidden md:flex items-center gap-stack-md font-label-caps text-label-caps uppercase">
+<a class="text-neon-crimson border-b-2 border-neon-crimson pb-1 scale-105 active:scale-95 duration-200" href="#">Browse</a>
+<a class="text-on-surface-variant hover:text-cyber-cyan transition-colors hover:drop-shadow-[0_0_8px_#FF003C] transition-all duration-300 scale-105 active:scale-95" href="#">Seasonal</a>
+<a class="text-on-surface-variant hover:text-cyber-cyan transition-colors hover:drop-shadow-[0_0_8px_#FF003C] transition-all duration-300 scale-105 active:scale-95" href="#">Simulcast</a>
+<a class="text-on-surface-variant hover:text-cyber-cyan transition-colors hover:drop-shadow-[0_0_8px_#FF003C] transition-all duration-300 scale-105 active:scale-95" href="#">Movies</a>
+<a class="text-on-surface-variant hover:text-cyber-cyan transition-colors hover:drop-shadow-[0_0_8px_#FF003C] transition-all duration-300 scale-105 active:scale-95" href="#">Manga</a>
+</div>
+</div>
+<div class="flex items-center gap-stack-md">
+<div class="hidden md:flex items-center relative border-b border-outline-variant focus-within:border-neon-crimson transition-colors bg-surface-glass w-48">
+<span class="material-symbols-outlined text-on-surface-variant pl-2 text-sm" style="font-variation-settings: 'FILL' 0;">search</span>
+<input class="bg-transparent border-none focus:ring-0 text-on-surface font-label-caps text-label-caps w-full py-2 placeholder-on-surface-variant" placeholder="Search..." type="text"/>
+</div>
+<button class="text-on-surface-variant hover:text-cyber-cyan transition-colors p-2 nav-glow">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 0;">notifications</span>
+</button>
+<button class="text-on-surface-variant hover:text-cyber-cyan transition-colors p-2 nav-glow">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 0;">settings</span>
+</button>
+<div class="h-8 w-8 rounded-full overflow-hidden border border-neon-crimson/50 ml-2">
+<img alt="Cyberpunk User Profile" class="w-full h-full object-cover" data-alt="A stylized, neon-lit cyberpunk avatar profile picture showing a character wearing futuristic visors in a dark, moody environment with vibrant pink and cyan rim lighting." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBnwVNtIfxgNosdyJ5M1CXbVVNiYaudSd9UAQpg4AWDSFQ5Aypc4BxCF4mtT0GcA8zFcTOjPQjYjrwCVGnA5JR78RoR5M1lMQEJ9_0DpWlRpL1-VZ0vL_C0Uaqg9W6fFn1y88F-oc_qaY3GGnalwPmEwPvtQF2ngwYCNFy0aMocxSrTUL9tuX4yQ5YDfAD0UsxhkATUDR0rXKjV2-0ynRFlxGjQBbH9XbeNP1FGM9y-54HRma0mOcbv"/>
+</div>
+<!-- Mobile Menu Button -->
+<button class="md:hidden text-on-surface p-2 ml-2">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 0;">menu</span>
+</button>
+</div>
+</div>
+</nav>
+<!-- Main Content -->
+<main class="flex-grow pt-[80px]">
+<!-- Hero Section -->
+<section class="relative w-full h-[716px] min-h-[500px] flex items-end pb-margin-tablet md:pb-margin-desktop overflow-hidden border-b border-neon-crimson/20">
+<!-- Animation Background -->
+<div class="absolute inset-0 hero-bg-container">
+
+<div class="absolute inset-0 bg-gradient-to-t from-void-black via-void-black/80 to-transparent"></div>
+<div class="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGNpcmNsZSBjeD0iMjAiIGN5PSIyMCIgcj0iMSIgZmlsbD0icmdiYSgyNTUsIDI1NSwgMjU1LCAwLjA1KSIvPjwvc3ZnPg==')] opacity-30 mix-blend-overlay"></div>
+</div>
+<!-- Hero Content -->
+<div class="relative hero-content-container px-margin-mobile md:px-margin-desktop w-full max-w-7xl mx-auto flex flex-col md:flex-row gap-gutter items-end">
+<div class="flex-1 space-y-stack-md z-10 w-full">
+<div class="flex gap-2 mb-2">
+<span class="clip-chip bg-neon-crimson/20 text-neon-crimson font-label-caps text-label-caps px-3 py-1 uppercase border border-neon-crimson/30">New Release</span>
+<span class="clip-chip bg-cyber-cyan/10 text-cyber-cyan font-label-caps text-label-caps px-3 py-1 uppercase border border-cyber-cyan/30">Sub/Dub</span>
+</div>
+<h1 class="font-display-lg-mobile md:font-display-lg text-display-lg-mobile md:text-display-lg text-on-surface uppercase tracking-tight drop-shadow-[0_2px_10px_rgba(0,0,0,0.8)]">
+                        Cyber_Eden <span class="text-neon-crimson">Re:Boot</span>
+</h1>
+<p class="font-body-lg text-body-lg text-on-surface-variant max-w-2xl drop-shadow-[0_1px_5px_rgba(0,0,0,0.8)]">
+                        In a sprawling metropolis controlled by megacorporations, a rogue AI netrunner discovers a glitch that could unravel reality itself. The final upload begins now.
+                    </p>
+<div class="flex flex-wrap gap-stack-sm pt-stack-sm">
+<button class="bg-neon-crimson text-white font-label-caps text-label-caps font-bold uppercase px-8 py-3 rounded-none flex items-center gap-2 btn-glow transition-all duration-300">
+<span class="material-symbols-outlined text-lg" style="font-variation-settings: 'FILL' 1;">play_arrow</span>
+                            Watch Now
+                        </button>
+<button class="bg-transparent border border-cyber-cyan text-cyber-cyan font-label-caps text-label-caps uppercase px-8 py-3 rounded-none flex items-center gap-2 hover:bg-cyber-cyan/10 transition-colors duration-300">
+<span class="material-symbols-outlined text-lg" style="font-variation-settings: 'FILL' 0;">add</span>
+                            My List
+                        </button>
+</div>
+</div>
+</div>
+</section>
+<!-- Top 10 Carousel -->
+<section class="px-margin-mobile md:px-margin-desktop py-stack-lg md:py-margin-tablet">
+<div class="flex justify-between items-end mb-stack-md">
+<h2 class="font-headline-xl text-headline-xl text-on-surface uppercase border-l-4 border-neon-crimson pl-3">
+                    Top 10 This Week
+                </h2>
+<a class="font-label-caps text-label-caps text-cyber-cyan hover:text-white transition-colors uppercase flex items-center gap-1" href="#">
+                    View All <span class="material-symbols-outlined text-sm" style="font-variation-settings: 'FILL' 0;">chevron_right</span>
+</a>
+</div>
+<div class="flex gap-gutter overflow-x-auto pb-4 hide-scrollbar snap-x">
+<!-- Card 1 -->
+<div class="relative min-w-[200px] md:min-w-[250px] aspect-[2/3] bg-surface-container rounded-none overflow-hidden group snap-start border border-transparent card-hover-effect transition-all duration-300 cursor-pointer">
+<img alt="Show Poster" class="absolute inset-0 w-full h-full object-cover" data-alt="Anime poster art featuring a young protagonist with glowing red cybernetic eyes, standing in a rain-slicked neon alleyway at night. High contrast, highly detailed, cyberpunk aesthetic, dark blues and bright pinks." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCOQ7wLlm35U0orE09AOYEQqvgq7XnY2JWJp5GKpwsTWlWfEEpxtCKE1kLM7eGueulyaf7V94tF244X-tC2n1lpsF1Jb6_nUPo0Hsp9JQHAWb85ZEv_7RHmI--B2uSvYzzyChmKIu1Bo_tHPpfdw6ew2p0u1Mrs9EAwUJSxenD1v2tYqPAr-Djwr7v7JWNLu1ZDlc35LJXceML0er_urtGkM9o8xI4NZ35RhKxJHG3kDrMlNVz7Lmv1"/>
+<div class="absolute top-0 left-0 bg-neon-crimson text-white font-headline-lg text-headline-lg font-bold px-3 py-1 z-10 clip-chip shadow-[0_0_10px_rgba(255,0,60,0.5)]">
+                        #1
+                    </div>
+<div class="absolute inset-0 bg-gradient-to-t from-void-black via-void-black/40 to-transparent opacity-80 group-hover:opacity-60 transition-opacity"></div>
+<div class="absolute bottom-0 left-0 w-full p-4 bg-surface-glass backdrop-blur-md border-t border-outline-variant/30 transform translate-y-full group-hover:translate-y-0 transition-transform duration-300">
+<h3 class="font-headline-lg text-[18px] text-white leading-tight mb-1 truncate">Neon Genesis</h3>
+<div class="flex gap-2 text-on-surface-variant font-label-caps text-[10px]">
+<span>Sci-Fi</span> • <span>Ep 12</span>
+</div>
+</div>
+</div>
+<!-- Card 2 -->
+<div class="relative min-w-[200px] md:min-w-[250px] aspect-[2/3] bg-surface-container rounded-none overflow-hidden group snap-start border border-transparent card-hover-effect transition-all duration-300 cursor-pointer">
+<img alt="Show Poster" class="absolute inset-0 w-full h-full object-cover" data-alt="Dynamic anime key visual showing two sword fighters clashing weapons, sparks flying, set against a ruined high-tech skyline at sunset. Vibrant oranges, deep purples, dramatic lighting, intense action pose." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCBMQ1Fvx13iLkdRyh72qLja4xHUSwiMFF1deHD-eHb70MDqTnLISyYfs5cvyKFeSGmKYNknqUCdlSP1ILkoI6mwRqOuO65gc6ov3Bd7OfIlnefC0n5xEZDZLd4Xs4RAGLVWxa1jX1XnWAZZ5yvADn2zkFG2lf2DVR-_zuLXoYSvOBndzWuG6EwDIttC081K2zJ5A8Mj8QxIZjQ_xgTsDrDDmvopyqv_66gzS8u6Lmp3VVtVPF6nIJJ"/>
+<div class="absolute top-0 left-0 bg-surface-container-high text-on-surface font-headline-lg text-headline-lg font-bold px-3 py-1 z-10 clip-chip border border-outline-variant">
+                        #2
+                    </div>
+<div class="absolute inset-0 bg-gradient-to-t from-void-black via-void-black/40 to-transparent opacity-80 group-hover:opacity-60 transition-opacity"></div>
+<div class="absolute bottom-0 left-0 w-full p-4 bg-surface-glass backdrop-blur-md border-t border-outline-variant/30 transform translate-y-full group-hover:translate-y-0 transition-transform duration-300">
+<h3 class="font-headline-lg text-[18px] text-white leading-tight mb-1 truncate">Blade Dancers</h3>
+<div class="flex gap-2 text-on-surface-variant font-label-caps text-[10px]">
+<span>Action</span> • <span>Ep 24</span>
+</div>
+</div>
+</div>
+<!-- Card 3 -->
+<div class="relative min-w-[200px] md:min-w-[250px] aspect-[2/3] bg-surface-container rounded-none overflow-hidden group snap-start border border-transparent card-hover-effect transition-all duration-300 cursor-pointer">
+<img alt="Show Poster" class="absolute inset-0 w-full h-full object-cover" data-alt="Atmospheric anime artwork of a lone figure in a heavy trench coat sitting at a ramen stand in a futuristic, crowded megacity. Steam rising, glowing holographic signs reflecting in puddles. Cyberpunk mood, moody lighting." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDKthAr7rkrjfEXMYHU1PcHgNYfz5-6RH-wiN9ucx4Yg-Fa90JuyCW9nh54_vYzThdWfFa6Qy7TQ7cajnlZViaSeknGN0Nc9jYDwMgHDPWx2pq53UJyj3rtDIKGFHxilxwJMuxBegE8g-xzkt8gIiopPG9mILxqkCYL3iBiCbL-wCwBIbaaNCWWSeFPXQ0jWPDGRzn8-J23kle32A6gWH-dYHUEZaukeIGhAFaoGJBkrwDMibBoBjSM"/>
+<div class="absolute top-0 left-0 bg-surface-container-high text-on-surface font-headline-lg text-headline-lg font-bold px-3 py-1 z-10 clip-chip border border-outline-variant">
+                        #3
+                    </div>
+<div class="absolute inset-0 bg-gradient-to-t from-void-black via-void-black/40 to-transparent opacity-80 group-hover:opacity-60 transition-opacity"></div>
+<div class="absolute bottom-0 left-0 w-full p-4 bg-surface-glass backdrop-blur-md border-t border-outline-variant/30 transform translate-y-full group-hover:translate-y-0 transition-transform duration-300">
+<h3 class="font-headline-lg text-[18px] text-white leading-tight mb-1 truncate">Midnight Run</h3>
+<div class="flex gap-2 text-on-surface-variant font-label-caps text-[10px]">
+<span>Mystery</span> • <span>Ep 08</span>
+</div>
+</div>
+</div>
+<!-- More Cards Placeholder to show scroll -->
+<div class="relative min-w-[200px] md:min-w-[250px] aspect-[2/3] bg-surface-container-low border border-outline-variant/30 flex items-center justify-center snap-start group hover:border-cyber-cyan transition-colors cursor-pointer">
+<span class="material-symbols-outlined text-outline-variant text-4xl group-hover:text-cyber-cyan" style="font-variation-settings: 'FILL' 0;">more_horiz</span>
+</div>
+</div>
+</section>
+<!-- New Episodes Grid (Bento Style) -->
+<section class="px-margin-mobile md:px-margin-desktop py-stack-lg bg-surface-container-lowest/50 border-t border-b border-outline-variant/10">
+<h2 class="font-headline-xl text-headline-xl text-on-surface uppercase border-l-4 border-cyber-cyan pl-3 mb-stack-lg">
+                New Episodes
+            </h2>
+<div class="grid grid-cols-1 md:grid-cols-3 gap-gutter">
+<!-- Large Feature Item -->
+<div class="md:col-span-2 relative aspect-video bg-surface-container overflow-hidden group border border-outline-variant/20 hover:border-cyber-cyan transition-colors">
+<img alt="Episode Thumbnail" class="absolute inset-0 w-full h-full object-cover opacity-70 group-hover:opacity-100 transition-opacity duration-500" data-alt="Wide shot anime still of an enormous, rusted mecha resting in a lush, overgrown forest. Sunbeams filtering through the canopy, highlighting moss growing on metal. Serene post-apocalyptic vibe, high detail." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBPaLRCUhfjLt7ywJZ9HUW-R0pdWp4XR8iIPMRR5SCrAHJzrBCQLdbMz5mJhhrhdFCnxcf-uSpH1vfJyAAcfhgAOhM_N7n0hnsTCoYXnQjrteBZboD3mOFYYY0l_qZdAAxuLnziPMgj7B5FRtv8WP5PvBkp1GIhX9G9MIwfOWvZNSXMihvN6AZ_vDU2aq9fUpDzDzGiKwoU0pTJRwsMt57Q2litRKBjml00wiS-WgO_QoCvjgPTM_5J"/>
+<div class="absolute inset-0 bg-gradient-to-t from-void-black/90 via-transparent to-transparent"></div>
+<div class="absolute bottom-0 left-0 w-full p-6 flex justify-between items-end">
+<div>
+<span class="clip-chip bg-cyber-cyan/20 text-cyber-cyan font-label-caps text-[10px] px-2 py-1 uppercase border border-cyber-cyan/30 mb-2 inline-block">Just Added</span>
+<h3 class="font-headline-lg text-[22px] text-white leading-tight">Iron Giants • Ep 14</h3>
+<p class="font-body-md text-on-surface-variant text-sm mt-1 max-w-md">The rusted colossus finally awakens deep within the ancient forest sector.</p>
+</div>
+<button class="bg-surface-glass backdrop-blur-md p-3 border border-outline-variant rounded-full text-white hover:text-cyber-cyan hover:border-cyber-cyan transition-colors">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">play_arrow</span>
+</button>
+</div>
+</div>
+<!-- Stacked Items -->
+<div class="flex flex-col gap-gutter h-full">
+<div class="flex-1 relative bg-surface-container overflow-hidden group border border-outline-variant/20 hover:border-neon-crimson transition-colors">
+<img alt="Episode Thumbnail" class="absolute inset-0 w-full h-full object-cover opacity-60 group-hover:opacity-90 transition-opacity duration-300" data-alt="Close up anime shot of a female character adjusting futuristic VR goggles, screen reflections visible on the lenses. Dark room, glowing monitor light, hacker aesthetic." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBvKHc9SVrVx_8dYhuRk4JsdUe7-a1aAjqVoH4wS85xrmJ1AhkNA-HZDq5w_wO0g3bVV5q1QnUmC_ygdkA1-NSHbJ8chD7SZzIjmEH-pZg8XK-4nva9QZWkov1dtJRBLBnbYJlCDCqGUrdvLB3JmNTbQiRwNf-MtFWrNpKVw9eeOiDE9EN2ZLaNi3TWrfFZEVS_aV4HX6GcVlhCx1slng4jb9Yxg-Ns00G5bT0APR1kbRMIuG80n0Mf"/>
+<div class="absolute inset-0 bg-gradient-to-t from-void-black/90 to-transparent"></div>
+<div class="absolute bottom-0 left-0 p-4">
+<h3 class="font-headline-lg text-[16px] text-white leading-tight">Data Dive • Ep 02</h3>
+<span class="font-label-caps text-[10px] text-on-surface-variant">Subtitled</span>
+</div>
+</div>
+<div class="flex-1 relative bg-surface-container overflow-hidden group border border-outline-variant/20 hover:border-neon-crimson transition-colors">
+<img alt="Episode Thumbnail" class="absolute inset-0 w-full h-full object-cover opacity-60 group-hover:opacity-90 transition-opacity duration-300" data-alt="Anime scene showing a sprawling underground illegal racing circuit with hover bikes. Motion blur, bright neon streaks, gritty industrial environment." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCncPMcLZ7Nq6ufV3dAC7dwwl8tvYmFtVEF7rGxphWo8-Qke0gTory185zF9V164YV8PeDfXLPb05Q3reoqHdDTAbjupRdEPlAO3Zkwmo7M4nRtNyxYDutBuwP4xbnJKCWNJRQ7E1UIu1y7Achu3l7oJEK1hJTaHqN6eicg4i-kltOqSGjKppCDgXtjv1eJnZpLmOmUhKS2v8kagW57yhB_UpKsb2cEAqcxC3sVjQjTCkUNA_KyVMZ7"/>
+<div class="absolute inset-0 bg-gradient-to-t from-void-black/90 to-transparent"></div>
+<div class="absolute bottom-0 left-0 p-4">
+<h3 class="font-headline-lg text-[16px] text-white leading-tight">Velocity • Ep 05</h3>
+<span class="font-label-caps text-[10px] text-on-surface-variant">Dubbed</span>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- Trending Section -->
+<section class="px-margin-mobile md:px-margin-desktop py-stack-lg border-b border-outline-variant/10">
+<div class="flex justify-between items-end mb-stack-md">
+<h2 class="font-headline-xl text-headline-xl text-on-surface uppercase border-l-4 border-data-purple pl-3">
+            Trending Now
+        </h2>
+</div>
+<div class="flex gap-gutter overflow-x-auto pb-4 hide-scrollbar snap-x">
+<!-- Trend 1 -->
+<div class="relative min-w-[200px] md:min-w-[250px] aspect-[2/3] bg-surface-container rounded-none overflow-hidden group snap-start border border-transparent card-hover-effect transition-all duration-300 cursor-pointer">
+<img alt="Show Poster" class="absolute inset-0 w-full h-full object-cover" data-alt="Cyberpunk anime poster" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDKthAr7rkrjfEXMYHU1PcHgNYfz5-6RH-wiN9ucx4Yg-Fa90JuyCW9nh54_vYzThdWfFa6Qy7TQ7cajnlZViaSeknGN0Nc9jYDwMgHDPWx2pq53UJyj3rtDIKGFHxilxwJMuxBegE8g-xzkt8gIiopPG9mILxqkCYL3iBiCbL-wCwBIbaaNCWWSeFPXQ0jWPDGRzn8-J23kle32A6gWH-dYHUEZaukeIGhAFaoGJBkrwDMibBoBjSM"/>
+<div class="absolute top-0 left-0 bg-data-purple text-white font-headline-lg text-headline-lg font-bold px-3 py-1 z-10 clip-chip shadow-[0_0_10px_rgba(189,0,255,0.5)]">
+                1
+            </div>
+<div class="absolute inset-0 bg-gradient-to-t from-void-black via-void-black/40 to-transparent opacity-80 group-hover:opacity-60 transition-opacity"></div>
+<div class="absolute bottom-0 left-0 w-full p-4 bg-surface-glass backdrop-blur-md border-t border-outline-variant/30 transform translate-y-full group-hover:translate-y-0 transition-transform duration-300">
+<h3 class="font-headline-lg text-[18px] text-white leading-tight mb-1 truncate">Shadow Net</h3>
+<div class="flex gap-2 text-on-surface-variant font-label-caps text-[10px]">
+<span>Thriller</span> • <span>Ep 04</span>
+</div>
+</div>
+</div>
+<!-- Trend 2 -->
+<div class="relative min-w-[200px] md:min-w-[250px] aspect-[2/3] bg-surface-container rounded-none overflow-hidden group snap-start border border-transparent card-hover-effect transition-all duration-300 cursor-pointer">
+<img alt="Show Poster" class="absolute inset-0 w-full h-full object-cover" data-alt="Mecha anime poster" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCOQ7wLlm35U0orE09AOYEQqvgq7XnY2JWJp5GKpwsTWlWfEEpxtCKE1kLM7eGueulyaf7V94tF244X-tC2n1lpsF1Jb6_nUPo0Hsp9JQHAWb85ZEv_7RHmI--B2uSvYzzyChmKIu1Bo_tHPpfdw6ew2p0u1Mrs9EAwUJSxenD1v2tYqPAr-Djwr7v7JWNLu1ZDlc35LJXceML0er_urtGkM9o8xI4NZ35RhKxJHG3kDrMlNVz7Lmv1"/>
+<div class="absolute top-0 left-0 bg-surface-container-high text-on-surface font-headline-lg text-headline-lg font-bold px-3 py-1 z-10 clip-chip border border-outline-variant">
+                2
+            </div>
+<div class="absolute inset-0 bg-gradient-to-t from-void-black via-void-black/40 to-transparent opacity-80 group-hover:opacity-60 transition-opacity"></div>
+<div class="absolute bottom-0 left-0 w-full p-4 bg-surface-glass backdrop-blur-md border-t border-outline-variant/30 transform translate-y-full group-hover:translate-y-0 transition-transform duration-300">
+<h3 class="font-headline-lg text-[18px] text-white leading-tight mb-1 truncate">Aegis Core</h3>
+<div class="flex gap-2 text-on-surface-variant font-label-caps text-[10px]">
+<span>Mecha</span> • <span>Ep 22</span>
+</div>
+</div>
+</div>
+<!-- Trend 3 -->
+<div class="relative min-w-[200px] md:min-w-[250px] aspect-[2/3] bg-surface-container rounded-none overflow-hidden group snap-start border border-transparent card-hover-effect transition-all duration-300 cursor-pointer">
+<img alt="Show Poster" class="absolute inset-0 w-full h-full object-cover" data-alt="Fantasy anime poster" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCBMQ1Fvx13iLkdRyh72qLja4xHUSwiMFF1deHD-eHb70MDqTnLISyYfs5cvyKFeSGmKYNknqUCdlSP1ILkoI6mwRqOuO65gc6ov3Bd7OfIlnefC0n5xEZDZLd4Xs4RAGLVWxa1jX1XnWAZZ5yvADn2zkFG2lf2DVR-_zuLXoYSvOBndzWuG6EwDIttC081K2zJ5A8Mj8QxIZjQ_xgTsDrDDmvopyqv_66gzS8u6Lmp3VVtVPF6nIJJ"/>
+<div class="absolute top-0 left-0 bg-surface-container-high text-on-surface font-headline-lg text-headline-lg font-bold px-3 py-1 z-10 clip-chip border border-outline-variant">
+                3
+            </div>
+<div class="absolute inset-0 bg-gradient-to-t from-void-black via-void-black/40 to-transparent opacity-80 group-hover:opacity-60 transition-opacity"></div>
+<div class="absolute bottom-0 left-0 w-full p-4 bg-surface-glass backdrop-blur-md border-t border-outline-variant/30 transform translate-y-full group-hover:translate-y-0 transition-transform duration-300">
+<h3 class="font-headline-lg text-[18px] text-white leading-tight mb-1 truncate">Lost City</h3>
+<div class="flex gap-2 text-on-surface-variant font-label-caps text-[10px]">
+<span>Adventure</span> • <span>Ep 15</span>
+</div>
+</div>
+</div>
+<!-- Trend 4 -->
+<div class="relative min-w-[200px] md:min-w-[250px] aspect-[2/3] bg-surface-container rounded-none overflow-hidden group snap-start border border-transparent card-hover-effect transition-all duration-300 cursor-pointer">
+<img alt="Show Poster" class="absolute inset-0 w-full h-full object-cover" data-alt="Action anime poster" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDKthAr7rkrjfEXMYHU1PcHgNYfz5-6RH-wiN9ucx4Yg-Fa90JuyCW9nh54_vYzThdWfFa6Qy7TQ7cajnlZViaSeknGN0Nc9jYDwMgHDPWx2pq53UJyj3rtDIKGFHxilxwJMuxBegE8g-xzkt8gIiopPG9mILxqkCYL3iBiCbL-wCwBIbaaNCWWSeFPXQ0jWPDGRzn8-J23kle32A6gWH-dYHUEZaukeIGhAFaoGJBkrwDMibBoBjSM"/>
+<div class="absolute top-0 left-0 bg-surface-container-high text-on-surface font-headline-lg text-headline-lg font-bold px-3 py-1 z-10 clip-chip border border-outline-variant">
+                4
+            </div>
+<div class="absolute inset-0 bg-gradient-to-t from-void-black via-void-black/40 to-transparent opacity-80 group-hover:opacity-60 transition-opacity"></div>
+<div class="absolute bottom-0 left-0 w-full p-4 bg-surface-glass backdrop-blur-md border-t border-outline-variant/30 transform translate-y-full group-hover:translate-y-0 transition-transform duration-300">
+<h3 class="font-headline-lg text-[18px] text-white leading-tight mb-1 truncate">Neon Knights</h3>
+<div class="flex gap-2 text-on-surface-variant font-label-caps text-[10px]">
+<span>Action</span> • <span>Ep 02</span>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- TV Schedule (Daily Protocol) Section -->
+<section class="px-margin-mobile md:px-margin-desktop py-stack-lg bg-surface border-b border-outline-variant/10">
+<div class="flex justify-between items-end mb-stack-md">
+<h2 class="font-headline-xl text-headline-xl text-on-surface uppercase border-l-4 border-neon-crimson pl-3 flex items-center gap-2">
+            Daily Protocol <span class="text-neon-crimson text-sm font-label-caps border border-neon-crimson px-2 py-1 ml-2 bg-neon-crimson/10">LIVE</span>
+</h2>
+<div class="flex gap-2 hidden md:flex">
+<button class="text-neon-crimson border border-neon-crimson px-4 py-2 font-label-caps text-xs bg-neon-crimson/10 hover:bg-neon-crimson/20 transition-colors">TODAY</button>
+<button class="text-on-surface-variant border border-outline-variant px-4 py-2 font-label-caps text-xs hover:text-white transition-colors">TOMORROW</button>
+</div>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-stack-md">
+<!-- Schedule Item 1 -->
+<div class="flex gap-4 bg-surface-container p-4 border border-outline-variant/20 hover:border-neon-crimson transition-colors group cursor-pointer relative overflow-hidden">
+<div class="absolute top-0 right-0 w-32 h-32 bg-neon-crimson/5 rounded-full blur-2xl -mr-16 -mt-16 group-hover:bg-neon-crimson/10 transition-colors"></div>
+<div class="flex flex-col items-center justify-center min-w-[80px] border-r border-outline-variant/20 pr-4 z-10">
+<span class="font-headline-lg text-neon-crimson text-2xl">19:00</span>
+<span class="font-label-caps text-[10px] text-on-surface-variant mt-1">JST</span>
+</div>
+<div class="flex-1 z-10">
+<div class="flex justify-between items-start mb-1">
+<span class="clip-chip bg-neon-crimson/20 text-neon-crimson font-label-caps text-[10px] px-2 py-1 uppercase border border-neon-crimson/30">Airing Soon</span>
+<button class="text-on-surface-variant hover:text-neon-crimson transition-colors"><span class="material-symbols-outlined text-sm" style="font-variation-settings: 'FILL' 1;">notifications_active</span></button>
+</div>
+<h3 class="font-headline-lg text-[16px] text-white mt-2">Cyber_Eden Re:Boot</h3>
+<p class="font-body-md text-sm text-on-surface-variant mt-1">Ep 13 - The Final Upload</p>
+</div>
+</div>
+<!-- Schedule Item 2 -->
+<div class="flex gap-4 bg-surface-container p-4 border border-outline-variant/20 hover:border-cyber-cyan transition-colors group cursor-pointer relative overflow-hidden">
+<div class="absolute top-0 right-0 w-32 h-32 bg-cyber-cyan/5 rounded-full blur-2xl -mr-16 -mt-16 group-hover:bg-cyber-cyan/10 transition-colors"></div>
+<div class="flex flex-col items-center justify-center min-w-[80px] border-r border-outline-variant/20 pr-4 z-10">
+<span class="font-headline-lg text-cyber-cyan text-2xl">20:30</span>
+<span class="font-label-caps text-[10px] text-on-surface-variant mt-1">JST</span>
+</div>
+<div class="flex-1 z-10">
+<div class="flex justify-between items-start mb-1">
+<span class="clip-chip bg-cyber-cyan/10 text-cyber-cyan font-label-caps text-[10px] px-2 py-1 uppercase border border-cyber-cyan/30">New Episode</span>
+<button class="text-on-surface-variant hover:text-cyber-cyan transition-colors"><span class="material-symbols-outlined text-sm" style="font-variation-settings: 'FILL' 0;">notifications</span></button>
+</div>
+<h3 class="font-headline-lg text-[16px] text-white mt-2">Blade Dancers</h3>
+<p class="font-body-md text-sm text-on-surface-variant mt-1">Ep 25 - Clash of Titans</p>
+</div>
+</div>
+<!-- Schedule Item 3 -->
+<div class="flex gap-4 bg-surface-container p-4 border border-outline-variant/20 hover:border-data-purple transition-colors group cursor-pointer relative overflow-hidden">
+<div class="absolute top-0 right-0 w-32 h-32 bg-data-purple/5 rounded-full blur-2xl -mr-16 -mt-16 group-hover:bg-data-purple/10 transition-colors"></div>
+<div class="flex flex-col items-center justify-center min-w-[80px] border-r border-outline-variant/20 pr-4 z-10">
+<span class="font-headline-lg text-on-surface-variant text-2xl group-hover:text-data-purple transition-colors">22:00</span>
+<span class="font-label-caps text-[10px] text-on-surface-variant mt-1">JST</span>
+</div>
+<div class="flex-1 z-10">
+<div class="flex justify-between items-start mb-1">
+<span class="clip-chip bg-surface-container-high text-on-surface-variant font-label-caps text-[10px] px-2 py-1 uppercase border border-outline-variant/50">Upcoming</span>
+<button class="text-on-surface-variant hover:text-data-purple transition-colors"><span class="material-symbols-outlined text-sm" style="font-variation-settings: 'FILL' 0;">notifications</span></button>
+</div>
+<h3 class="font-headline-lg text-[16px] text-white mt-2">Midnight Run</h3>
+<p class="font-body-md text-sm text-on-surface-variant mt-1">Ep 09 - Ghost in the Code</p>
+</div>
+</div>
+<!-- Schedule Item 4 -->
+<div class="flex gap-4 bg-surface-container p-4 border border-outline-variant/20 hover:border-data-purple transition-colors group cursor-pointer relative overflow-hidden">
+<div class="absolute top-0 right-0 w-32 h-32 bg-data-purple/5 rounded-full blur-2xl -mr-16 -mt-16 group-hover:bg-data-purple/10 transition-colors"></div>
+<div class="flex flex-col items-center justify-center min-w-[80px] border-r border-outline-variant/20 pr-4 z-10">
+<span class="font-headline-lg text-on-surface-variant text-2xl group-hover:text-data-purple transition-colors">23:30</span>
+<span class="font-label-caps text-[10px] text-on-surface-variant mt-1">JST</span>
+</div>
+<div class="flex-1 z-10">
+<div class="flex justify-between items-start mb-1">
+<span class="clip-chip bg-surface-container-high text-on-surface-variant font-label-caps text-[10px] px-2 py-1 uppercase border border-outline-variant/50">Upcoming</span>
+<button class="text-on-surface-variant hover:text-data-purple transition-colors"><span class="material-symbols-outlined text-sm" style="font-variation-settings: 'FILL' 0;">notifications</span></button>
+</div>
+<h3 class="font-headline-lg text-[16px] text-white mt-2">Iron Giants</h3>
+<p class="font-body-md text-sm text-on-surface-variant mt-1">Ep 15 - Awakening</p>
+</div>
+</div>
+</div>
+</section>
+</main>
+<!-- Footer -->
+<footer class="bg-void-black py-stack-lg border-t border-outline-variant mt-auto">
+<div class="flex flex-col md:flex-row justify-between items-center px-margin-desktop gap-stack-md">
+<div class="font-headline-lg text-headline-lg text-neon-crimson italic font-black">
+                NEON_STREAM
+            </div>
+<div class="flex flex-wrap justify-center gap-stack-md font-label-md text-label-md uppercase">
+<a class="text-on-surface-variant hover:text-cyber-cyan transition-opacity duration-200" href="#">System Status</a>
+<a class="text-on-surface-variant hover:text-cyber-cyan transition-opacity duration-200" href="#">Encryption</a>
+<a class="text-on-surface-variant hover:text-cyber-cyan transition-opacity duration-200" href="#">Privacy</a>
+<a class="text-on-surface-variant hover:text-cyber-cyan transition-opacity duration-200" href="#">Terms</a>
+<a class="text-on-surface-variant hover:text-cyber-cyan transition-opacity duration-200" href="#">Discord</a>
+</div>
+<div class="font-body-md text-body-md text-on-surface-variant text-sm">
+                © 2024 NEON_STREAM // PROTOCOL X-9
+            </div>
+</div>
+</footer>
+</body></html>

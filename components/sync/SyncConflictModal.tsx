@@ -48,9 +48,9 @@ export function SyncConflictModal() {
         <div className="bg-neon-crimson/10 border-b border-neon-crimson/30 px-6 py-4 flex items-center gap-3">
           <AlertTriangle className="w-5 h-5 text-neon-crimson shrink-0" />
           <div>
-            <h2 className="font-headline-lg text-lg text-white uppercase tracking-wide">Progress Conflict</h2>
+            <h2 className="font-headline-lg text-lg text-white uppercase tracking-wide">Sync Conflict</h2>
             <p className="font-label-caps text-[10px] text-on-surface-variant mt-0.5">
-              {remaining > 0 ? `${remaining} more conflict${remaining > 1 ? "s" : ""} after this` : "Last conflict to resolve"}
+              Which progress would you like to keep? {remaining > 0 ? `(${remaining} more remaining)` : ""}
             </p>
           </div>
         </div>
@@ -74,9 +74,11 @@ export function SyncConflictModal() {
             onClick={() => resolveConflict(current.animeId, "server")}
             className="group relative bg-surface-container border border-outline-variant/30 hover:border-cyber-cyan p-4 text-left transition-all duration-200 clip-corner"
           >
-            <div className="flex items-center gap-2 mb-3">
-              <Monitor className="w-4 h-4 text-cyber-cyan" />
-              <span className="font-label-caps text-[10px] text-cyber-cyan uppercase tracking-widest">Other Device</span>
+            <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center gap-2">
+                <Monitor className="w-4 h-4 text-cyber-cyan" />
+                <span className="font-label-caps text-[10px] text-cyber-cyan uppercase tracking-widest">Cloud Save</span>
+              </div>
             </div>
             <div className="font-headline-lg text-xl text-white mb-1">EP {serverEp}</div>
             <div className="font-label-caps text-[11px] text-on-surface-variant">{formatTime(serverTime)} / {formatTime(serverDuration)}</div>
@@ -84,9 +86,14 @@ export function SyncConflictModal() {
             <div className="mt-3 h-1 bg-outline-variant/30 overflow-hidden">
               <div className="h-full bg-cyber-cyan transition-all" style={{ width: `${serverPct}%` }} />
             </div>
-            <div className="font-label-caps text-[10px] text-on-surface-variant mt-1">{serverPct}% watched</div>
+            <div className="font-label-caps text-[10px] text-on-surface-variant mt-1 mb-4">{serverPct}% watched</div>
+            
+            {/* Action text */}
+            <div className="font-label-caps text-[11px] text-cyber-cyan uppercase opacity-70 group-hover:opacity-100 transition-opacity">
+              Keep Cloud Progress
+            </div>
             {/* Hover CTA */}
-            <div className="absolute bottom-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
+            <div className="absolute bottom-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity">
               <ChevronRight className="w-4 h-4 text-cyber-cyan" />
             </div>
           </button>
@@ -96,9 +103,11 @@ export function SyncConflictModal() {
             onClick={() => resolveConflict(current.animeId, "local")}
             className="group relative bg-surface-container border border-outline-variant/30 hover:border-neon-crimson p-4 text-left transition-all duration-200 clip-corner"
           >
-            <div className="flex items-center gap-2 mb-3">
-              <Smartphone className="w-4 h-4 text-neon-crimson" />
-              <span className="font-label-caps text-[10px] text-neon-crimson uppercase tracking-widest">This Device</span>
+            <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center gap-2">
+                <Smartphone className="w-4 h-4 text-neon-crimson" />
+                <span className="font-label-caps text-[10px] text-neon-crimson uppercase tracking-widest">Local Save</span>
+              </div>
             </div>
             <div className="font-headline-lg text-xl text-white mb-1">EP {localEp}</div>
             <div className="font-label-caps text-[11px] text-on-surface-variant">{formatTime(localTime)} / {formatTime(localDuration)}</div>
@@ -106,9 +115,14 @@ export function SyncConflictModal() {
             <div className="mt-3 h-1 bg-outline-variant/30 overflow-hidden">
               <div className="h-full bg-neon-crimson transition-all" style={{ width: `${localPct}%` }} />
             </div>
-            <div className="font-label-caps text-[10px] text-on-surface-variant mt-1">{localPct}% watched</div>
+            <div className="font-label-caps text-[10px] text-on-surface-variant mt-1 mb-4">{localPct}% watched</div>
+            
+            {/* Action text */}
+            <div className="font-label-caps text-[11px] text-neon-crimson uppercase opacity-70 group-hover:opacity-100 transition-opacity">
+              Keep Local Progress
+            </div>
             {/* Hover CTA */}
-            <div className="absolute bottom-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
+            <div className="absolute bottom-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity">
               <ChevronRight className="w-4 h-4 text-neon-crimson" />
             </div>
           </button>
@@ -116,20 +130,20 @@ export function SyncConflictModal() {
 
         {/* Bulk Actions Footer */}
         {remaining > 0 && (
-          <div className="px-6 py-3 border-t border-outline-variant/30 flex items-center justify-between gap-3">
-            <span className="font-label-caps text-[10px] text-on-surface-variant uppercase">Apply to all {pendingConflicts.length} conflicts:</span>
+          <div className="px-6 py-3 border-t border-outline-variant/30 flex items-center justify-between gap-3 bg-surface-container-low">
+            <span className="font-label-caps text-[10px] text-on-surface-variant uppercase">Apply to all remaining conflicts:</span>
             <div className="flex gap-2">
               <button
                 onClick={() => resolveAllConflicts("server")}
                 className="font-label-caps text-[11px] px-3 py-1.5 border border-cyber-cyan/50 text-cyber-cyan hover:bg-cyber-cyan/10 transition-colors clip-chip"
               >
-                All Server
+                Keep All Cloud
               </button>
               <button
                 onClick={() => resolveAllConflicts("local")}
                 className="font-label-caps text-[11px] px-3 py-1.5 border border-neon-crimson/50 text-neon-crimson hover:bg-neon-crimson/10 transition-colors clip-chip"
               >
-                All Local
+                Keep All Local
               </button>
             </div>
           </div>

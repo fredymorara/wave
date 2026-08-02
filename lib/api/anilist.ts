@@ -64,7 +64,10 @@ const MEDIA_FIELDS = `
 `;
 
 async function fetchAniList<T>(query: string, variables: Record<string, string | number | boolean | number[]> = {}): Promise<T> {
-  const response = await fetch(ANILIST_API_URL, {
+  const isClient = typeof window !== "undefined";
+  const url = isClient ? "/api/anilist" : ANILIST_API_URL;
+
+  const response = await fetch(url, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -77,9 +80,9 @@ async function fetchAniList<T>(query: string, variables: Record<string, string |
     if (response.status === 429) {
       // Very basic backoff for AniList (limit is generous: 90 req / min)
       await new Promise((res) => setTimeout(res, 2000));
-      const retry = await fetch(ANILIST_API_URL, {
+      const retry = await fetch(url, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json", "Accept": "application/json" },
         body: JSON.stringify({ query, variables }),
       });
       if (!retry.ok) throw new Error("AniList API Rate Limit Exceeded");

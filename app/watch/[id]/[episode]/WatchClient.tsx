@@ -26,44 +26,73 @@ export default function WatchClient({ id, episode }: { id: string; episode: stri
   const [provider, setProvider] = useState<"ani" | "mal">("ani");
   const playerRef = useRef<HTMLDivElement>(null);
   
+  // Sub/Dub Availability State
+  const [counts, setCounts] = useState<{ is_sub: number | null, is_dub: number | null } | null>(null);
+  const [isCountsLoading, setIsCountsLoading] = useState(true);
+
+  // Episode calculations & Dub Availability
+  const epNum = parseInt(episode) || 1;
+  const isDubAvailable = counts !== null && counts.is_dub !== null && counts.is_dub > 0 && counts.is_dub >= epNum;
+
+  // Effective language: automatically guarantees "sub" is used if Dub is not available for this episode
+  const effectiveLanguage = (language === "dub" && !isDubAvailable) ? "sub" : language;
+
   // Episode Pagination State
   const [episodeChunk, setEpisodeChunk] = useState(() => {
-    const epNum = parseInt(episode);
     return (!isNaN(epNum) && epNum > 0) ? Math.floor((epNum - 1) / 100) : 0;
   });
 
   const [prevEpisode, setPrevEpisode] = useState(episode);
   if (episode !== prevEpisode) {
     setPrevEpisode(episode);
-    const epNum = parseInt(episode);
     if (!isNaN(epNum) && epNum > 0) {
       setEpisodeChunk(Math.floor((epNum - 1) / 100));
+    }
+    if (counts && (counts.is_dub === null || counts.is_dub < epNum) && language === "dub") {
+      setLanguage("sub");
     }
   }
 
   // Sub/Dub Availability State
-  const [counts, setCounts] = useState<{ is_sub: number | null, is_dub: number | null } | null>(null);
-
   useEffect(() => {
+    let isMounted = true;
     async function fetchCounts() {
       try {
         const res = await fetch(`/api/episodes/${id}`);
         if (res.ok) {
           const data = await res.json();
-          if (data && data.success && data.data) {
-            setCounts(data.data);
-            const epNum = parseInt(episode);
-            if (data.data.is_dub !== null && data.data.is_dub < epNum) {
+          if (isMounted) {
+            if (data && data.success && data.data) {
+              setCounts(data.data);
+              if (data.data.is_dub === null || data.data.is_dub === 0 || data.data.is_dub < epNum) {
+                setLanguage("sub");
+              }
+            } else {
+              setCounts({ is_sub: anime?.episodes || null, is_dub: null });
               setLanguage("sub");
             }
           }
+        } else if (isMounted) {
+          setCounts({ is_sub: anime?.episodes || null, is_dub: null });
+          setLanguage("sub");
         }
       } catch (err) {
         console.error("Failed to fetch episode counts for player:", err);
+        if (isMounted) {
+          setCounts({ is_sub: anime?.episodes || null, is_dub: null });
+          setLanguage("sub");
+        }
+      } finally {
+        if (isMounted) {
+          setIsCountsLoading(false);
+        }
       }
     }
     fetchCounts();
-  }, [id, episode]);
+    return () => {
+      isMounted = false;
+    };
+  }, [id, epNum, anime?.episodes]);
 
   // Log watch history
   useEffect(() => {
@@ -73,10 +102,10 @@ export default function WatchClient({ id, episode }: { id: string; episode: stri
         title: anime.title.english || anime.title.romaji || "Anime",
         image_url: anime.coverImage.extraLarge || anime.coverImage.large,
         episode: episode,
-        language: language,
+        language: effectiveLanguage,
       });
     }
-  }, [anime, episode, id, addToHistory, language]);
+  }, [anime, episode, id, addToHistory, effectiveLanguage]);
 
   const updateProgress = useWatchStore((state) => state.updateProgress);
 
@@ -95,7 +124,7 @@ export default function WatchClient({ id, episode }: { id: string; episode: stri
       if (data?.event === "error") {
         console.warn("MegaPlay Error event received:", data);
         if (provider === "ani") {
-          console.log("Falling back from Server 1 (AniList) to Server 2 (MAL)...");
+          console.log("Falling back from Server 1 to Server 2...");
           setProvider("mal");
         }
       } else if (data?.event === "time") {
@@ -115,7 +144,7 @@ export default function WatchClient({ id, episode }: { id: string; episode: stri
     return () => window.removeEventListener("message", handleMessage);
   }, [provider, id, updateProgress, autoNext]);
 
-  // Episode calculations
+  // Episode count calculations
   let baseEpisodes = anime?.episodes || 0;
 
   if (anime?.nextAiringEpisode) {
@@ -123,15 +152,15 @@ export default function WatchClient({ id, episode }: { id: string; episode: stri
   } else if (anime?.status === 'NOT_YET_RELEASED') {
     baseEpisodes = 0;
   } else if (!baseEpisodes) {
-    baseEpisodes = parseInt(episode) || 12;
+    baseEpisodes = epNum || 12;
   }
   
   // Apply Sub/Dub limits if available from Anikoto
   let finalNumEpisodes = baseEpisodes;
   if (counts) {
-    if (language === "sub" && counts.is_sub !== null) {
+    if (effectiveLanguage === "sub" && counts.is_sub !== null && counts.is_sub > 0) {
       finalNumEpisodes = counts.is_sub;
-    } else if (language === "dub" && counts.is_dub !== null) {
+    } else if (effectiveLanguage === "dub" && counts.is_dub !== null && counts.is_dub > 0) {
       finalNumEpisodes = counts.is_dub;
     }
   }
@@ -143,8 +172,8 @@ export default function WatchClient({ id, episode }: { id: string; episode: stri
       const nextEpNum = currentEpNum + 1;
       
       if (!isNaN(currentEpNum) && nextEpNum <= finalNumEpisodes) {
-        let targetLang = language;
-        if (language === "dub" && counts?.is_dub !== null && counts?.is_dub !== undefined && counts.is_dub < nextEpNum) {
+        let targetLang = effectiveLanguage;
+        if (effectiveLanguage === "dub" && counts?.is_dub !== null && counts?.is_dub !== undefined && counts.is_dub < nextEpNum) {
           targetLang = "sub";
         }
         router.push(`/watch/${id}/${nextEpNum}?lang=${targetLang}`);
@@ -153,10 +182,10 @@ export default function WatchClient({ id, episode }: { id: string; episode: stri
     
     window.addEventListener('megaplay-complete', handleAutoNext);
     return () => window.removeEventListener('megaplay-complete', handleAutoNext);
-  }, [episode, finalNumEpisodes, language, counts, id, router]);
+  }, [episode, finalNumEpisodes, effectiveLanguage, counts, id, router]);
 
 
-  if (isAnimeLoading) {
+  if (isAnimeLoading || isCountsLoading) {
     return (
       <div className="flex-1 flex items-center justify-center min-h-screen bg-void-black">
         <Grid size="60" speed="1" color="#FF003C" />
@@ -174,9 +203,9 @@ export default function WatchClient({ id, episode }: { id: string; episode: stri
 
   const titleStr = anime.title.english || anime.title.romaji;
   
-  // Calculate iframe URL cleanly based on active provider
+  // Calculate iframe URL cleanly based on active provider and effective language
   const baseId = provider === "ani" ? (anime.id || id) : (anime.idMal || id);
-  const iframeSrc = `https://megaplay.buzz/stream/${provider}/${baseId}/${episode}/${language}?autoPlay=1`;
+  const iframeSrc = `https://megaplay.buzz/stream/${provider}/${baseId}/${episode}/${effectiveLanguage}?autoPlay=1`;
 
   const CHUNK_SIZE = 100;
   const numChunks = Math.ceil(finalNumEpisodes / CHUNK_SIZE);
@@ -248,7 +277,7 @@ export default function WatchClient({ id, episode }: { id: string; episode: stri
         <div ref={playerRef} className="w-full max-w-[1600px] mx-auto aspect-video bg-surface-container flex items-center justify-center shadow-[0_0_30px_rgba(255,0,60,0.1)] relative">
           {/* Iframe key removes episode so it doesn't unmount on auto-next, allowing fullscreen preservation */}
           <iframe
-            key={`${provider}-${language}`}
+            key={`${provider}-${effectiveLanguage}`}
             src={iframeSrc}
             allowFullScreen
             allow="autoplay; fullscreen"
@@ -262,13 +291,13 @@ export default function WatchClient({ id, episode }: { id: string; episode: stri
       <div className="w-full max-w-[1600px] mx-auto px-margin-mobile md:px-margin-desktop py-2.5 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-[11px] text-on-surface-variant font-label-caps bg-surface-container-lowest border-b border-outline-variant/20">
         <div className="flex items-center gap-2">
           <span className="w-2 h-2 rounded-full bg-cyber-cyan animate-pulse"></span>
-          <span>STREAM SOURCE: <strong className="text-white">{provider === "ani" ? "SERVER 1 (ANILIST)" : "SERVER 2 (MAL)"}</strong></span>
+          <span>STREAM SOURCE: <strong className="text-white">{provider === "ani" ? "SERVER 1" : "SERVER 2"}</strong></span>
         </div>
         <button
           onClick={() => setProvider(prev => (prev === "ani" ? "mal" : "ani"))}
           className="text-cyber-cyan hover:text-white underline underline-offset-4 cursor-pointer transition-colors text-left sm:text-right"
         >
-          Stream not playing or showing &apos;Content is not here&apos;? Switch to {provider === "ani" ? "Server 2 (MAL)" : "Server 1 (AniList)"} &rarr;
+          Stream not playing or showing &apos;Content is not here&apos;? Switch to {provider === "ani" ? "Server 2" : "Server 1"} &rarr;
         </button>
       </div>
 
@@ -293,15 +322,23 @@ export default function WatchClient({ id, episode }: { id: string; episode: stri
           <div className="flex items-center gap-1.5">
             <button 
               onClick={() => setLanguage("sub")}
-              className={`flex items-center gap-1.5 font-label-caps text-[12px] px-3 py-1.5 transition-colors cursor-pointer ${language === "sub" ? 'bg-neon-crimson text-void-black font-bold' : 'text-on-surface-variant hover:text-white'}`}
+              className={`flex items-center gap-1.5 font-label-caps text-[12px] px-3 py-1.5 transition-colors cursor-pointer ${effectiveLanguage === "sub" ? 'bg-neon-crimson text-void-black font-bold' : 'text-on-surface-variant hover:text-white'}`}
             >
               <MessageSquare className="w-3 h-3" /> SUB
             </button>
             <button 
-              onClick={() => setLanguage("dub")}
-              disabled={counts !== null && (counts.is_dub === null || counts.is_dub < parseInt(episode))}
-              className={`flex items-center gap-1.5 font-label-caps text-[12px] px-3 py-1.5 transition-colors cursor-pointer ${language === "dub" ? 'bg-cyber-cyan text-void-black font-bold' : 'text-on-surface-variant hover:text-white'} disabled:opacity-50 disabled:cursor-not-allowed`}
-              title={counts !== null && (counts.is_dub === null || counts.is_dub < parseInt(episode)) ? "Dub not available for this episode" : ""}
+              onClick={() => {
+                if (isDubAvailable) {
+                  setLanguage("dub");
+                }
+              }}
+              disabled={!isDubAvailable}
+              className={`flex items-center gap-1.5 font-label-caps text-[12px] px-3 py-1.5 transition-colors ${
+                effectiveLanguage === "dub" 
+                  ? 'bg-cyber-cyan text-void-black font-bold' 
+                  : 'text-on-surface-variant hover:text-white'
+              } ${!isDubAvailable ? 'opacity-30 cursor-not-allowed pointer-events-none' : 'cursor-pointer'}`}
+              title={!isDubAvailable ? (counts?.is_dub ? `Dub only available up to Episode ${counts.is_dub}` : "Dub not available for this episode") : "Switch to DUB audio"}
             >
               <Mic className="w-3 h-3" /> DUB
             </button>
@@ -319,7 +356,7 @@ export default function WatchClient({ id, episode }: { id: string; episode: stri
                   ? 'bg-cyber-cyan text-void-black font-bold shadow-[0_0_8px_rgba(0,240,255,0.5)]' 
                   : 'text-on-surface-variant hover:text-cyber-cyan'
               }`}
-              title="Stream Server 1 (AniList)"
+              title="Stream Server 1"
             >
               SERVER 1
             </button>
@@ -330,7 +367,7 @@ export default function WatchClient({ id, episode }: { id: string; episode: stri
                   ? 'bg-neon-crimson text-void-black font-bold shadow-[0_0_8px_rgba(255,0,60,0.5)]' 
                   : 'text-on-surface-variant hover:text-neon-crimson'
               }`}
-              title="Stream Server 2 (MAL)"
+              title="Stream Server 2"
             >
               SERVER 2
             </button>
@@ -394,7 +431,7 @@ export default function WatchClient({ id, episode }: { id: string; episode: stri
                   const isCurrent = epNum.toString() === episode;
                   
                   // Predictively switch to sub for next episodes if dub isn't out yet
-                  const targetLang = (language === "dub" && counts && counts.is_dub !== null && epNum > counts.is_dub) ? "sub" : language;
+                  const targetLang = (effectiveLanguage === "dub" && counts && (counts.is_dub === null || counts.is_dub === 0 || epNum > counts.is_dub)) ? "sub" : effectiveLanguage;
                   
                   return (
                     <Link key={epNum} href={`/watch/${id}/${epNum}?lang=${targetLang}`}>

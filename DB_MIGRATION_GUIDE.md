@@ -1,41 +1,120 @@
-# Neon Database Migration & Recovery Guide
+# Wave Anime — Neon Database Migration & Quota Recovery Guide
 
-If your Neon database runs out of free Compute (CU) hours or gets suspended, you **do not** need to worry about manually exporting or migrating your data. Because our database is entirely mirrored from the Anikoto API, you can easily spin up a brand new database and completely rebuild it from scratch.
+This guide provides step-by-step instructions for migrating Wave Anime to a fresh **Neon Postgres** project when approaching or exhausting monthly Compute Unit (CU) limits (100 CU-hours on the Neon Free Tier).
 
-Follow these simple steps whenever you need to migrate to a new Neon database project.
+---
 
-## Step 1: Create a New Neon Project
-1. Go to the [Neon Console](https://console.neon.tech/) and create a brand new free project.
-2. Copy the new **Connection String** (`DATABASE_URL`).
+## 📋 Overview
 
-## Step 2: Update Your Environment Variables
-You need to update the connection string in three different places so your systems know to talk to the new database:
+Neon's Free Tier includes **100 CU-hours** per calendar month. If usage reaches the quota limit, queries may be throttled or blocked until the cycle resets. 
 
-1. **Locally:** Open `.env.local` on your computer and paste the new URL.
-2. **GitHub Actions:** Go to your GitHub repository -> Settings -> Secrets and variables -> Actions. Click the pencil icon next to `DATABASE_URL` and update it.
-3. **Vercel:** Go to your Vercel project settings -> Environment Variables, and update the `DATABASE_URL` there as well. (Make sure to trigger a redeploy so Vercel picks it up!).
+Because Wave Anime uses a decoupled cache architecture (`anime_episodes` can be rebuilt from scratch at any time via sync scripts), migrating to a fresh Neon project takes **under 3 minutes**.
 
-## Step 3: Build the Tables
-Open your terminal in this project folder and push your schema to the new, empty database.
+---
 
-> [!WARNING]
-> Always use `pnpm exec drizzle-kit` (not `pnpm dlx drizzle-kit`) to avoid local database driver dependency errors.
+## 🚀 Step-by-Step Migration
 
-Run the following command:
+### Step 1: Create a New Neon Project
+1. Log into the [Neon Console](https://console.neon.tech/).
+2. Click **New Project**.
+3. Set a project name (e.g., `wave-anime-db-2`).
+4. Select the region closest to your Vercel / Render deployment (e.g., `AWS us-east-1` or `eu-central-1`).
+5. Copy the generated **Postgres Connection String** (with `?sslmode=require` / Pooled connection enabled).
+   ```env
+   DATABASE_URL="postgresql://neondb_owner:YOUR_PASSWORD@ep-sample-pooler.us-east-1.aws.neon.tech/neondb?sslmode=require"
+   ```
+
+---
+
+### Step 2: Push Database Schema
+Ensure your local `.env.local` contains the **new** `DATABASE_URL`:
+
+```env
+DATABASE_URL="postgresql://neondb_owner:NEW_PASSWORD@NEW_HOST/neondb?sslmode=require"
+```
+
+Push all project tables, indices, and constraints to the new database using Drizzle Kit:
+
 ```bash
 pnpm exec drizzle-kit push
 ```
-This will instantly create all the necessary tables (like `anime_episodes`) in your new database.
+*(Alternatively with npx: `npx drizzle-kit push`)*
 
-## Step 4: Run the Full Sync
-Finally, you need to populate the database with data. We have a dedicated script that fetches the entire Anikoto catalog (~9,000+ anime) and inserts it into your database.
+This creates all required tables:
+- `anime_episodes` (Cache table with dual MAL + AniList indexing)
+- `user`, `session`, `account`, `verification` (Authentication)
+- `watchlist`, `watch_history` (User state)
+- `comments`, `notifications`, `broadcasts`, `broadcast_reads` (Social & alerts)
+- `page_views` (Analytics)
 
-Run this command locally on your machine:
+---
+
+### Step 3: Populate Episode Cache
+Re-sync the complete Anikoto anime catalog (~13,500+ records) into the new database.
+
+Run the local full sync script:
 ```bash
-pnpm exec tsx --env-file=.env.local scripts/full_sync.ts
+pnpm exec tsx scripts/full_sync.ts
 ```
 
 > [!NOTE]
-> This script is designed to run slowly (with a 5-second delay between pages) so you do not get IP banned by the Anikoto API. It will take roughly 15 to 25 minutes to complete. Just leave the terminal window open and let it run until it says "FULL Sync complete!".
+> The full sync script runs with automatic retries, backoff handling, and batch deduplication. It will cleanly exit with status code `0` once finished.
 
-That's it! Your new database is now perfectly synced and the GitHub Action will automatically resume keeping it updated every 14 minutes.
+---
+
+### Step 4: (Optional) Migrate User Data from Old Database
+If you need to transfer user accounts, watch history, or comments from the old Neon database:
+
+#### Method A: Direct SQL Dump & Restore (Recommended for full data)
+Export from the old database and import to the new database using standard PostgreSQL CLI tools:
+
+```bash
+# 1. Export user-specific tables from old DB
+pg_dump "OLD_DATABASE_URL" -t "user" -t "session" -t "account" -t "watchlist" -t "watch_history" -t "comments" -t "notifications" -t "broadcasts" --data-only > wave_user_data.sql
+
+# 2. Import into new DB
+psql "NEW_DATABASE_URL" < wave_user_data.sql
+```
+
+---
+
+### Step 5: Update Deployment Environment Variables
+Update the `DATABASE_URL` in all active hosting environments:
+
+1. **Vercel (Frontend & API Routes)**:
+   - Go to **Vercel Dashboard** → Select **Wave Anime** → **Settings** → **Environment Variables**.
+   - Edit `DATABASE_URL` with the new connection string.
+   - Trigger a **Redeploy** (Deployments → Redeploy latest commit).
+
+2. **Render (Sync & Express Backend)**:
+   - Go to **Render Dashboard** → Select `wave-anime-backend` → **Environment**.
+   - Update `DATABASE_URL`.
+   - Click **Save Changes** (Render will automatically redeploy).
+
+3. **GitHub Actions (Automated Cron Sync)**:
+   - Go to **GitHub Repository** → **Settings** → **Secrets and variables** → **Actions**.
+   - Update `DATABASE_URL` secret.
+
+---
+
+## 🔍 Verification & Health Check
+
+After completing the migration, verify that everything is operating normally:
+
+1. **Check Database Stats**:
+   Run the quick verification command:
+   ```bash
+   pnpm exec tsx -e "import { db } from './db/index.js'; import { animeEpisodes } from './db/schema.js'; import { count } from 'drizzle-orm'; db.select({ count: count() }).from(animeEpisodes).then(res => console.log('Episodes in new DB:', res[0].count));"
+   ```
+
+2. **Check App Streaming & Episode Gating**:
+   - Open any anime page (e.g. `http://localhost:3000/anime/20` or live site).
+   - Check episode sub/dub counts and stream player server switching.
+
+---
+
+## 💡 Best Practices to Conserve Neon Compute Units
+
+1. **Keep Auto-Suspend Low**: In Neon Project Settings, keep compute auto-suspend set to **5 minutes** (default).
+2. **Batch Ingestions**: Always perform database writes in batches of 100+ records rather than individual queries.
+3. **Use Render for Background Tasks**: Keep long-running sync scripts off Vercel serverless functions to avoid rapid cold-start connection churn.

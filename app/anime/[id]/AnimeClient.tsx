@@ -232,7 +232,11 @@ export default function AnimeClient({ id }: { id: string }) {
             <div className="flex items-center gap-2 bg-surface-container px-2 py-1 clip-chip border border-outline-variant/30">
               <button 
                 onClick={() => setLanguage("sub")}
-                className={`flex items-center gap-1.5 font-label-caps text-[12px] px-3 py-1.5 transition-colors cursor-pointer ${language === "sub" ? 'bg-neon-crimson text-void-black font-bold' : 'text-on-surface-variant hover:text-white'}`}
+                className={`flex items-center gap-1.5 font-label-caps text-[12px] px-3 py-1.5 transition-all cursor-pointer clip-chip ${
+                  language === "sub" 
+                    ? 'bg-neon-crimson text-void-black font-bold shadow-[0_0_10px_rgba(255,0,60,0.5)]' 
+                    : 'bg-surface-container-low text-on-surface-variant hover:bg-surface-glass hover:text-white'
+                }`}
               >
                 <MessageSquare className="w-3 h-3" /> SUB
               </button>
@@ -243,8 +247,10 @@ export default function AnimeClient({ id }: { id: string }) {
                   }
                 }}
                 disabled={counts !== null && (!counts.is_dub || counts.is_dub <= 0)}
-                className={`flex items-center gap-1.5 font-label-caps text-[12px] px-3 py-1.5 transition-colors ${
-                  language === "dub" ? 'bg-cyber-cyan text-void-black font-bold' : 'text-on-surface-variant hover:text-white'
+                className={`flex items-center gap-1.5 font-label-caps text-[12px] px-3 py-1.5 transition-all clip-chip ${
+                  language === "dub" 
+                    ? 'bg-cyber-cyan text-void-black font-bold shadow-[0_0_10px_rgba(0,240,255,0.5)]' 
+                    : 'bg-surface-container-low text-on-surface-variant hover:bg-surface-glass hover:text-white'
                 } ${counts !== null && (!counts.is_dub || counts.is_dub <= 0) ? 'opacity-30 cursor-not-allowed pointer-events-none' : 'cursor-pointer'}`}
                 title={counts !== null && (!counts.is_dub || counts.is_dub <= 0) ? "Dub not available for this anime" : "Switch to DUB"}
               >

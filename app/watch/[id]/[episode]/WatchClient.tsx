@@ -202,15 +202,17 @@ export default function WatchClient({ id, episode }: { id: string; episode: stri
 
   if (isAnimeLoading || isCountsLoading) {
     return (
-      <div className="flex-1 flex items-center justify-center min-h-screen bg-void-black">
+      <div className="flex-1 flex flex-col items-center justify-center min-h-screen bg-void-black relative">
+        <div className="absolute inset-0 pointer-events-none opacity-5 bg-[repeating-linear-gradient(0deg,transparent,transparent_2px,rgba(255,255,255,0.03)_2px,rgba(255,255,255,0.03)_4px)]" />
         <Grid size="60" speed="1" color="#FF003C" />
+        <span className="mt-8 font-label-caps text-cyber-cyan text-[10px] uppercase tracking-widest animate-pulse">INITIATING STREAM LINK...</span>
       </div>
     );
   }
 
   if (!anime) {
     return (
-      <div className="flex-1 flex items-center justify-center min-h-screen bg-void-black text-on-surface">
+      <div className="flex-1 flex flex-col items-center justify-center min-h-screen bg-void-black text-on-surface">
         <h1 className="font-headline-xl text-headline-xl">Anime not found</h1>
       </div>
     );
@@ -234,7 +236,7 @@ export default function WatchClient({ id, episode }: { id: string; episode: stri
       <div className="w-full bg-void-black px-margin-mobile md:px-margin-desktop py-4 flex items-center gap-4">
         <Link href={`/anime/${id}`} className="text-on-surface-variant hover:text-cyber-cyan transition-colors flex items-center gap-2 group">
           <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
-          <span className="font-label-caps text-[12px] uppercase tracking-widest">Back</span>
+          <span className="font-label-caps text-[12px] uppercase tracking-widest"><span className="text-outline-variant mr-1">[</span>RETURN<span className="text-outline-variant ml-1">]</span></span>
         </Link>
       </div>
 
@@ -280,7 +282,7 @@ export default function WatchClient({ id, episode }: { id: string; episode: stri
               </div>
               <p 
                 className="text-on-surface-variant/80 text-sm leading-relaxed line-clamp-3 md:line-clamp-4"
-                dangerouslySetInnerHTML={{ __html: anime.description || 'No description available in databanks.' }}
+                dangerouslySetInnerHTML={{ __html: anime.description || 'No description available.' }}
               />
             </div>
           </div>
@@ -305,14 +307,14 @@ export default function WatchClient({ id, episode }: { id: string; episode: stri
       {/* Server & Stream Fallback Helper Banner */}
       <div className="w-full max-w-[1600px] mx-auto px-margin-mobile md:px-margin-desktop py-2.5 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-[11px] text-on-surface-variant font-label-caps bg-surface-container-lowest border-b border-outline-variant/20">
         <div className="flex items-center gap-2">
-          <span className="w-2 h-2 rounded-full bg-cyber-cyan animate-pulse"></span>
+          <span className="w-1.5 h-1.5 bg-cyber-cyan animate-pulse shadow-[0_0_8px_rgba(0,240,255,0.8)]"></span>
           <span>STREAM SOURCE: <strong className="text-white">{provider === "ani" ? "SERVER 1" : "SERVER 2"}</strong></span>
         </div>
         <button
           onClick={() => setProvider(prev => (prev === "ani" ? "mal" : "ani"))}
-          className="text-cyber-cyan hover:text-white underline underline-offset-4 cursor-pointer transition-colors text-left sm:text-right"
+          className="text-cyber-cyan hover:text-white underline underline-offset-4 cursor-pointer transition-colors text-left sm:text-right flex items-center gap-1 sm:justify-end"
         >
-          Stream not playing or showing &apos;Content is not here&apos;? Switch to {provider === "ani" ? "Server 2" : "Server 1"} &rarr;
+          Stream not playing or showing &apos;Content is not here&apos;? Switch to {provider === "ani" ? "Server 2" : "Server 1"} <FastForward className="w-3 h-3" />
         </button>
       </div>
 
@@ -337,7 +339,11 @@ export default function WatchClient({ id, episode }: { id: string; episode: stri
           <div className="flex items-center gap-1.5">
             <button 
               onClick={() => setLanguage("sub")}
-              className={`flex items-center gap-1.5 font-label-caps text-[12px] px-3 py-1.5 transition-colors cursor-pointer ${effectiveLanguage === "sub" ? 'bg-neon-crimson text-void-black font-bold' : 'text-on-surface-variant hover:text-white'}`}
+              className={`flex items-center gap-1.5 font-label-caps text-[12px] px-3 py-1.5 transition-all cursor-pointer clip-chip ${
+                effectiveLanguage === "sub" 
+                  ? 'bg-neon-crimson text-void-black font-bold shadow-[0_0_10px_rgba(255,0,60,0.5)]' 
+                  : 'bg-surface-container-low text-on-surface-variant hover:bg-surface-glass hover:text-white'
+              }`}
             >
               <MessageSquare className="w-3 h-3" /> SUB
             </button>
@@ -348,10 +354,10 @@ export default function WatchClient({ id, episode }: { id: string; episode: stri
                 }
               }}
               disabled={!isDubAvailable}
-              className={`flex items-center gap-1.5 font-label-caps text-[12px] px-3 py-1.5 transition-colors ${
+              className={`flex items-center gap-1.5 font-label-caps text-[12px] px-3 py-1.5 transition-all clip-chip ${
                 effectiveLanguage === "dub" 
-                  ? 'bg-cyber-cyan text-void-black font-bold' 
-                  : 'text-on-surface-variant hover:text-white'
+                  ? 'bg-cyber-cyan text-void-black font-bold shadow-[0_0_10px_rgba(0,240,255,0.5)]' 
+                  : 'bg-surface-container-low text-on-surface-variant hover:bg-surface-glass hover:text-white'
               } ${!isDubAvailable ? 'opacity-30 cursor-not-allowed pointer-events-none' : 'cursor-pointer'}`}
               title={!isDubAvailable ? (counts?.is_dub ? `Dub only available up to Episode ${counts.is_dub}` : "Dub not available for this episode") : "Switch to DUB audio"}
             >
@@ -393,7 +399,11 @@ export default function WatchClient({ id, episode }: { id: string; episode: stri
           {/* Auto Next */}
           <button 
             onClick={() => setAutoNext(!autoNext)}
-            className={`flex items-center gap-2 font-label-caps text-[12px] px-3 py-1.5 border rounded-full transition-colors cursor-pointer ${autoNext ? 'border-neon-crimson text-neon-crimson bg-neon-crimson/10' : 'border-outline-variant text-on-surface-variant hover:text-white hover:border-white'}`}
+            className={`flex items-center gap-2 font-label-caps text-[12px] px-3 py-1.5 border transition-all cursor-pointer clip-chip ${
+              autoNext 
+                ? 'border-neon-crimson text-neon-crimson bg-neon-crimson/10 shadow-[0_0_10px_rgba(255,0,60,0.2)]' 
+                : 'border-outline-variant text-on-surface-variant hover:text-white hover:border-white'
+            }`}
           >
             <FastForward className="w-3.5 h-3.5 shrink-0" /> 
             <span>AUTO NEXT</span>
@@ -414,7 +424,7 @@ export default function WatchClient({ id, episode }: { id: string; episode: stri
           {/* Episode Selector */}
           <div>
             <div className="flex items-center justify-between border-b border-outline-variant pb-4 mb-4">
-              <h2 className="font-headline-xl text-headline-xl text-on-surface">EPISODES <span className="text-neon-crimson font-label-caps text-[12px] align-top">{finalNumEpisodes}</span></h2>
+              <h2 className="font-headline-xl text-[20px] text-on-surface uppercase tracking-widest">EPISODES <span className="text-neon-crimson font-label-caps text-[12px] align-top">{finalNumEpisodes}</span></h2>
             </div>
             
             {/* Episode Pagination */}
@@ -427,10 +437,10 @@ export default function WatchClient({ id, episode }: { id: string; episode: stri
                     <button
                       key={i}
                       onClick={() => setEpisodeChunk(i)}
-                      className={`font-label-caps text-[12px] px-4 py-2 border clip-chip transition-all ${
+                      className={`font-label-caps text-[12px] px-4 py-2 border clip-chip transition-all cursor-pointer ${
                         episodeChunk === i 
-                          ? 'bg-neon-crimson border-neon-crimson text-void-black font-bold' 
-                          : 'bg-surface-container border-outline-variant text-on-surface-variant hover:border-cyber-cyan hover:text-cyber-cyan'
+                          ? 'bg-neon-crimson border-neon-crimson text-void-black font-bold shadow-[0_0_10px_rgba(255,0,60,0.5)]' 
+                          : 'bg-surface-container border-outline-variant text-on-surface-variant hover:border-cyber-cyan hover:text-cyber-cyan hover:bg-cyber-cyan/10'
                       }`}
                     >
                       EP {s} - {e}
@@ -452,8 +462,8 @@ export default function WatchClient({ id, episode }: { id: string; episode: stri
                     <Link key={epNum} href={`/watch/${id}/${epNum}?lang=${targetLang}`}>
                       <div className={`flex items-center justify-center p-3 font-headline-lg transition-colors clip-chip text-center cursor-pointer border ${
                         isCurrent 
-                        ? 'bg-cyber-cyan text-void-black border-cyber-cyan' 
-                        : 'bg-surface-container hover:bg-neon-crimson hover:text-void-black text-on-surface border-outline-variant hover:border-neon-crimson'
+                        ? 'bg-cyber-cyan text-void-black border-cyber-cyan shadow-[0_0_10px_rgba(0,240,255,0.5)] font-bold' 
+                        : 'bg-surface-container hover:bg-neon-crimson hover:text-void-black text-on-surface border-outline-variant hover:border-neon-crimson hover:shadow-[0_0_10px_rgba(255,0,60,0.5)]'
                       }`}>
                         {epNum}
                       </div>

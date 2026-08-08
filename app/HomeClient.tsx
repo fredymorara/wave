@@ -3,7 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { Play, CalendarClock, ChevronLeft, ChevronRight } from "lucide-react";
-import { useTopAnime, useRecentEpisodes, useAniListBanners, useSchedule, useTopThisWeek } from "@/hooks/useAnime";
+import { useTrendingAnime, useRecentEpisodes, useAniListBanners, useSchedule, useTopThisWeek } from "@/hooks/useAnime";
 import { useWatchStore } from "@/store/useWatchStore";
 import { HeroCarousel } from "@/components/home/HeroCarousel";
 import { useEffect, useState, useRef } from "react";
@@ -11,8 +11,8 @@ import { Grid } from 'ldrs/react';
 import 'ldrs/react/Grid.css';
 
 export default function HomeClient() {
-  const { data: heroAnimeList, isLoading: isHeroLoading } = useAniListBanners(10);
-  const { data: topAnime, isLoading: isTopLoading } = useTopAnime(15);
+  const { data: heroAnimeList, isLoading: isHeroLoading } = useAniListBanners(10, 1);
+  const { data: trendingAnime, isLoading: isTrendingLoading } = useTrendingAnime(15, 2);
   const { data: recentEpisodes } = useRecentEpisodes(20);
   const { data: topThisWeek, isLoading: isTopThisWeekLoading } = useTopThisWeek(9);
   const { data: scheduleAnime } = useSchedule(15);
@@ -37,7 +37,7 @@ export default function HomeClient() {
 
   const historyItems = Object.values(history).sort((a, b) => b.timestamp - a.timestamp).slice(0, 5);
 
-  if (isHeroLoading || isTopLoading || isTopThisWeekLoading) {
+  if (isHeroLoading || isTrendingLoading || isTopThisWeekLoading) {
     return (
       <div className="flex-1 flex items-center justify-center min-h-screen bg-void-black">
         <Grid size="60" speed="1" color="#FF003C" />
@@ -118,7 +118,7 @@ export default function HomeClient() {
           </div>
           
           <div ref={trendingRef} className="flex overflow-x-auto gap-gutter pb-4 snap-x snap-mandatory hide-scrollbar scroll-smooth">
-            {topAnime?.map((anime, idx) => (
+            {trendingAnime?.map((anime, idx) => (
               <Link key={anime.idMal} href={`/anime/${anime.idMal}`} className="relative shrink-0 w-50 md:w-62.5 aspect-2/3 bg-surface-container rounded-none overflow-hidden group snap-start border border-transparent hover:scale-[1.02] hover:border-neon-crimson hover:shadow-[0_0_20px_rgba(255,0,60,0.4)] transition-all duration-300 block clip-corner">
                 <Image 
                   src={anime.coverImage.extraLarge} 

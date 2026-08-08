@@ -100,18 +100,18 @@ async function fetchAniList<T>(query: string, variables: Record<string, string |
 }
 
 export const anilistApi = {
-  getTrending: async (limit = 15): Promise<AniListAnime[]> => {
-    // Used for Hero Carousel
+  getTrending: async (limit = 15, page = 1): Promise<AniListAnime[]> => {
+    // Used for Hero Carousel and Trending Now
     const query = `
-      query($limit: Int) {
-        Page(page: 1, perPage: $limit) {
+      query($limit: Int, $page: Int) {
+        Page(page: $page, perPage: $limit) {
           media(sort: TRENDING_DESC, type: ANIME, isAdult: false) {
             ${MEDIA_FIELDS}
           }
         }
       }
     `;
-    const data = await fetchAniList<{ Page: { media: AniListAnime[] } }>(query, { limit });
+    const data = await fetchAniList<{ Page: { media: AniListAnime[] } }>(query, { limit, page });
     return data.Page.media.filter(a => a.idMal);
   },
 
@@ -131,26 +131,37 @@ export const anilistApi = {
   },
 
   getRecentReleases: async (limit = 20): Promise<AniListAnime[]> => {
-    // Used for "Recent Releases"
+    // Used for "Recent Releases" (Things that just aired)
+    const currentTime = Math.floor(Date.now() / 1000);
     const query = `
-      query($limit: Int) {
+      query($limit: Int, $time: Int) {
         Page(page: 1, perPage: $limit) {
-          media(status: RELEASING, type: ANIME, sort: UPDATED_AT_DESC, isAdult: false) {
-            ${MEDIA_FIELDS}
+          airingSchedules(airingAt_lesser: $time, sort: TIME_DESC) {
+            media {
+              ${MEDIA_FIELDS}
+            }
           }
         }
       }
     `;
-    const data = await fetchAniList<{ Page: { media: AniListAnime[] } }>(query, { limit });
-    return data.Page.media.filter(a => a.idMal);
+    const data = await fetchAniList<{ Page: { airingSchedules: { media: AniListAnime }[] } }>(query, { limit, time: currentTime });
+    
+    // Extract media, filter duplicates and ensure it has an idMal
+    const uniqueMedia = new Map<number, AniListAnime>();
+    data.Page.airingSchedules.forEach(schedule => {
+      if (schedule.media && schedule.media.idMal && !uniqueMedia.has(schedule.media.idMal)) {
+        uniqueMedia.set(schedule.media.idMal, schedule.media);
+      }
+    });
+    return Array.from(uniqueMedia.values());
   },
 
   getTopThisWeek: async (limit = 9): Promise<AniListAnime[]> => {
-    // Used for "Top Rated This Season" (Highest score currently airing)
+    // Used for "Top Anime This Week" (Highest trending currently airing)
     const query = `
       query($limit: Int) {
         Page(page: 1, perPage: $limit) {
-          media(status: RELEASING, type: ANIME, sort: SCORE_DESC, isAdult: false, format: TV) {
+          media(status: RELEASING, type: ANIME, sort: TRENDING_DESC, isAdult: false, format: TV) {
             ${MEDIA_FIELDS}
           }
         }
@@ -161,19 +172,29 @@ export const anilistApi = {
   },
 
   getAiringSchedule: async (limit = 15): Promise<AniListAnime[]> => {
-    // We can query AiringSchedule for things airing roughly within the next 24 hours
-    // Or we can just sort by trending releasing anime. Let's get the highest rated releasing anime.
+    // Used for "Airing Now" (Things airing very soon)
+    const currentTime = Math.floor(Date.now() / 1000);
     const query = `
-      query($limit: Int) {
+      query($limit: Int, $time: Int) {
         Page(page: 1, perPage: $limit) {
-          media(status: RELEASING, type: ANIME, sort: POPULARITY_DESC, isAdult: false) {
-            ${MEDIA_FIELDS}
+          airingSchedules(airingAt_greater: $time, sort: TIME) {
+            media {
+              ${MEDIA_FIELDS}
+            }
           }
         }
       }
     `;
-    const data = await fetchAniList<{ Page: { media: AniListAnime[] } }>(query, { limit });
-    return data.Page.media.filter(a => a.idMal);
+    const data = await fetchAniList<{ Page: { airingSchedules: { media: AniListAnime }[] } }>(query, { limit, time: currentTime });
+    
+    // Extract media, filter duplicates and ensure it has an idMal
+    const uniqueMedia = new Map<number, AniListAnime>();
+    data.Page.airingSchedules.forEach(schedule => {
+      if (schedule.media && schedule.media.idMal && !uniqueMedia.has(schedule.media.idMal)) {
+        uniqueMedia.set(schedule.media.idMal, schedule.media);
+      }
+    });
+    return Array.from(uniqueMedia.values());
   },
 
   searchAnime: async (

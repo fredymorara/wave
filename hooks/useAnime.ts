@@ -9,6 +9,14 @@ export function useTopAnime(limit = 15) {
   });
 }
 
+export function useTrendingAnime(limit = 15, page = 1) {
+  return useQuery({
+    queryKey: ["anime", "trending", limit, page],
+    queryFn: () => anilistApi.getTrending(limit, page),
+    staleTime: 60 * 60 * 1000, // 1 hour
+  });
+}
+
 export function useRecentEpisodes(limit = 20) {
   return useQuery({
     queryKey: ["anime", "recent", limit],
@@ -42,10 +50,10 @@ export function useSearchAnime(query: string, filters?: { genre?: string; year?:
   });
 }
 
-export function useAniListBanners(limit = 10) {
+export function useAniListBanners(limit = 10, page = 1) {
   return useQuery({
-    queryKey: ["anime", "anilist-banners", limit],
-    queryFn: () => anilistApi.getTrending(limit),
+    queryKey: ["anime", "anilist-banners", limit, page],
+    queryFn: () => anilistApi.getTrending(limit, page),
     staleTime: 60 * 60 * 1000, // 1 hour
   });
 }

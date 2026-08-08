@@ -1,12 +1,13 @@
 import { config } from 'dotenv';
-config({ path: '.env.local' }); // Fallback if run locally
-import { db } from '../db/index.js';
+config({ path: '.env.local' });
+config(); // also check standard .env if present
 import { animeEpisodes } from '../db/schema.js';
 import { sql } from 'drizzle-orm';
 
 const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
 async function runSyncJob() {
+  const { db } = await import('../db/index.js');
   console.log(`[${new Date().toISOString()}] Starting Anikoto sync from GitHub Actions...`);
   let syncedCount = 0;
 
@@ -31,21 +32,46 @@ async function runSyncJob() {
       }
 
       type AnikotoItem = {
-        mal_id?: number | string;
-        is_sub?: number;
-        is_dub?: number;
+        id?: number | string;
+        mal_id?: number | string | null;
+        ani_id?: number | string | null;
+        is_sub?: number | null;
+        is_dub?: number | null;
       };
 
-      // Extract and deduplicate records by anime_id
-      const recordsMap = new Map();
+      const isValidId = (id: unknown): boolean => {
+        if (id === null || id === undefined) return false;
+        const s = String(id).trim();
+        return Boolean(s && s !== '0' && s !== 'null' && s !== 'undefined' && s !== 'NaN');
+      };
+
+      // Extract and deduplicate records by unique anime_id
+      const recordsMap = new Map<string, { anime_id: string; is_sub: number; is_dub: number; updated_at: Date }>();
+      const now = new Date();
+
       items.forEach((item: AnikotoItem) => {
-        const animeId = String(item.mal_id);
-        if (animeId && animeId !== 'undefined') {
-          recordsMap.set(animeId, {
-            anime_id: animeId,
-            is_sub: item.is_sub || 0,
-            is_dub: item.is_dub || 0,
-            updated_at: new Date(),
+        const subCount = Number(item.is_sub) || 0;
+        const dubCount = Number(item.is_dub) || 0;
+
+        // 1. Map under standard MAL ID if valid
+        if (isValidId(item.mal_id)) {
+          const malIdStr = String(item.mal_id).trim();
+          recordsMap.set(malIdStr, {
+            anime_id: malIdStr,
+            is_sub: subCount,
+            is_dub: dubCount,
+            updated_at: now,
+          });
+        }
+
+        // 2. Map under ani_ prefixed AniList ID if valid
+        if (isValidId(item.ani_id)) {
+          const aniIdStr = `ani_${String(item.ani_id).trim()}`;
+          recordsMap.set(aniIdStr, {
+            anime_id: aniIdStr,
+            is_sub: subCount,
+            is_dub: dubCount,
+            updated_at: now,
           });
         }
       });

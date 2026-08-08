@@ -210,10 +210,12 @@ export const anilistApi = {
     return data.Page.media.filter(a => a.idMal);
   },
 
-  getAnimeDetails: async (malId: number | string): Promise<AniListAnime & { recommendations?: AniListAnime[], relations?: (AniListAnime & { relationType: string })[] }> => {
-    const query = `
-      query($idMal: Int) {
-        Media(idMal: $idMal, type: ANIME) {
+  getAnimeDetails: async (idOrMalId: number | string): Promise<AniListAnime & { recommendations?: AniListAnime[], relations?: (AniListAnime & { relationType: string })[] }> => {
+    const numId = Number(idOrMalId);
+    
+    const buildQuery = (isMal: boolean) => `
+      query($id: Int) {
+        Media(${isMal ? "idMal: $id" : "id: $id"}, type: ANIME) {
           ${MEDIA_FIELDS}
           recommendations(perPage: 10, sort: RATING_DESC) {
             nodes {
@@ -233,7 +235,31 @@ export const anilistApi = {
         }
       }
     `;
-    const data = await fetchAniList<{ Media: AniListAnime & { recommendations?: { nodes: { mediaRecommendation: AniListAnime }[] }, relations?: { edges: { relationType: string, node: AniListAnime & { type?: string } }[] } } }>(query, { idMal: Number(malId) });
+
+    type DetailResponse = { 
+      Media: AniListAnime & { 
+        recommendations?: { nodes: { mediaRecommendation: AniListAnime }[] }, 
+        relations?: { edges: { relationType: string, node: AniListAnime & { type?: string } }[] } 
+      } 
+    };
+
+    let data: DetailResponse | null = null;
+
+    // First attempt: try looking up by idMal
+    try {
+      data = await fetchAniList<DetailResponse>(buildQuery(true), { id: numId });
+    } catch {
+      // Lookup by idMal failed, will attempt fallback
+    }
+
+    // Fallback attempt: if idMal didn't return Media, query by AniList native id
+    if (!data?.Media) {
+      data = await fetchAniList<DetailResponse>(buildQuery(false), { id: numId });
+    }
+
+    if (!data?.Media) {
+      throw new Error(`Anime not found for ID: ${idOrMalId}`);
+    }
     
     const media: AniListAnime & { recommendations?: AniListAnime[], relations?: (AniListAnime & { relationType: string })[] } = {
       ...data.Media,
@@ -245,7 +271,7 @@ export const anilistApi = {
     if (data.Media && data.Media.recommendations && data.Media.recommendations.nodes) {
       media.recommendations = data.Media.recommendations.nodes
         .map((n) => n.mediaRecommendation)
-        .filter((r) => r && r.idMal);
+        .filter((r) => r && (r.idMal || r.id));
     }
     
     // Map relations, filter OTHER/MANGA, sort by startDate
@@ -257,7 +283,7 @@ export const anilistApi = {
         }))
         .filter((r) => 
           r && 
-          r.idMal && 
+          (r.idMal || r.id) && 
           r.type !== "MANGA" && 
           r.relationType !== "OTHER" &&
           r.relationType !== "CHARACTER"

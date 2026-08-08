@@ -3,7 +3,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { useEffect, useState, useRef } from "react";
-import { ArrowLeft, MessageSquare, Mic, FastForward } from "lucide-react";
+import { ArrowLeft, MessageSquare, Mic, FastForward, Server } from "lucide-react";
 import { useAnimeDetails } from "@/hooks/useAnime";
 import { Grid } from 'ldrs/react';
 import 'ldrs/react/Grid.css';
@@ -44,39 +44,34 @@ export default function WatchClient({ id, episode }: { id: string; episode: stri
   // Sub/Dub Availability State
   const [counts, setCounts] = useState<{ is_sub: number | null, is_dub: number | null } | null>(null);
 
-  // Fetch Anikoto Sub/Dub counts
   useEffect(() => {
     async function fetchCounts() {
       try {
         const res = await fetch(`/api/episodes/${id}`);
         if (res.ok) {
           const data = await res.json();
-          setCounts(data);
+          if (data && data.success && data.data) {
+            setCounts(data.data);
+            const epNum = parseInt(episode);
+            if (data.data.is_dub !== null && data.data.is_dub < epNum) {
+              setLanguage("sub");
+            }
+          }
         }
       } catch (err) {
-        console.error("Failed to fetch episode counts", err);
+        console.error("Failed to fetch episode counts for player:", err);
       }
     }
-    if (anime) fetchCounts();
-  }, [anime, id]);
+    fetchCounts();
+  }, [id, episode]);
 
-  // Auto-switch to sub if dub is not available for the current episode
+  // Log watch history
   useEffect(() => {
-    if (counts && language === "dub") {
-      const epNumInt = parseInt(episode);
-      if (counts.is_dub !== null && counts.is_dub !== undefined && epNumInt > counts.is_dub) {
-        const timer = setTimeout(() => setLanguage("sub"), 0);
-        return () => clearTimeout(timer);
-      }
-    }
-  }, [counts, episode, language]);
-
-  useEffect(() => {
-    if (anime && episode) {
+    if (anime) {
       addToHistory({
         mal_id: id,
-        title: anime.title.english || anime.title.romaji || "",
-        image_url: anime.coverImage.extraLarge,
+        title: anime.title.english || anime.title.romaji || "Anime",
+        image_url: anime.coverImage.extraLarge || anime.coverImage.large,
         episode: episode,
         language: language,
       });
@@ -98,9 +93,9 @@ export default function WatchClient({ id, episode }: { id: string; episode: stri
       }
       
       if (data?.event === "error") {
-        console.warn("MegaPlay Error:", data);
+        console.warn("MegaPlay Error event received:", data);
         if (provider === "ani") {
-          console.log("Falling back from AniList ID to MAL ID...");
+          console.log("Falling back from Server 1 (AniList) to Server 2 (MAL)...");
           setProvider("mal");
         }
       } else if (data?.event === "time") {
@@ -111,11 +106,6 @@ export default function WatchClient({ id, episode }: { id: string; episode: stri
       } else if (data?.event === "complete") {
         // Auto Next Episode Logic
         if (autoNext) {
-          // Calculate max episodes we know of based on counts
-          // Since this runs inside an effect, we will use a custom event or trigger a state change, 
-          // or just emit a custom signal to let the component handle navigation.
-          // Wait, we can't easily access the latest `episode` string without adding it to dependencies.
-          // We'll dispatch a custom event on the window to cleanly handle the redirect
           window.dispatchEvent(new CustomEvent('megaplay-complete'));
         }
       }
@@ -127,7 +117,6 @@ export default function WatchClient({ id, episode }: { id: string; episode: stri
 
   // Episode calculations
   let baseEpisodes = anime?.episodes || 0;
-  const isAiring = !!anime?.nextAiringEpisode;
 
   if (anime?.nextAiringEpisode) {
     baseEpisodes = anime.nextAiringEpisode.episode - 1;
@@ -139,34 +128,25 @@ export default function WatchClient({ id, episode }: { id: string; episode: stri
   
   // Apply Sub/Dub limits if available from Anikoto
   let finalNumEpisodes = baseEpisodes;
-  if (counts && anime) {
-    const limit = language === "dub" ? counts.is_dub : counts.is_sub;
-    if (limit !== null && limit !== undefined) {
-      if (isAiring) {
-        finalNumEpisodes = Math.min(baseEpisodes, limit);
-      } else if (anime.episodes) {
-        finalNumEpisodes = Math.min(anime.episodes, limit);
-      } else {
-        // Trust Anikoto fully if AniList has no episode count
-        finalNumEpisodes = Math.max(limit, parseInt(episode) || 0);
-      }
+  if (counts) {
+    if (language === "sub" && counts.is_sub !== null) {
+      finalNumEpisodes = counts.is_sub;
+    } else if (language === "dub" && counts.is_dub !== null) {
+      finalNumEpisodes = counts.is_dub;
     }
   }
 
-  // Handle auto-next custom event
+  // Handle auto next episode redirection
   useEffect(() => {
     function handleAutoNext() {
-      const epNumInt = parseInt(episode);
-      const nextEpNum = epNumInt + 1;
+      const currentEpNum = parseInt(episode);
+      const nextEpNum = currentEpNum + 1;
       
-      if (nextEpNum <= finalNumEpisodes) {
-        // Transfer fullscreen to our wrapper before navigating
-        if (document.fullscreenElement && playerRef.current) {
-          playerRef.current.requestFullscreen().catch(e => console.error("Fullscreen transfer failed", e));
+      if (!isNaN(currentEpNum) && nextEpNum <= finalNumEpisodes) {
+        let targetLang = language;
+        if (language === "dub" && counts?.is_dub !== null && counts?.is_dub !== undefined && counts.is_dub < nextEpNum) {
+          targetLang = "sub";
         }
-
-        // Predictively switch to sub if next episode doesn't have dub
-        const targetLang = (language === "dub" && counts && counts.is_dub !== null && nextEpNum > counts.is_dub) ? "sub" : language;
         router.push(`/watch/${id}/${nextEpNum}?lang=${targetLang}`);
       }
     }
@@ -194,8 +174,8 @@ export default function WatchClient({ id, episode }: { id: string; episode: stri
 
   const titleStr = anime.title.english || anime.title.romaji;
   
-  // Calculate iframe URL
-  const baseId = provider === "ani" ? anime.id : id; // anime.id is AniList ID, id is MAL ID
+  // Calculate iframe URL cleanly based on active provider
+  const baseId = provider === "ani" ? (anime.id || id) : (anime.idMal || id);
   const iframeSrc = `https://megaplay.buzz/stream/${provider}/${baseId}/${episode}/${language}?autoPlay=1`;
 
   const CHUNK_SIZE = 100;
@@ -278,6 +258,20 @@ export default function WatchClient({ id, episode }: { id: string; episode: stri
         </div>
       </section>
 
+      {/* Server & Stream Fallback Helper Banner */}
+      <div className="w-full max-w-[1600px] mx-auto px-margin-mobile md:px-margin-desktop py-2.5 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-[11px] text-on-surface-variant font-label-caps bg-surface-container-lowest border-b border-outline-variant/20">
+        <div className="flex items-center gap-2">
+          <span className="w-2 h-2 rounded-full bg-cyber-cyan animate-pulse"></span>
+          <span>STREAM SOURCE: <strong className="text-white">{provider === "ani" ? "SERVER 1 (ANILIST)" : "SERVER 2 (MAL)"}</strong></span>
+        </div>
+        <button
+          onClick={() => setProvider(prev => (prev === "ani" ? "mal" : "ani"))}
+          className="text-cyber-cyan hover:text-white underline underline-offset-4 cursor-pointer transition-colors text-left sm:text-right"
+        >
+          Stream not playing or showing &apos;Content is not here&apos;? Switch to {provider === "ani" ? "Server 2 (MAL)" : "Server 1 (AniList)"} &rarr;
+        </button>
+      </div>
+
       {/* Player Controls Bar */}
       <div className="w-full max-w-[1600px] mx-auto bg-surface-container-lowest border-b border-surface-variant px-margin-mobile md:px-margin-desktop py-4 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
@@ -294,37 +288,68 @@ export default function WatchClient({ id, episode }: { id: string; episode: stri
           </h1>
         </div>
 
-        <div className="flex items-center gap-4 bg-surface-container px-4 py-2 clip-chip border border-outline-variant/30">
-          <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-3 bg-surface-container px-4 py-2 clip-chip border border-outline-variant/30">
+          {/* Sub / Dub Selector */}
+          <div className="flex items-center gap-1.5">
             <button 
               onClick={() => setLanguage("sub")}
-              className={`flex items-center gap-1.5 font-label-caps text-[12px] px-3 py-1.5 transition-colors ${language === "sub" ? 'bg-neon-crimson text-void-black font-bold' : 'text-on-surface-variant hover:text-white'}`}
+              className={`flex items-center gap-1.5 font-label-caps text-[12px] px-3 py-1.5 transition-colors cursor-pointer ${language === "sub" ? 'bg-neon-crimson text-void-black font-bold' : 'text-on-surface-variant hover:text-white'}`}
             >
               <MessageSquare className="w-3 h-3" /> SUB
             </button>
             <button 
               onClick={() => setLanguage("dub")}
               disabled={counts !== null && (counts.is_dub === null || counts.is_dub < parseInt(episode))}
-              className={`flex items-center gap-1.5 font-label-caps text-[12px] px-3 py-1.5 transition-colors ${language === "dub" ? 'bg-cyber-cyan text-void-black font-bold' : 'text-on-surface-variant hover:text-white'} disabled:opacity-50 disabled:cursor-not-allowed`}
+              className={`flex items-center gap-1.5 font-label-caps text-[12px] px-3 py-1.5 transition-colors cursor-pointer ${language === "dub" ? 'bg-cyber-cyan text-void-black font-bold' : 'text-on-surface-variant hover:text-white'} disabled:opacity-50 disabled:cursor-not-allowed`}
               title={counts !== null && (counts.is_dub === null || counts.is_dub < parseInt(episode)) ? "Dub not available for this episode" : ""}
             >
               <Mic className="w-3 h-3" /> DUB
             </button>
           </div>
           
-          <div className="w-px h-6 bg-outline-variant/50"></div>
+          <div className="w-px h-6 bg-outline-variant/50 hidden sm:block"></div>
+
+          {/* Cyberpunk Server Switcher */}
+          <div className="flex items-center gap-1 bg-surface-container-low px-2 py-1 border border-outline-variant/30 clip-chip">
+            <Server className="w-3 h-3 text-on-surface-variant mr-1" />
+            <button 
+              onClick={() => setProvider("ani")}
+              className={`font-label-caps text-[11px] px-2.5 py-1 transition-all cursor-pointer ${
+                provider === "ani" 
+                  ? 'bg-cyber-cyan text-void-black font-bold shadow-[0_0_8px_rgba(0,240,255,0.5)]' 
+                  : 'text-on-surface-variant hover:text-cyber-cyan'
+              }`}
+              title="Stream Server 1 (AniList)"
+            >
+              SERVER 1
+            </button>
+            <button 
+              onClick={() => setProvider("mal")}
+              className={`font-label-caps text-[11px] px-2.5 py-1 transition-all cursor-pointer ${
+                provider === "mal" 
+                  ? 'bg-neon-crimson text-void-black font-bold shadow-[0_0_8px_rgba(255,0,60,0.5)]' 
+                  : 'text-on-surface-variant hover:text-neon-crimson'
+              }`}
+              title="Stream Server 2 (MAL)"
+            >
+              SERVER 2
+            </button>
+          </div>
           
+          <div className="w-px h-6 bg-outline-variant/50 hidden sm:block"></div>
+          
+          {/* Auto Next */}
           <button 
             onClick={() => setAutoNext(!autoNext)}
-            className={`flex items-center gap-2 font-label-caps text-[12px] px-4 py-1.5 border rounded-full transition-colors ${autoNext ? 'border-neon-crimson text-neon-crimson bg-neon-crimson/10' : 'border-outline-variant text-on-surface-variant hover:text-white hover:border-white'}`}
+            className={`flex items-center gap-2 font-label-caps text-[12px] px-3 py-1.5 border rounded-full transition-colors cursor-pointer ${autoNext ? 'border-neon-crimson text-neon-crimson bg-neon-crimson/10' : 'border-outline-variant text-on-surface-variant hover:text-white hover:border-white'}`}
           >
-            <FastForward className="w-4 h-4 shrink-0" /> 
+            <FastForward className="w-3.5 h-3.5 shrink-0" /> 
             <span>AUTO NEXT</span>
           </button>
           
           <div className="w-px h-6 bg-outline-variant/50"></div>
           
-          <WatchlistButton animeId={id} className="px-3 py-1.5 bg-transparent border-none hover:bg-surface-glass text-xs" showText={false} />
+          <WatchlistButton animeId={id} className="px-3 py-1.5 bg-transparent border-none hover:bg-surface-glass text-xs cursor-pointer" showText={false} />
         </div>
       </div>
 

@@ -137,9 +137,9 @@ export function HeroCarousel({ animeList }: HeroCarouselProps) {
                 style={{ transitionDelay: '500ms' }}
               >
                 <Link href={`/anime/${anime.idMal}`}>
-                  <Button className="bg-neon-crimson hover:bg-neon-crimson/90 text-white rounded-none font-label-caps uppercase tracking-widest px-8 py-6 clip-chip btn-glow border border-transparent cursor-pointer">
-                    <Play className="w-5 h-5 mr-2 fill-current" />
-                    Watch Now
+                  <Button className="flex items-center justify-center gap-2 bg-neon-crimson text-void-black font-label-caps font-bold uppercase tracking-widest px-8 py-6 clip-corner hover:bg-white hover:drop-shadow-[0_0_15px_rgba(255,0,60,0.6)] transition-all duration-300 scale-105 active:scale-95 group border-none cursor-pointer">
+                    <Play className="w-5 h-5 mr-1 fill-void-black group-hover:scale-110 transition-transform" />
+                    WATCH NOW
                   </Button>
                 </Link>
               </div>

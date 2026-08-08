@@ -62,25 +62,22 @@ export default function WatchClient({ id, episode }: { id: string; episode: stri
         if (res.ok) {
           const data = await res.json();
           if (isMounted) {
-            if (data && data.success && data.data) {
-              setCounts(data.data);
-              if (data.data.is_dub === null || data.data.is_dub === 0 || data.data.is_dub < epNum) {
+            if (data && (typeof data.is_sub === 'number' || typeof data.is_dub === 'number' || data.is_sub !== undefined)) {
+              setCounts({ is_sub: data.is_sub ?? null, is_dub: data.is_dub ?? null });
+              if (data.is_dub === null || data.is_dub === 0 || data.is_dub < epNum) {
                 setLanguage("sub");
               }
             } else {
-              setCounts({ is_sub: anime?.episodes || null, is_dub: null });
-              setLanguage("sub");
+              setCounts(null);
             }
           }
         } else if (isMounted) {
-          setCounts({ is_sub: anime?.episodes || null, is_dub: null });
-          setLanguage("sub");
+          setCounts(null);
         }
       } catch (err) {
         console.error("Failed to fetch episode counts for player:", err);
         if (isMounted) {
-          setCounts({ is_sub: anime?.episodes || null, is_dub: null });
-          setLanguage("sub");
+          setCounts(null);
         }
       } finally {
         if (isMounted) {
@@ -92,7 +89,7 @@ export default function WatchClient({ id, episode }: { id: string; episode: stri
     return () => {
       isMounted = false;
     };
-  }, [id, epNum, anime?.episodes]);
+  }, [id, epNum]);
 
   // Log watch history
   useEffect(() => {
@@ -144,25 +141,43 @@ export default function WatchClient({ id, episode }: { id: string; episode: stri
     return () => window.removeEventListener("message", handleMessage);
   }, [provider, id, updateProgress, autoNext]);
 
-  // Episode count calculations
-  let baseEpisodes = anime?.episodes || 0;
+  // Episode count calculations: Only show actually released/aired episodes
+  let baseEpisodes = 0;
+  const isAiring = !!anime?.nextAiringEpisode;
 
-  if (anime?.nextAiringEpisode) {
-    baseEpisodes = anime.nextAiringEpisode.episode - 1;
-  } else if (anime?.status === 'NOT_YET_RELEASED') {
+  if (anime?.status === 'NOT_YET_RELEASED') {
     baseEpisodes = 0;
-  } else if (!baseEpisodes) {
-    baseEpisodes = epNum || 12;
+  } else if (anime?.nextAiringEpisode) {
+    baseEpisodes = Math.max(0, anime.nextAiringEpisode.episode - 1);
+  } else if (anime?.status === 'RELEASING') {
+    // If releasing but schedule unknown, trust DB count or avoid assuming future unreleased episodes
+    baseEpisodes = counts?.is_sub ?? 0;
+  } else if (anime?.status === 'FINISHED') {
+    baseEpisodes = anime.episodes || 0;
+  } else {
+    baseEpisodes = anime?.episodes || 0;
   }
   
-  // Apply Sub/Dub limits if available from Anikoto
+  // Apply Sub/Dub limits from Anikoto DB
   let finalNumEpisodes = baseEpisodes;
   if (counts) {
-    if (effectiveLanguage === "sub" && counts.is_sub !== null && counts.is_sub > 0) {
-      finalNumEpisodes = counts.is_sub;
-    } else if (effectiveLanguage === "dub" && counts.is_dub !== null && counts.is_dub > 0) {
-      finalNumEpisodes = counts.is_dub;
+    const limit = effectiveLanguage === "dub" ? counts.is_dub : counts.is_sub;
+    if (limit !== null && limit !== undefined && limit > 0) {
+      if (isAiring) {
+        finalNumEpisodes = Math.min(baseEpisodes, limit);
+      } else if (anime?.status === 'FINISHED' && anime.episodes) {
+        finalNumEpisodes = Math.min(anime.episodes, limit);
+      } else {
+        finalNumEpisodes = limit;
+      }
+    } else if (effectiveLanguage === "dub") {
+      finalNumEpisodes = 0;
     }
+  }
+
+  // Fallback only if we have active episode number
+  if (finalNumEpisodes === 0 && epNum && anime?.status !== 'NOT_YET_RELEASED') {
+    finalNumEpisodes = epNum;
   }
 
   // Handle auto next episode redirection

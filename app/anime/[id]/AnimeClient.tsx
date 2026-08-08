@@ -22,7 +22,9 @@ export default function AnimeClient({ id }: { id: string }) {
         const res = await fetch(`/api/episodes/${id}`);
         if (res.ok) {
           const data = await res.json();
-          setCounts(data);
+          if (data && (typeof data.is_sub === 'number' || typeof data.is_dub === 'number' || data.is_sub !== undefined)) {
+            setCounts({ is_sub: data.is_sub ?? null, is_dub: data.is_dub ?? null });
+          }
         }
       } catch (err) {
         console.error("Failed to fetch episode counts", err);
@@ -47,32 +49,37 @@ export default function AnimeClient({ id }: { id: string }) {
     );
   }
 
-  // Calculate aired episodes
-  let baseEpisodes = anime.episodes || 0;
+  // Calculate aired/released episodes: Only show actually released/aired episodes
+  let baseEpisodes = 0;
   const isAiring = !!anime.nextAiringEpisode;
-  
-  if (anime.nextAiringEpisode) {
-    baseEpisodes = anime.nextAiringEpisode.episode - 1;
-  } else if (anime.status === 'NOT_YET_RELEASED') {
+
+  if (anime.status === 'NOT_YET_RELEASED') {
     baseEpisodes = 0;
-  } else if (!baseEpisodes) {
-    baseEpisodes = 12; // Fallback only if we have absolutely nothing
+  } else if (anime.nextAiringEpisode) {
+    baseEpisodes = Math.max(0, anime.nextAiringEpisode.episode - 1);
+  } else if (anime.status === 'RELEASING') {
+    baseEpisodes = counts?.is_sub ?? 0;
+  } else if (anime.status === 'FINISHED') {
+    baseEpisodes = anime.episodes || 0;
+  } else {
+    baseEpisodes = anime.episodes || 0;
   }
   
   let numEpisodes = baseEpisodes;
 
-  // Apply Sub/Dub limits if available from Anikoto
+  // Apply Sub/Dub limits if available from Anikoto DB
   if (counts) {
     const limit = language === "dub" ? counts.is_dub : counts.is_sub;
-    if (limit !== null && limit !== undefined) {
+    if (limit !== null && limit !== undefined && limit > 0) {
       if (isAiring) {
         numEpisodes = Math.min(baseEpisodes, limit);
-      } else if (anime.episodes) {
+      } else if (anime.status === 'FINISHED' && anime.episodes) {
         numEpisodes = Math.min(anime.episodes, limit);
       } else {
-        // Trust Anikoto fully if AniList has no episode count
         numEpisodes = limit;
       }
+    } else if (language === "dub") {
+      numEpisodes = 0;
     }
   }
 
@@ -225,13 +232,21 @@ export default function AnimeClient({ id }: { id: string }) {
             <div className="flex items-center gap-2 bg-surface-container px-2 py-1 clip-chip border border-outline-variant/30">
               <button 
                 onClick={() => setLanguage("sub")}
-                className={`flex items-center gap-1.5 font-label-caps text-[12px] px-3 py-1.5 transition-colors ${language === "sub" ? 'bg-neon-crimson text-void-black font-bold' : 'text-on-surface-variant hover:text-white'}`}
+                className={`flex items-center gap-1.5 font-label-caps text-[12px] px-3 py-1.5 transition-colors cursor-pointer ${language === "sub" ? 'bg-neon-crimson text-void-black font-bold' : 'text-on-surface-variant hover:text-white'}`}
               >
                 <MessageSquare className="w-3 h-3" /> SUB
               </button>
               <button 
-                onClick={() => setLanguage("dub")}
-                className={`flex items-center gap-1.5 font-label-caps text-[12px] px-3 py-1.5 transition-colors ${language === "dub" ? 'bg-cyber-cyan text-void-black font-bold' : 'text-on-surface-variant hover:text-white'}`}
+                onClick={() => {
+                  if (counts && counts.is_dub && counts.is_dub > 0) {
+                    setLanguage("dub");
+                  }
+                }}
+                disabled={counts !== null && (!counts.is_dub || counts.is_dub <= 0)}
+                className={`flex items-center gap-1.5 font-label-caps text-[12px] px-3 py-1.5 transition-colors ${
+                  language === "dub" ? 'bg-cyber-cyan text-void-black font-bold' : 'text-on-surface-variant hover:text-white'
+                } ${counts !== null && (!counts.is_dub || counts.is_dub <= 0) ? 'opacity-30 cursor-not-allowed pointer-events-none' : 'cursor-pointer'}`}
+                title={counts !== null && (!counts.is_dub || counts.is_dub <= 0) ? "Dub not available for this anime" : "Switch to DUB"}
               >
                 <Mic className="w-3 h-3" /> DUB
               </button>

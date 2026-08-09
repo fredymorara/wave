@@ -304,19 +304,7 @@ export default function WatchClient({ id, episode }: { id: string; episode: stri
         </div>
       </section>
 
-      {/* Server & Stream Fallback Helper Banner */}
-      <div className="w-full max-w-[1600px] mx-auto px-margin-mobile md:px-margin-desktop py-2.5 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-[11px] text-on-surface-variant font-label-caps bg-surface-container-lowest border-b border-outline-variant/20">
-        <div className="flex items-center gap-2">
-          <span className="w-1.5 h-1.5 bg-cyber-cyan animate-pulse shadow-[0_0_8px_rgba(0,240,255,0.8)]"></span>
-          <span>STREAM SOURCE: <strong className="text-white">{provider === "ani" ? "SERVER 1" : "SERVER 2"}</strong></span>
-        </div>
-        <button
-          onClick={() => setProvider(prev => (prev === "ani" ? "mal" : "ani"))}
-          className="text-cyber-cyan hover:text-white underline underline-offset-4 cursor-pointer transition-colors text-left sm:text-right flex items-center gap-1 sm:justify-end"
-        >
-          Stream not playing or showing &apos;Content is not here&apos;? Switch to {provider === "ani" ? "Server 2" : "Server 1"} <FastForward className="w-3 h-3" />
-        </button>
-      </div>
+
 
       {/* Player Controls Bar */}
       <div className="w-full max-w-[1600px] mx-auto bg-surface-container-lowest border-b border-surface-variant px-margin-mobile md:px-margin-desktop py-4 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
@@ -365,34 +353,7 @@ export default function WatchClient({ id, episode }: { id: string; episode: stri
             </button>
           </div>
           
-          <div className="w-px h-6 bg-outline-variant/50 hidden sm:block"></div>
 
-          {/* Cyberpunk Server Switcher */}
-          <div className="flex items-center gap-1 bg-surface-container-low px-2 py-1 border border-outline-variant/30 clip-chip">
-            <Server className="w-3 h-3 text-on-surface-variant mr-1" />
-            <button 
-              onClick={() => setProvider("ani")}
-              className={`font-label-caps text-[11px] px-2.5 py-1 transition-all cursor-pointer ${
-                provider === "ani" 
-                  ? 'bg-neon-crimson text-void-black font-bold shadow-[0_0_8px_rgba(255,0,60,0.5)]' 
-                  : 'text-on-surface-variant hover:text-neon-crimson'
-              }`}
-              title="Stream Server 1"
-            >
-              SERVER 1
-            </button>
-            <button 
-              onClick={() => setProvider("mal")}
-              className={`font-label-caps text-[11px] px-2.5 py-1 transition-all cursor-pointer ${
-                provider === "mal" 
-                  ? 'bg-neon-crimson text-void-black font-bold shadow-[0_0_8px_rgba(255,0,60,0.5)]' 
-                  : 'text-on-surface-variant hover:text-neon-crimson'
-              }`}
-              title="Stream Server 2"
-            >
-              SERVER 2
-            </button>
-          </div>
           
           <div className="w-px h-6 bg-outline-variant/50 hidden sm:block"></div>
           

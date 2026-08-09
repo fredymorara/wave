@@ -356,7 +356,7 @@ export default function WatchClient({ id, episode }: { id: string; episode: stri
               disabled={!isDubAvailable}
               className={`flex items-center gap-1.5 font-label-caps text-[12px] px-3 py-1.5 transition-all clip-chip ${
                 effectiveLanguage === "dub" 
-                  ? 'bg-cyber-cyan text-void-black font-bold shadow-[0_0_10px_rgba(0,240,255,0.5)]' 
+                  ? 'bg-neon-crimson text-void-black font-bold shadow-[0_0_10px_rgba(255,0,60,0.5)]' 
                   : 'bg-surface-container-low text-on-surface-variant hover:bg-surface-glass hover:text-white'
               } ${!isDubAvailable ? 'opacity-30 cursor-not-allowed pointer-events-none' : 'cursor-pointer'}`}
               title={!isDubAvailable ? (counts?.is_dub ? `Dub only available up to Episode ${counts.is_dub}` : "Dub not available for this episode") : "Switch to DUB audio"}
@@ -374,8 +374,8 @@ export default function WatchClient({ id, episode }: { id: string; episode: stri
               onClick={() => setProvider("ani")}
               className={`font-label-caps text-[11px] px-2.5 py-1 transition-all cursor-pointer ${
                 provider === "ani" 
-                  ? 'bg-cyber-cyan text-void-black font-bold shadow-[0_0_8px_rgba(0,240,255,0.5)]' 
-                  : 'text-on-surface-variant hover:text-cyber-cyan'
+                  ? 'bg-neon-crimson text-void-black font-bold shadow-[0_0_8px_rgba(255,0,60,0.5)]' 
+                  : 'text-on-surface-variant hover:text-neon-crimson'
               }`}
               title="Stream Server 1"
             >
@@ -423,8 +423,14 @@ export default function WatchClient({ id, episode }: { id: string; episode: stri
 
           {/* Episode Selector */}
           <div>
-            <div className="flex items-center justify-between border-b border-outline-variant pb-4 mb-4">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-outline-variant pb-4 mb-4">
               <h2 className="font-headline-xl text-[20px] text-on-surface uppercase tracking-widest">EPISODES <span className="text-neon-crimson font-label-caps text-[12px] align-top">{finalNumEpisodes}</span></h2>
+              {anime.nextAiringEpisode && (
+                <div className="text-[11px] font-label-caps text-neon-crimson border border-neon-crimson/30 bg-neon-crimson/5 px-3 py-1.5 clip-chip self-start sm:self-auto flex items-center gap-2">
+                  <span className="w-1.5 h-1.5 bg-neon-crimson animate-pulse shadow-[0_0_8px_rgba(255,0,60,0.8)]"></span>
+                  EP {anime.nextAiringEpisode.episode} AIRS ON {new Date(anime.nextAiringEpisode.airingAt * 1000).toLocaleString(undefined, { weekday: 'short', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' }).toUpperCase()}
+                </div>
+              )}
             </div>
             
             {/* Episode Pagination */}
@@ -462,7 +468,7 @@ export default function WatchClient({ id, episode }: { id: string; episode: stri
                     <Link key={epNum} href={`/watch/${id}/${epNum}?lang=${targetLang}`}>
                       <div className={`flex items-center justify-center p-3 font-headline-lg transition-colors clip-chip text-center cursor-pointer border ${
                         isCurrent 
-                        ? 'bg-cyber-cyan text-void-black border-cyber-cyan shadow-[0_0_10px_rgba(0,240,255,0.5)] font-bold' 
+                        ? 'bg-neon-crimson text-void-black border-neon-crimson shadow-[0_0_10px_rgba(255,0,60,0.5)] font-bold' 
                         : 'bg-surface-container hover:bg-neon-crimson hover:text-void-black text-on-surface border-outline-variant hover:border-neon-crimson hover:shadow-[0_0_10px_rgba(255,0,60,0.5)]'
                       }`}>
                         {epNum}

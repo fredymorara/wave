@@ -199,12 +199,15 @@ export const anilistApi = {
 
   searchAnime: async (
     search: string,
-    filters?: { genre?: string; year?: number; format?: string; sort?: string },
+    filters?: { genre?: string; year?: number; format?: string; sort?: string; score?: number; status?: string },
     limit = 20
   ): Promise<AniListAnime[]> => {
-    const sort = filters?.sort ? filters.sort : (search ? "SEARCH_MATCH" : "TRENDING_DESC");
+    let sort = filters?.sort ? filters.sort : (search ? "SEARCH_MATCH" : "TRENDING_DESC");
+    if (sort === "SEARCH_MATCH" && (!search || search.trim().length === 0)) {
+      sort = "TRENDING_DESC";
+    }
     const query = `
-      query($search: String, $limit: Int, $genre: String, $seasonYear: Int, $format: MediaFormat) {
+      query($search: String, $limit: Int, $genre: String, $seasonYear: Int, $format: MediaFormat, $status: MediaStatus, $averageScore_greater: Int) {
         Page(page: 1, perPage: $limit) {
           media(
             search: $search, 
@@ -212,6 +215,8 @@ export const anilistApi = {
             genre: $genre,
             seasonYear: $seasonYear,
             format: $format,
+            status: $status,
+            averageScore_greater: $averageScore_greater,
             sort: [${sort}], 
             isAdult: false
           ) {
@@ -226,9 +231,59 @@ export const anilistApi = {
     if (filters?.genre && filters.genre !== "Any") variables.genre = filters.genre;
     if (filters?.year && filters.year > 0) variables.seasonYear = filters.year;
     if (filters?.format && filters.format !== "Any") variables.format = filters.format;
+    if (filters?.status && filters.status !== "Any") variables.status = filters.status;
+    if (filters?.score && filters.score > 0) variables.averageScore_greater = filters.score;
 
     const data = await fetchAniList<{ Page: { media: AniListAnime[] } }>(query, variables);
     return data.Page.media.filter(a => a.idMal);
+  },
+
+  searchAnimePaginated: async (
+    search: string,
+    filters?: { genre?: string; year?: number; format?: string; sort?: string; score?: number; status?: string },
+    limit = 20,
+    page = 1
+  ): Promise<{ media: AniListAnime[], hasNextPage: boolean }> => {
+    let sort = filters?.sort ? filters.sort : (search ? "SEARCH_MATCH" : "TRENDING_DESC");
+    if (sort === "SEARCH_MATCH" && (!search || search.trim().length === 0)) {
+      sort = "TRENDING_DESC";
+    }
+    const query = `
+      query($search: String, $limit: Int, $page: Int, $genre: String, $seasonYear: Int, $format: MediaFormat, $status: MediaStatus, $averageScore_greater: Int) {
+        Page(page: $page, perPage: $limit) {
+          pageInfo {
+            hasNextPage
+          }
+          media(
+            search: $search, 
+            type: ANIME, 
+            genre: $genre,
+            seasonYear: $seasonYear,
+            format: $format,
+            status: $status,
+            averageScore_greater: $averageScore_greater,
+            sort: [${sort}], 
+            isAdult: false
+          ) {
+            ${MEDIA_FIELDS}
+          }
+        }
+      }
+    `;
+    
+    const variables: Record<string, string | number> = { limit, page };
+    if (search && search.trim().length > 0) variables.search = search;
+    if (filters?.genre && filters.genre !== "Any") variables.genre = filters.genre;
+    if (filters?.year && filters.year > 0) variables.seasonYear = filters.year;
+    if (filters?.format && filters.format !== "Any") variables.format = filters.format;
+    if (filters?.status && filters.status !== "Any") variables.status = filters.status;
+    if (filters?.score && filters.score > 0) variables.averageScore_greater = filters.score;
+
+    const data = await fetchAniList<{ Page: { pageInfo: { hasNextPage: boolean }, media: AniListAnime[] } }>(query, variables);
+    return {
+      media: data.Page.media.filter(a => a.idMal),
+      hasNextPage: data.Page.pageInfo.hasNextPage
+    };
   },
 
   getAnimeDetails: async (idOrMalId: number | string): Promise<AniListAnime & { recommendations?: AniListAnime[], relations?: (AniListAnime & { relationType: string })[] }> => {

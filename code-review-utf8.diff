@@ -1,0 +1,526 @@
+﻿diff --git a/PRODUCT.md b/PRODUCT.md
+index de2b9f5..787ef79 100644
+--- a/PRODUCT.md
++++ b/PRODUCT.md
+@@ -51,7 +51,7 @@ Web application used on desktop and mobile browsers. Primary activities include
+ ## Product Principles
+ 
+ 1. **Instant Response First**: Prioritize local Neon database queries over heavy runtime API fetching to keep page loads fast and responsive.
+-2. **Cyberpunk Authenticity**: Enforce sharp geometric cutouts, stark contrast, and neon highlights across all UI surfaces without falling back to generic rounded components.
++2. **Cyberpunk Authenticity (Visuals Only)**: Enforce sharp geometric cutouts, stark contrast, and neon highlights across all UI surfaces without falling back to generic rounded components. However, *text content and labels must remain straightforward, clear, and standard* (avoid overly stylized jargon like "Databanks").
+ 3. **Decoupled Heavy Lifting**: Offload long-running background tasks and external rate-limited syncing to dedicated services.
+ 4. **Seamless Resume**: Maintain friction-free watch state and history sync across user sessions.
+ 
+@@ -59,3 +59,4 @@ Web application used on desktop and mobile browsers. Primary activities include
+ 
+ - High-contrast neon-on-dark visual hierarchy for clear legibility.
+ - Keyboard accessible video playback and navigation controls.
++- Clear, specific, and standard terminology for all user-facing text to ensure maximum usability and avoid confusion.
+diff --git a/app/HomeClient.tsx b/app/HomeClient.tsx
+index 8d6d22c..fbf003d 100644
+--- a/app/HomeClient.tsx
++++ b/app/HomeClient.tsx
+@@ -68,7 +68,7 @@ export default function HomeClient() {
+                   />
+                   <div className="absolute inset-0 bg-linear-to-t from-void-black via-void-black/40 to-transparent z-0" />
+                   <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity z-10 bg-black/20">
+-                    <div className="bg-cyber-cyan/90 rounded-full p-3 drop-shadow-[0_0_10px_#00F0FF]">
++                    <div className="bg-neon-crimson/90 clip-corner p-3 drop-shadow-[0_0_10px_rgba(255,0,60,0.8)]">
+                       <Play className="text-void-black w-6 h-6 fill-current ml-1" />
+                     </div>
+                   </div>
+@@ -126,7 +126,7 @@ export default function HomeClient() {
+                   fill 
+                   className="absolute inset-0 object-cover z-0"
+                 />
+-                <div className="absolute top-0 left-0 bg-neon-crimson text-white font-headline-lg text-headline-lg font-bold px-3 py-1 z-10 clip-chip shadow-[2px_2px_10px_rgba(0,0,0,0.5)]">
++                <div className="absolute top-0 left-0 bg-neon-crimson text-white font-label-caps text-sm font-bold px-3 py-1 z-10 clip-chip shadow-[0_0_10px_rgba(255,0,60,0.5)]">
+                   #{idx + 1}
+                 </div>
+                 <div className="absolute inset-0 bg-linear-to-t from-void-black via-transparent to-transparent opacity-90 group-hover:opacity-100 transition-opacity z-0" />
+@@ -220,7 +220,7 @@ export default function HomeClient() {
+                         />
+                       )}
+                     </div>
+-                    <button className="bg-surface-glass backdrop-blur-md p-4 border border-outline-variant rounded-full text-white hover:text-cyber-cyan hover:border-cyber-cyan hover:scale-110 transition-all shadow-[0_0_15px_rgba(0,0,0,0.5)]">
++                    <button className="bg-surface-glass backdrop-blur-md p-4 border border-outline-variant clip-corner text-white hover:text-neon-crimson hover:border-neon-crimson hover:scale-110 transition-all hover:shadow-[0_0_15px_rgba(255,0,60,0.5)]">
+                       <Play className="w-8 h-8 fill-current" />
+                     </button>
+                   </div>
+diff --git a/app/anime/[id]/AnimeClient.tsx b/app/anime/[id]/AnimeClient.tsx
+index 3ea14cc..c6c47b6 100644
+--- a/app/anime/[id]/AnimeClient.tsx
++++ b/app/anime/[id]/AnimeClient.tsx
+@@ -91,7 +91,7 @@ export default function AnimeClient({ id }: { id: string }) {
+ 
+   const cleanDescription = anime.description 
+     ? anime.description.replace(/(?:<br\s*\/?>|\n)*\s*(?:<i>)?\s*\(?Source:[\s\S]*$/i, '')
+-    : 'No description available in databanks.';
++    : 'No description available.';
+ 
+   return (
+     <>
+@@ -185,7 +185,7 @@ export default function AnimeClient({ id }: { id: string }) {
+       
+       <div className="w-full max-w-[1600px] mx-auto bg-void-black">
+         <section className="px-margin-mobile md:px-margin-desktop py-8 border-b border-outline-variant/20">
+-          <h2 className="font-headline-xl text-[20px] text-on-surface mb-4">SYNOPSIS</h2>
++          <h2 className="font-headline-xl text-[20px] text-on-surface">SYNOPSIS</h2>
+           <p 
+             className="text-on-surface-variant text-base md:text-lg leading-relaxed max-w-4xl"
+             dangerouslySetInnerHTML={{ __html: cleanDescription }}
+@@ -228,7 +228,15 @@ export default function AnimeClient({ id }: { id: string }) {
+         {/* Left Column: Episodes */}
+         <div className="lg:col-span-8 flex flex-col gap-stack-lg">
+           <div className="flex flex-col md:flex-row md:items-center justify-between border-b border-outline-variant pb-4 gap-4">
+-            <h2 className="font-headline-xl text-headline-xl text-on-surface">EPISODES <span className="text-neon-crimson font-label-caps text-label-caps text-sm align-top">{numEpisodes}</span></h2>
++            <div className="flex flex-col sm:flex-row sm:items-center gap-4">
++              <h2 className="font-headline-xl text-headline-xl text-on-surface">EPISODES <span className="text-neon-crimson font-label-caps text-label-caps text-sm align-top">{numEpisodes}</span></h2>
++              {anime.nextAiringEpisode && (
++                <div className="text-[11px] font-label-caps text-neon-crimson border border-neon-crimson/30 bg-neon-crimson/5 px-3 py-1.5 clip-chip self-start flex items-center gap-2">
++                  <span className="w-1.5 h-1.5 bg-neon-crimson animate-pulse shadow-[0_0_8px_rgba(255,0,60,0.8)]"></span>
++                  EP {anime.nextAiringEpisode.episode} AIRS ON {new Date(anime.nextAiringEpisode.airingAt * 1000).toLocaleString(undefined, { weekday: 'short', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' }).toUpperCase()}
++                </div>
++              )}
++            </div>
+             <div className="flex items-center gap-2 bg-surface-container px-2 py-1 clip-chip border border-outline-variant/30">
+               <button 
+                 onClick={() => setLanguage("sub")}
+@@ -249,7 +257,7 @@ export default function AnimeClient({ id }: { id: string }) {
+                 disabled={counts !== null && (!counts.is_dub || counts.is_dub <= 0)}
+                 className={`flex items-center gap-1.5 font-label-caps text-[12px] px-3 py-1.5 transition-all clip-chip ${
+                   language === "dub" 
+-                    ? 'bg-cyber-cyan text-void-black font-bold shadow-[0_0_10px_rgba(0,240,255,0.5)]' 
++                    ? 'bg-neon-crimson text-void-black font-bold shadow-[0_0_10px_rgba(255,0,60,0.5)]' 
+                     : 'bg-surface-container-low text-on-surface-variant hover:bg-surface-glass hover:text-white'
+                 } ${counts !== null && (!counts.is_dub || counts.is_dub <= 0) ? 'opacity-30 cursor-not-allowed pointer-events-none' : 'cursor-pointer'}`}
+                 title={counts !== null && (!counts.is_dub || counts.is_dub <= 0) ? "Dub not available for this anime" : "Switch to DUB"}
+@@ -297,7 +305,7 @@ export default function AnimeClient({ id }: { id: string }) {
+                 );
+               })
+             ) : (
+-              <div className="col-span-full text-on-surface-variant py-8 font-label-caps text-center">No episodes currently available for {language.toUpperCase()} in our databanks.</div>
++              <div className="col-span-full text-on-surface-variant py-8 font-label-caps text-center">No episodes currently available for {language.toUpperCase()}.</div>
+             )}
+           </div>
+         </div>
+diff --git a/app/search/SearchClient.tsx b/app/search/SearchClient.tsx
+index b090ba9..70c85cc 100644
+--- a/app/search/SearchClient.tsx
++++ b/app/search/SearchClient.tsx
+@@ -5,7 +5,7 @@ import Image from "next/image";
+ import Link from "next/link";
+ 
+ import { useState, useEffect } from "react";
+-import { useSearchAnime } from "@/hooks/useAnime";
++import { useExploreAnime } from "@/hooks/useAnime";
+ import { Grid } from 'ldrs/react';
+ import 'ldrs/react/Grid.css';
+ 
+@@ -17,7 +17,9 @@ export default function SearchClient() {
+     genre: searchParams.get("genre") || "Any",
+     year: Number(searchParams.get("year")) || 0,
+     format: searchParams.get("format") || "Any",
+-    sort: searchParams.get("sort") || "SEARCH_MATCH"
++    score: Number(searchParams.get("score")) || 0,
++    status: searchParams.get("status") || "Any",
++    sort: searchParams.get("sort") || (query ? "SEARCH_MATCH" : "TRENDING_DESC")
+   });
+ 
+   useEffect(() => {
+@@ -26,13 +28,16 @@ export default function SearchClient() {
+         genre: searchParams.get("genre") || "Any",
+         year: Number(searchParams.get("year")) || 0,
+         format: searchParams.get("format") || "Any",
+-        sort: searchParams.get("sort") || "SEARCH_MATCH"
++        score: Number(searchParams.get("score")) || 0,
++        status: searchParams.get("status") || "Any",
++        sort: searchParams.get("sort") || (query ? "SEARCH_MATCH" : "TRENDING_DESC")
+       });
+     };
+     syncFilters();
+   }, [searchParams]);
+   
+-  const { data: results, isLoading } = useSearchAnime(query, filters);
++  const { data, isLoading, isFetchingNextPage, fetchNextPage, hasNextPage } = useExploreAnime(query, filters);
++  const results = data?.pages.flatMap((page) => page.media) || [];
+ 
+   return (
+     <div className="flex-1 min-h-screen pt-30 px-margin-mobile md:px-margin-desktop bg-void-black pb-12">
+@@ -41,7 +46,7 @@ export default function SearchClient() {
+           {query ? (
+             <>Search Results for <span className="text-cyber-cyan">&quot;{query}&quot;</span></>
+           ) : (
+-            <>Browse <span className="text-cyber-cyan">Anime Databanks</span></>
++            <>Browse <span className="text-cyber-cyan">Anime Catalog</span></>
+           )}
+         </h1>
+         <p className="text-on-surface-variant mt-2 font-label-caps text-sm">
+@@ -61,11 +66,20 @@ export default function SearchClient() {
+           <option value="Adventure">Adventure</option>
+           <option value="Comedy">Comedy</option>
+           <option value="Drama">Drama</option>
++          <option value="Ecchi">Ecchi</option>
+           <option value="Fantasy">Fantasy</option>
++          <option value="Horror">Horror</option>
++          <option value="Mahou Shoujo">Mahou Shoujo</option>
++          <option value="Mecha">Mecha</option>
++          <option value="Music">Music</option>
++          <option value="Mystery">Mystery</option>
++          <option value="Psychological">Psychological</option>
+           <option value="Romance">Romance</option>
+           <option value="Sci-Fi">Sci-Fi</option>
++          <option value="Slice of Life">Slice of Life</option>
++          <option value="Sports">Sports</option>
++          <option value="Supernatural">Supernatural</option>
+           <option value="Thriller">Thriller</option>
+-          <option value="Mystery">Mystery</option>
+         </select>
+ 
+         <select 
+@@ -74,12 +88,9 @@ export default function SearchClient() {
+           className="bg-surface-container text-on-surface border border-outline-variant p-3 font-label-caps text-[12px] clip-chip outline-none focus:border-neon-crimson hover:border-cyber-cyan transition-colors"
+         >
+           <option value={0}>Any Year</option>
+-          <option value={2024}>2024</option>
+-          <option value={2023}>2023</option>
+-          <option value={2022}>2022</option>
+-          <option value={2021}>2021</option>
+-          <option value={2020}>2020</option>
+-          <option value={2019}>2019</option>
++          {Array.from({ length: 40 }, (_, i) => new Date().getFullYear() - i).map(year => (
++            <option key={year} value={year}>{year}</option>
++          ))}
+         </select>
+ 
+         <select 
+@@ -93,6 +104,29 @@ export default function SearchClient() {
+           <option value="OVA">OVA</option>
+           <option value="SPECIAL">Special</option>
+         </select>
++
++        <select 
++          value={filters.score} 
++          onChange={(e) => setFilters({...filters, score: Number(e.target.value)})}
++          className="bg-surface-container text-on-surface border border-outline-variant p-3 font-label-caps text-[12px] clip-chip outline-none focus:border-neon-crimson hover:border-cyber-cyan transition-colors"
++        >
++          <option value={0}>Any Rating</option>
++          <option value={90}>Masterpiece (90+)</option>
++          <option value={80}>Great (80+)</option>
++          <option value={70}>Good (70+)</option>
++          <option value={60}>Average (60+)</option>
++        </select>
++
++        <select 
++          value={filters.status} 
++          onChange={(e) => setFilters({...filters, status: e.target.value})}
++          className="bg-surface-container text-on-surface border border-outline-variant p-3 font-label-caps text-[12px] clip-chip outline-none focus:border-neon-crimson hover:border-cyber-cyan transition-colors"
++        >
++          <option value="Any">Any Status</option>
++          <option value="RELEASING">Airing</option>
++          <option value="FINISHED">Finished</option>
++          <option value="NOT_YET_RELEASED">Upcoming</option>
++        </select>
+         
+         <select 
+           value={filters.sort} 
+@@ -110,7 +144,7 @@ export default function SearchClient() {
+       {isLoading ? (
+         <div className="flex flex-col items-center justify-center py-20 text-center">
+           <Grid size="60" speed="1" color="#00F0FF" />
+-          <p className="text-on-surface font-label-caps uppercase tracking-widest mt-4">Searching Databanks...</p>
++          <p className="text-on-surface font-label-caps uppercase tracking-widest mt-4">Searching...</p>
+         </div>
+       ) : !results || results.length === 0 ? (
+         <div className="flex flex-col items-center justify-center py-20 text-center">
+@@ -119,29 +153,49 @@ export default function SearchClient() {
+           <p className="text-on-surface-variant/60 mt-2">Try adjusting your search parameters.</p>
+         </div>
+       ) : (
+-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-gutter">
+-          {results.map((anime) => (
+-            <Link key={anime.idMal} href={`/anime/${anime.idMal}`} className="relative aspect-3/4 bg-surface-container overflow-hidden group border border-outline-variant/30 hover:border-cyber-cyan transition-all block clip-corner">
+-              <Image 
+-                src={anime.coverImage.extraLarge || anime.coverImage.large} 
+-                alt={anime.title.english || anime.title.romaji || ""} 
+-                fill 
+-                className="object-cover opacity-80 group-hover:opacity-100 group-hover:scale-105 transition-all duration-300 z-0"
+-              />
+-              <div className="absolute inset-0 bg-linear-to-t from-void-black via-void-black/20 to-transparent z-0" />
+-              <div className="absolute top-2 right-2 bg-void-black/80 text-neon-crimson font-label-caps text-[10px] px-2 py-1 border border-neon-crimson/50 clip-chip z-10">
+-                {anime.averageScore ? (anime.averageScore / 10).toFixed(1) : "N/A"}
+-              </div>
+-              <div className="absolute bottom-0 left-0 w-full p-4 z-10">
+-                <h3 className="font-headline-lg text-[16px] text-white leading-tight line-clamp-2 group-hover:text-cyber-cyan transition-colors">
+-                  {anime.title.english || anime.title.romaji}
+-                </h3>
+-                <span className="font-label-caps text-[10px] text-on-surface-variant mt-1 inline-block">
+-                  {anime.format || 'TV'} &bull; {anime.seasonYear || 'N/A'}
+-                </span>
+-              </div>
+-            </Link>
+-          ))}
++        <div className="flex flex-col">
++          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-gutter">
++            {results.map((anime) => (
++              <Link key={anime.idMal} href={`/anime/${anime.idMal}`} className="relative aspect-3/4 bg-surface-container overflow-hidden group border border-outline-variant/30 hover:border-neon-crimson hover:shadow-[0_0_15px_rgba(255,0,60,0.2)] transition-all block clip-corner">
++                <Image 
++                  src={anime.coverImage.extraLarge || anime.coverImage.large} 
++                  alt={anime.title.english || anime.title.romaji || ""} 
++                  fill 
++                  className="object-cover opacity-80 group-hover:opacity-100 group-hover:scale-105 transition-all duration-300 z-0"
++                />
++                <div className="absolute inset-0 bg-linear-to-t from-void-black via-void-black/20 to-transparent z-0" />
++                <div className="absolute top-2 right-2 bg-void-black/80 text-neon-crimson font-label-caps text-[10px] px-2 py-1 border border-neon-crimson/50 clip-chip z-10">
++                  {anime.averageScore ? (anime.averageScore / 10).toFixed(1) : "N/A"}
++                </div>
++                <div className="absolute bottom-0 left-0 w-full p-4 z-10">
++                  <h3 className="font-headline-lg text-[16px] text-white leading-tight line-clamp-2 group-hover:text-neon-crimson transition-colors">
++                    {anime.title.english || anime.title.romaji}
++                  </h3>
++                  <span className="font-label-caps text-[10px] text-on-surface-variant mt-1 inline-block">
++                    {anime.format || 'TV'} &bull; {anime.seasonYear || 'N/A'}
++                  </span>
++                </div>
++              </Link>
++            ))}
++          </div>
++          
++          {hasNextPage && (
++            <div className="mt-12 flex justify-center">
++              <button 
++                onClick={() => fetchNextPage()}
++                disabled={isFetchingNextPage}
++                className="bg-surface-glass border border-neon-crimson text-neon-crimson hover:bg-neon-crimson hover:text-void-black px-12 py-4 font-label-caps font-bold transition-all clip-corner shadow-[0_0_15px_rgba(255,0,60,0.3)] disabled:opacity-50 disabled:cursor-not-allowed"
++              >
++                {isFetchingNextPage ? (
++                  <span className="flex items-center gap-2">
++                    <Grid size="20" speed="1" color="currentColor" /> LOADING...
++                  </span>
++                ) : (
++                  "LOAD MORE ANIME"
++                )}
++              </button>
++            </div>
++          )}
+         </div>
+       )}
+     </div>
+diff --git a/app/watch/[id]/[episode]/WatchClient.tsx b/app/watch/[id]/[episode]/WatchClient.tsx
+index eed57a8..1362b3b 100644
+--- a/app/watch/[id]/[episode]/WatchClient.tsx
++++ b/app/watch/[id]/[episode]/WatchClient.tsx
+@@ -356,7 +356,7 @@ export default function WatchClient({ id, episode }: { id: string; episode: stri
+               disabled={!isDubAvailable}
+               className={`flex items-center gap-1.5 font-label-caps text-[12px] px-3 py-1.5 transition-all clip-chip ${
+                 effectiveLanguage === "dub" 
+-                  ? 'bg-cyber-cyan text-void-black font-bold shadow-[0_0_10px_rgba(0,240,255,0.5)]' 
++                  ? 'bg-neon-crimson text-void-black font-bold shadow-[0_0_10px_rgba(255,0,60,0.5)]' 
+                   : 'bg-surface-container-low text-on-surface-variant hover:bg-surface-glass hover:text-white'
+               } ${!isDubAvailable ? 'opacity-30 cursor-not-allowed pointer-events-none' : 'cursor-pointer'}`}
+               title={!isDubAvailable ? (counts?.is_dub ? `Dub only available up to Episode ${counts.is_dub}` : "Dub not available for this episode") : "Switch to DUB audio"}
+@@ -374,8 +374,8 @@ export default function WatchClient({ id, episode }: { id: string; episode: stri
+               onClick={() => setProvider("ani")}
+               className={`font-label-caps text-[11px] px-2.5 py-1 transition-all cursor-pointer ${
+                 provider === "ani" 
+-                  ? 'bg-cyber-cyan text-void-black font-bold shadow-[0_0_8px_rgba(0,240,255,0.5)]' 
+-                  : 'text-on-surface-variant hover:text-cyber-cyan'
++                  ? 'bg-neon-crimson text-void-black font-bold shadow-[0_0_8px_rgba(255,0,60,0.5)]' 
++                  : 'text-on-surface-variant hover:text-neon-crimson'
+               }`}
+               title="Stream Server 1"
+             >
+@@ -423,8 +423,14 @@ export default function WatchClient({ id, episode }: { id: string; episode: stri
+ 
+           {/* Episode Selector */}
+           <div>
+-            <div className="flex items-center justify-between border-b border-outline-variant pb-4 mb-4">
++            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-outline-variant pb-4 mb-4">
+               <h2 className="font-headline-xl text-[20px] text-on-surface uppercase tracking-widest">EPISODES <span className="text-neon-crimson font-label-caps text-[12px] align-top">{finalNumEpisodes}</span></h2>
++              {anime.nextAiringEpisode && (
++                <div className="text-[11px] font-label-caps text-neon-crimson border border-neon-crimson/30 bg-neon-crimson/5 px-3 py-1.5 clip-chip self-start sm:self-auto flex items-center gap-2">
++                  <span className="w-1.5 h-1.5 bg-neon-crimson animate-pulse shadow-[0_0_8px_rgba(255,0,60,0.8)]"></span>
++                  EP {anime.nextAiringEpisode.episode} AIRS ON {new Date(anime.nextAiringEpisode.airingAt * 1000).toLocaleString(undefined, { weekday: 'short', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' }).toUpperCase()}
++                </div>
++              )}
+             </div>
+             
+             {/* Episode Pagination */}
+@@ -462,7 +468,7 @@ export default function WatchClient({ id, episode }: { id: string; episode: stri
+                     <Link key={epNum} href={`/watch/${id}/${epNum}?lang=${targetLang}`}>
+                       <div className={`flex items-center justify-center p-3 font-headline-lg transition-colors clip-chip text-center cursor-pointer border ${
+                         isCurrent 
+-                        ? 'bg-cyber-cyan text-void-black border-cyber-cyan shadow-[0_0_10px_rgba(0,240,255,0.5)] font-bold' 
++                        ? 'bg-neon-crimson text-void-black border-neon-crimson shadow-[0_0_10px_rgba(255,0,60,0.5)] font-bold' 
+                         : 'bg-surface-container hover:bg-neon-crimson hover:text-void-black text-on-surface border-outline-variant hover:border-neon-crimson hover:shadow-[0_0_10px_rgba(255,0,60,0.5)]'
+                       }`}>
+                         {epNum}
+diff --git a/components/layout/Navbar.tsx b/components/layout/Navbar.tsx
+index 344e098..7d2a7a4 100644
+--- a/components/layout/Navbar.tsx
++++ b/components/layout/Navbar.tsx
+@@ -89,6 +89,12 @@ export function Navbar() {
+             >
+               Schedule
+             </Link>
++            <Link
++              href="/search"
++              className={`${pathname === "/search" ? "text-neon-crimson border-b-2 border-neon-crimson pb-1" : "text-on-surface-variant hover:text-cyber-cyan hover:drop-shadow-[0_0_8px_#FF003C]"} transition-all duration-300 scale-105 active:scale-95`}
++            >
++              Catalog
++            </Link>
+             <a
+               href="https://flicmovies.me"
+               target="_blank"
+@@ -169,7 +175,7 @@ export function Navbar() {
+                   </>
+                 ) : (
+                   <div className="py-6 px-4 text-center font-label-caps text-[12px] text-on-surface-variant">
+-                    NO DATABANKS MATCH FOUND
++                    NO RESULTS FOUND
+                   </div>
+                 )}
+               </div>
+@@ -295,6 +301,13 @@ export function Navbar() {
+             >
+               Schedule
+             </Link>
++            <Link
++              href="/search"
++              onClick={() => setIsMobileMenuOpen(false)}
++              className={`px-4 py-3 font-label-caps uppercase clip-chip transition-all ${pathname === "/search" ? "text-neon-crimson bg-neon-crimson/10 border-l-2 border-neon-crimson" : "text-on-surface bg-surface-container/40 hover:bg-surface-glass"}`}
++            >
++              Catalog
++            </Link>
+             <a
+               href="https://flicmovies.me"
+               target="_blank"
+diff --git a/hooks/useAnime.ts b/hooks/useAnime.ts
+index ec6693d..b02fd61 100644
+--- a/hooks/useAnime.ts
++++ b/hooks/useAnime.ts
+@@ -1,4 +1,4 @@
+-import { useQuery } from "@tanstack/react-query";
++import { useQuery, useInfiniteQuery } from "@tanstack/react-query";
+ import { anilistApi } from "@/lib/api/anilist";
+ 
+ export function useTopAnime(limit = 15) {
+@@ -41,12 +41,22 @@ export function useSchedule(limit = 15) {
+   });
+ }
+ 
+-export function useSearchAnime(query: string, filters?: { genre?: string; year?: number; format?: string; sort?: string }) {
++export function useSearchAnime(query: string, filters?: { genre?: string; year?: number; format?: string; sort?: string; score?: number; status?: string }) {
+   return useQuery({
+     queryKey: ["anime", "search", query, filters],
+     queryFn: () => anilistApi.searchAnime(query, filters),
+     staleTime: 60 * 60 * 1000, // 1 hour
+-    enabled: query.length >= 3 || !!filters?.genre || !!filters?.year || !!filters?.format,
++    enabled: query.length >= 3 || !!filters?.genre || !!filters?.year || !!filters?.format || !!filters?.score || !!filters?.status,
++  });
++}
++
++export function useExploreAnime(query: string, filters?: { genre?: string; year?: number; format?: string; sort?: string; score?: number; status?: string }) {
++  return useInfiniteQuery({
++    queryKey: ["anime", "explore", query, filters],
++    queryFn: ({ pageParam = 1 }) => anilistApi.searchAnimePaginated(query, filters, 30, pageParam),
++    getNextPageParam: (lastPage, allPages) => lastPage.hasNextPage ? allPages.length + 1 : undefined,
++    initialPageParam: 1,
++    staleTime: 60 * 60 * 1000, // 1 hour
+   });
+ }
+ 
+diff --git a/lib/api/anilist.ts b/lib/api/anilist.ts
+index 710bcb5..785eda4 100644
+--- a/lib/api/anilist.ts
++++ b/lib/api/anilist.ts
+@@ -199,12 +199,15 @@ export const anilistApi = {
+ 
+   searchAnime: async (
+     search: string,
+-    filters?: { genre?: string; year?: number; format?: string; sort?: string },
++    filters?: { genre?: string; year?: number; format?: string; sort?: string; score?: number; status?: string },
+     limit = 20
+   ): Promise<AniListAnime[]> => {
+-    const sort = filters?.sort ? filters.sort : (search ? "SEARCH_MATCH" : "TRENDING_DESC");
++    let sort = filters?.sort ? filters.sort : (search ? "SEARCH_MATCH" : "TRENDING_DESC");
++    if (sort === "SEARCH_MATCH" && (!search || search.trim().length === 0)) {
++      sort = "TRENDING_DESC";
++    }
+     const query = `
+-      query($search: String, $limit: Int, $genre: String, $seasonYear: Int, $format: MediaFormat) {
++      query($search: String, $limit: Int, $genre: String, $seasonYear: Int, $format: MediaFormat, $status: MediaStatus, $averageScore_greater: Int) {
+         Page(page: 1, perPage: $limit) {
+           media(
+             search: $search, 
+@@ -212,6 +215,8 @@ export const anilistApi = {
+             genre: $genre,
+             seasonYear: $seasonYear,
+             format: $format,
++            status: $status,
++            averageScore_greater: $averageScore_greater,
+             sort: [${sort}], 
+             isAdult: false
+           ) {
+@@ -226,11 +231,61 @@ export const anilistApi = {
+     if (filters?.genre && filters.genre !== "Any") variables.genre = filters.genre;
+     if (filters?.year && filters.year > 0) variables.seasonYear = filters.year;
+     if (filters?.format && filters.format !== "Any") variables.format = filters.format;
++    if (filters?.status && filters.status !== "Any") variables.status = filters.status;
++    if (filters?.score && filters.score > 0) variables.averageScore_greater = filters.score;
+ 
+     const data = await fetchAniList<{ Page: { media: AniListAnime[] } }>(query, variables);
+     return data.Page.media.filter(a => a.idMal);
+   },
+ 
++  searchAnimePaginated: async (
++    search: string,
++    filters?: { genre?: string; year?: number; format?: string; sort?: string; score?: number; status?: string },
++    limit = 20,
++    page = 1
++  ): Promise<{ media: AniListAnime[], hasNextPage: boolean }> => {
++    let sort = filters?.sort ? filters.sort : (search ? "SEARCH_MATCH" : "TRENDING_DESC");
++    if (sort === "SEARCH_MATCH" && (!search || search.trim().length === 0)) {
++      sort = "TRENDING_DESC";
++    }
++    const query = `
++      query($search: String, $limit: Int, $page: Int, $genre: String, $seasonYear: Int, $format: MediaFormat, $status: MediaStatus, $averageScore_greater: Int) {
++        Page(page: $page, perPage: $limit) {
++          pageInfo {
++            hasNextPage
++          }
++          media(
++            search: $search, 
++            type: ANIME, 
++            genre: $genre,
++            seasonYear: $seasonYear,
++            format: $format,
++            status: $status,
++            averageScore_greater: $averageScore_greater,
++            sort: [${sort}], 
++            isAdult: false
++          ) {
++            ${MEDIA_FIELDS}
++          }
++        }
++      }
++    `;
++    
++    const variables: Record<string, string | number> = { limit, page };
++    if (search && search.trim().length > 0) variables.search = search;
++    if (filters?.genre && filters.genre !== "Any") variables.genre = filters.genre;
++    if (filters?.year && filters.year > 0) variables.seasonYear = filters.year;
++    if (filters?.format && filters.format !== "Any") variables.format = filters.format;
++    if (filters?.status && filters.status !== "Any") variables.status = filters.status;
++    if (filters?.score && filters.score > 0) variables.averageScore_greater = filters.score;
++
++    const data = await fetchAniList<{ Page: { pageInfo: { hasNextPage: boolean }, media: AniListAnime[] } }>(query, variables);
++    return {
++      media: data.Page.media.filter(a => a.idMal),
++      hasNextPage: data.Page.pageInfo.hasNextPage
++    };
++  },
++
+   getAnimeDetails: async (idOrMalId: number | string): Promise<AniListAnime & { recommendations?: AniListAnime[], relations?: (AniListAnime & { relationType: string })[] }> => {
+     const numId = Number(idOrMalId);
+     

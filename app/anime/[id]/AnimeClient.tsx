@@ -91,7 +91,7 @@ export default function AnimeClient({ id }: { id: string }) {
 
   const cleanDescription = anime.description 
     ? anime.description.replace(/(?:<br\s*\/?>|\n)*\s*(?:<i>)?\s*\(?Source:[\s\S]*$/i, '')
-    : 'No description available in databanks.';
+    : 'No description available.';
 
   return (
     <>
@@ -185,7 +185,7 @@ export default function AnimeClient({ id }: { id: string }) {
       
       <div className="w-full max-w-[1600px] mx-auto bg-void-black">
         <section className="px-margin-mobile md:px-margin-desktop py-8 border-b border-outline-variant/20">
-          <h2 className="font-headline-xl text-[20px] text-on-surface mb-4">SYNOPSIS</h2>
+          <h2 className="font-headline-xl text-[20px] text-on-surface">SYNOPSIS</h2>
           <p 
             className="text-on-surface-variant text-base md:text-lg leading-relaxed max-w-4xl"
             dangerouslySetInnerHTML={{ __html: cleanDescription }}
@@ -228,7 +228,15 @@ export default function AnimeClient({ id }: { id: string }) {
         {/* Left Column: Episodes */}
         <div className="lg:col-span-8 flex flex-col gap-stack-lg">
           <div className="flex flex-col md:flex-row md:items-center justify-between border-b border-outline-variant pb-4 gap-4">
-            <h2 className="font-headline-xl text-headline-xl text-on-surface">EPISODES <span className="text-neon-crimson font-label-caps text-label-caps text-sm align-top">{numEpisodes}</span></h2>
+            <div className="flex flex-col sm:flex-row sm:items-center gap-4">
+              <h2 className="font-headline-xl text-headline-xl text-on-surface">EPISODES <span className="text-neon-crimson font-label-caps text-label-caps text-sm align-top">{numEpisodes}</span></h2>
+              {anime.nextAiringEpisode && (
+                <div className="text-[11px] font-label-caps text-neon-crimson border border-neon-crimson/30 bg-neon-crimson/5 px-3 py-1.5 clip-chip self-start flex items-center gap-2">
+                  <span className="w-1.5 h-1.5 bg-neon-crimson animate-pulse shadow-[0_0_8px_rgba(255,0,60,0.8)]"></span>
+                  EP {anime.nextAiringEpisode.episode} AIRS ON {new Date(anime.nextAiringEpisode.airingAt * 1000).toLocaleString(undefined, { weekday: 'short', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' }).toUpperCase()}
+                </div>
+              )}
+            </div>
             <div className="flex items-center gap-2 bg-surface-container px-2 py-1 clip-chip border border-outline-variant/30">
               <button 
                 onClick={() => setLanguage("sub")}
@@ -249,7 +257,7 @@ export default function AnimeClient({ id }: { id: string }) {
                 disabled={counts !== null && (!counts.is_dub || counts.is_dub <= 0)}
                 className={`flex items-center gap-1.5 font-label-caps text-[12px] px-3 py-1.5 transition-all clip-chip ${
                   language === "dub" 
-                    ? 'bg-cyber-cyan text-void-black font-bold shadow-[0_0_10px_rgba(0,240,255,0.5)]' 
+                    ? 'bg-neon-crimson text-void-black font-bold shadow-[0_0_10px_rgba(255,0,60,0.5)]' 
                     : 'bg-surface-container-low text-on-surface-variant hover:bg-surface-glass hover:text-white'
                 } ${counts !== null && (!counts.is_dub || counts.is_dub <= 0) ? 'opacity-30 cursor-not-allowed pointer-events-none' : 'cursor-pointer'}`}
                 title={counts !== null && (!counts.is_dub || counts.is_dub <= 0) ? "Dub not available for this anime" : "Switch to DUB"}
@@ -297,7 +305,7 @@ export default function AnimeClient({ id }: { id: string }) {
                 );
               })
             ) : (
-              <div className="col-span-full text-on-surface-variant py-8 font-label-caps text-center">No episodes currently available for {language.toUpperCase()} in our databanks.</div>
+              <div className="col-span-full text-on-surface-variant py-8 font-label-caps text-center">No episodes currently available for {language.toUpperCase()}.</div>
             )}
           </div>
         </div>

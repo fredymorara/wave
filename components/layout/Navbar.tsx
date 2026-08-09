@@ -89,6 +89,12 @@ export function Navbar() {
             >
               Schedule
             </Link>
+            <Link
+              href="/search"
+              className={`${pathname === "/search" ? "text-neon-crimson border-b-2 border-neon-crimson pb-1" : "text-on-surface-variant hover:text-cyber-cyan hover:drop-shadow-[0_0_8px_#FF003C]"} transition-all duration-300 scale-105 active:scale-95`}
+            >
+              Catalog
+            </Link>
             <a
               href="https://flicmovies.me"
               target="_blank"
@@ -169,7 +175,7 @@ export function Navbar() {
                   </>
                 ) : (
                   <div className="py-6 px-4 text-center font-label-caps text-[12px] text-on-surface-variant">
-                    NO DATABANKS MATCH FOUND
+                    NO RESULTS FOUND
                   </div>
                 )}
               </div>
@@ -294,6 +300,13 @@ export function Navbar() {
               className={`px-4 py-3 font-label-caps uppercase clip-chip transition-all ${pathname === "/schedule" ? "text-neon-crimson bg-neon-crimson/10 border-l-2 border-neon-crimson" : "text-on-surface bg-surface-container/40 hover:bg-surface-glass"}`}
             >
               Schedule
+            </Link>
+            <Link
+              href="/search"
+              onClick={() => setIsMobileMenuOpen(false)}
+              className={`px-4 py-3 font-label-caps uppercase clip-chip transition-all ${pathname === "/search" ? "text-neon-crimson bg-neon-crimson/10 border-l-2 border-neon-crimson" : "text-on-surface bg-surface-container/40 hover:bg-surface-glass"}`}
+            >
+              Catalog
             </Link>
             <a
               href="https://flicmovies.me"

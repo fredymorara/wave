@@ -51,7 +51,7 @@ Web application used on desktop and mobile browsers. Primary activities include 
 ## Product Principles
 
 1. **Instant Response First**: Prioritize local Neon database queries over heavy runtime API fetching to keep page loads fast and responsive.
-2. **Cyberpunk Authenticity**: Enforce sharp geometric cutouts, stark contrast, and neon highlights across all UI surfaces without falling back to generic rounded components.
+2. **Cyberpunk Authenticity (Visuals Only)**: Enforce sharp geometric cutouts, stark contrast, and neon highlights across all UI surfaces without falling back to generic rounded components. However, *text content and labels must remain straightforward, clear, and standard* (avoid overly stylized jargon like "Databanks").
 3. **Decoupled Heavy Lifting**: Offload long-running background tasks and external rate-limited syncing to dedicated services.
 4. **Seamless Resume**: Maintain friction-free watch state and history sync across user sessions.
 
@@ -59,3 +59,4 @@ Web application used on desktop and mobile browsers. Primary activities include 
 
 - High-contrast neon-on-dark visual hierarchy for clear legibility.
 - Keyboard accessible video playback and navigation controls.
+- Clear, specific, and standard terminology for all user-facing text to ensure maximum usability and avoid confusion.

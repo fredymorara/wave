@@ -1,4 +1,4 @@
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useInfiniteQuery } from "@tanstack/react-query";
 import { anilistApi } from "@/lib/api/anilist";
 
 export function useTopAnime(limit = 15) {
@@ -41,12 +41,22 @@ export function useSchedule(limit = 15) {
   });
 }
 
-export function useSearchAnime(query: string, filters?: { genre?: string; year?: number; format?: string; sort?: string }) {
+export function useSearchAnime(query: string, filters?: { genre?: string; year?: number; format?: string; sort?: string; score?: number; status?: string }) {
   return useQuery({
     queryKey: ["anime", "search", query, filters],
     queryFn: () => anilistApi.searchAnime(query, filters),
     staleTime: 60 * 60 * 1000, // 1 hour
-    enabled: query.length >= 3 || !!filters?.genre || !!filters?.year || !!filters?.format,
+    enabled: query.length >= 3 || !!filters?.genre || !!filters?.year || !!filters?.format || !!filters?.score || !!filters?.status,
+  });
+}
+
+export function useExploreAnime(query: string, filters?: { genre?: string; year?: number; format?: string; sort?: string; score?: number; status?: string }) {
+  return useInfiniteQuery({
+    queryKey: ["anime", "explore", query, filters],
+    queryFn: ({ pageParam = 1 }) => anilistApi.searchAnimePaginated(query, filters, 30, pageParam),
+    getNextPageParam: (lastPage, allPages) => lastPage.hasNextPage ? allPages.length + 1 : undefined,
+    initialPageParam: 1,
+    staleTime: 60 * 60 * 1000, // 1 hour
   });
 }
 

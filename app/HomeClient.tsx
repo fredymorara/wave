@@ -58,8 +58,8 @@ export default function HomeClient() {
               Continue Watching
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 gap-gutter">
-              {historyItems.map((item) => (
-                <Link key={item.mal_id} href={`/watch/${item.mal_id}/${item.episode}?lang=${item.language || "sub"}`} className="relative aspect-video bg-surface-container overflow-hidden group border border-outline-variant/30 hover:border-cyber-cyan transition-all block">
+              {historyItems.map((item, idx) => (
+                <Link key={`history-${item.mal_id}-${idx}`} href={`/watch/${item.mal_id}/${item.episode}?lang=${item.language || "sub"}`} className="relative aspect-video bg-surface-container overflow-hidden group border border-outline-variant/30 hover:border-cyber-cyan transition-all block">
                   <Image 
                     src={item.image_url} 
                     alt={item.title} 
@@ -119,7 +119,7 @@ export default function HomeClient() {
           
           <div ref={trendingRef} className="flex overflow-x-auto gap-gutter pb-4 snap-x snap-mandatory hide-scrollbar scroll-smooth">
             {trendingAnime?.map((anime, idx) => (
-              <Link key={anime.idMal} href={`/anime/${anime.idMal}`} className="relative shrink-0 w-50 md:w-62.5 aspect-2/3 bg-surface-container rounded-none overflow-hidden group snap-start border border-transparent hover:scale-[1.02] hover:border-neon-crimson hover:shadow-[0_0_20px_rgba(255,0,60,0.4)] transition-all duration-300 block clip-corner">
+              <Link key={`trending-${anime.idMal || anime.id}-${idx}`} href={`/anime/${anime.idMal}`} className="relative shrink-0 w-50 md:w-62.5 aspect-2/3 bg-surface-container rounded-none overflow-hidden group snap-start border border-transparent hover:scale-[1.02] hover:border-neon-crimson hover:shadow-[0_0_20px_rgba(255,0,60,0.4)] transition-all duration-300 block clip-corner">
                 <Image 
                   src={anime.coverImage.extraLarge} 
                   alt={anime.title.english || anime.title.romaji || ""} 
@@ -171,8 +171,8 @@ export default function HomeClient() {
             </div>
             
             <div ref={scheduleRef} className="flex overflow-x-auto gap-gutter pb-4 snap-x snap-mandatory hide-scrollbar scroll-smooth">
-              {scheduleAnime.map((anime) => (
-                <Link key={anime.idMal} href={`/anime/${anime.idMal}`} className="relative shrink-0 w-70 h-24 bg-surface-container-low border border-outline-variant/30 flex items-center p-3 gap-4 group hover:border-data-purple hover:bg-surface-container transition-all snap-start clip-corner">
+              {scheduleAnime.map((anime, idx) => (
+                <Link key={`schedule-${anime.idMal || anime.id}-${idx}`} href={`/anime/${anime.idMal}`} className="relative shrink-0 w-70 h-24 bg-surface-container-low border border-outline-variant/30 flex items-center p-3 gap-4 group hover:border-data-purple hover:bg-surface-container transition-all snap-start clip-corner">
                   <div className="relative w-16 h-full shrink-0">
                     <Image src={anime.coverImage.large} alt={anime.title.english || anime.title.romaji || ""} fill className="object-cover" />
                   </div>
@@ -227,8 +227,8 @@ export default function HomeClient() {
                 </Link>
                 
                 {/* Grid Items */}
-                {topThisWeek.slice(1, 9).map((anime) => (
-                  <Link key={anime.idMal} href={`/anime/${anime.idMal}`} className="relative aspect-4/3 bg-surface-container overflow-hidden group border border-outline-variant/20 hover:border-neon-crimson transition-colors block clip-corner">
+                {topThisWeek.slice(1, 9).map((anime, idx) => (
+                  <Link key={`top-${anime.idMal || anime.id}-${idx}`} href={`/anime/${anime.idMal}`} className="relative aspect-4/3 bg-surface-container overflow-hidden group border border-outline-variant/20 hover:border-neon-crimson transition-colors block clip-corner">
                     <Image 
                       src={anime.coverImage.extraLarge} 
                       alt={anime.title.english || anime.title.romaji || ""} 
@@ -259,8 +259,8 @@ export default function HomeClient() {
                 </h2>
               </div>
               <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-gutter">
-                {recentEpisodes.map((anime) => (
-                  <Link key={anime.idMal} href={`/anime/${anime.idMal}`} className="relative aspect-3/4 bg-surface-container rounded-none overflow-hidden group border border-transparent hover:scale-[1.02] hover:border-cyber-cyan transition-all duration-300 block clip-corner">
+                {recentEpisodes.map((anime, idx) => (
+                  <Link key={`recent-${anime.idMal || anime.id}-${idx}`} href={`/anime/${anime.idMal}`} className="relative aspect-3/4 bg-surface-container rounded-none overflow-hidden group border border-transparent hover:scale-[1.02] hover:border-cyber-cyan transition-all duration-300 block clip-corner">
                     <Image 
                       src={anime.coverImage.extraLarge} 
                       alt={anime.title.english || anime.title.romaji || ""} 

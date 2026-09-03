@@ -6,6 +6,7 @@ export function useTopAnime(limit = 15) {
     queryKey: ["anime", "top", limit],
     queryFn: () => anilistApi.getPopular(limit),
     staleTime: 60 * 60 * 1000, // 1 hour
+    retry: 1,
   });
 }
 
@@ -14,6 +15,7 @@ export function useTrendingAnime(limit = 15, page = 1) {
     queryKey: ["anime", "trending", limit, page],
     queryFn: () => anilistApi.getTrending(limit, page),
     staleTime: 60 * 60 * 1000, // 1 hour
+    retry: 1,
   });
 }
 
@@ -22,6 +24,7 @@ export function useRecentEpisodes(limit = 20) {
     queryKey: ["anime", "recent", limit],
     queryFn: () => anilistApi.getRecentReleases(limit),
     staleTime: 60 * 60 * 1000, // 1 hour
+    retry: 1,
   });
 }
 
@@ -30,6 +33,7 @@ export function useTopThisWeek(limit = 9) {
     queryKey: ["anime", "top-this-week", limit],
     queryFn: () => anilistApi.getTopThisWeek(limit),
     staleTime: 60 * 60 * 1000, // 1 hour
+    retry: 1,
   });
 }
 
@@ -38,6 +42,7 @@ export function useSchedule(limit = 15) {
     queryKey: ["anime", "schedule", limit],
     queryFn: () => anilistApi.getAiringSchedule(limit),
     staleTime: 60 * 60 * 1000, // 1 hour
+    retry: 1,
   });
 }
 
@@ -47,16 +52,18 @@ export function useSearchAnime(query: string, filters?: { genre?: string; year?:
     queryFn: () => anilistApi.searchAnime(query, filters),
     staleTime: 60 * 60 * 1000, // 1 hour
     enabled: query.length >= 3 || !!filters?.genre || !!filters?.year || !!filters?.format || !!filters?.score || !!filters?.status,
+    retry: 1,
   });
 }
 
 export function useExploreAnime(query: string, filters?: { genre?: string; year?: number; format?: string; sort?: string; score?: number; status?: string }) {
   return useInfiniteQuery({
     queryKey: ["anime", "explore", query, filters],
-    queryFn: ({ pageParam = 1 }) => anilistApi.searchAnimePaginated(query, filters, 30, pageParam),
+    queryFn: ({ pageParam = 1 }) => anilistApi.searchAnimePaginated(query, filters, 20, pageParam),
     getNextPageParam: (lastPage, allPages) => lastPage.hasNextPage ? allPages.length + 1 : undefined,
     initialPageParam: 1,
     staleTime: 60 * 60 * 1000, // 1 hour
+    retry: 1,
   });
 }
 
@@ -65,6 +72,7 @@ export function useAniListBanners(limit = 10, page = 1) {
     queryKey: ["anime", "anilist-banners", limit, page],
     queryFn: () => anilistApi.getTrending(limit, page),
     staleTime: 60 * 60 * 1000, // 1 hour
+    retry: 1,
   });
 }
 
@@ -74,5 +82,6 @@ export function useAnimeDetails(malId: string | number) {
     queryFn: () => anilistApi.getAnimeDetails(malId),
     staleTime: 24 * 60 * 60 * 1000, // 24 hours
     enabled: !!malId,
+    retry: 1,
   });
 }

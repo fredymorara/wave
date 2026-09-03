@@ -37,9 +37,16 @@ export async function POST(request: Request) {
       }
 
       const errorText = await response.text();
+      // If AniList returns 403 due to their API being disabled or Cloudflare blocked, translate to 503 Service Unavailable
+      const statusToReturn = response.status === 403 ? 503 : response.status;
       return NextResponse.json(
-        { errors: [{ message: `AniList responded with status ${response.status}: ${errorText}` }] },
-        { status: response.status }
+        { errors: [{ message: `AniList upstream service unavailable (${response.status}): ${errorText}` }] },
+        { 
+          status: statusToReturn,
+          headers: {
+            "Cache-Control": "public, s-maxage=60, stale-while-revalidate=120",
+          }
+        }
       );
     }
 
@@ -50,10 +57,11 @@ export async function POST(request: Request) {
         "Cache-Control": "public, s-maxage=300, stale-while-revalidate=600",
       },
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("AniList proxy error:", error);
+    const message = error instanceof Error ? error.message : "Failed to proxy request to AniList";
     return NextResponse.json(
-      { errors: [{ message: error?.message || "Failed to proxy request to AniList" }] },
+      { errors: [{ message }] },
       { status: 500 }
     );
   }

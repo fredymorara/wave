@@ -121,7 +121,7 @@ export default function ScheduleClient() {
     const sortedGroups = Array.from(groupsMap.values()).sort((a, b) => a.order - b.order);
 
     if (unknownItems.length > 0) {
-      sortedGroups.push({ order: 999, label: "Unknown Schedule", items: unknownItems });
+      sortedGroups.push({ order: 999, label: "Currently Airing", items: unknownItems });
     }
 
     return sortedGroups;
@@ -129,8 +129,78 @@ export default function ScheduleClient() {
 
   const groupedSchedule = getGroupedSchedule();
 
+  let content;
+  if (isLoading) {
+    content = (
+      <div className="flex-1 flex items-center justify-center h-[50vh]">
+        <Grid size="60" speed="1" color="#FF003C" />
+      </div>
+    );
+  } else if (!scheduleAnime || scheduleAnime.length === 0) {
+    content = (
+      <div className="flex flex-col items-center justify-center h-[50vh] text-center">
+        <div className="text-6xl mb-4">👾</div>
+        <h2 className="font-headline-xl text-on-surface-variant text-xl">NO DATA FOUND</h2>
+      </div>
+    );
+  } else {
+    content = (
+      <div className="space-y-12">
+        {groupedSchedule.map((group) => {
+          const theme = getThemeProps(group.order);
+          return (
+            <div key={group.label}>
+              <h2 className={`font-headline-lg text-xl text-on-surface border-l-4 pl-3 mb-6 uppercase ${theme.border}`}>
+                {group.label}
+              </h2>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-gutter">
+                {group.items.map((anime, idx) => (
+                  <Link key={`sched-${group.label}-${anime.idMal || anime.id}-${idx}`} href={`/anime/${anime.idMal}`} className={`relative flex flex-row gap-4 bg-surface-container p-3 overflow-hidden group border border-outline-variant/20 transition-all duration-300 clip-corner ${theme.hoverBorder}`}>
+                    <div className="relative w-20 md:w-24 aspect-3/4 shrink-0 bg-void-black">
+                      <Image 
+                        src={anime.coverImage.large || anime.coverImage.extraLarge} 
+                        alt={anime.title.english || anime.title.romaji || ""} 
+                        fill 
+                        className="object-cover group-hover:scale-105 transition-transform duration-300"
+                      />
+                    </div>
+                    <div className="flex-1 flex flex-col min-w-0 py-1">
+                      <h3 className={`font-headline-md text-[14px] md:text-base text-white leading-tight line-clamp-2 transition-colors mb-2 ${theme.textHover}`}>
+                        {anime.title.english || anime.title.romaji}
+                      </h3>
+                      
+                      {anime.nextAiringEpisode ? (
+                        <div className="mt-auto">
+                          <span className={`inline-block border px-2 py-1 font-label-caps text-[10px] mb-1 clip-chip ${theme.chipBg} ${theme.chipText} ${theme.chipBorder}`}>
+                            EP {anime.nextAiringEpisode.episode}
+                          </span>
+                          <p className="text-on-surface-variant text-xs font-label-caps">
+                            {getCountdown(anime.nextAiringEpisode.airingAt)}
+                          </p>
+                          <p className="text-on-surface-variant/60 text-[10px] font-label-caps mt-0.5">
+                            {formatAiringDate(anime.nextAiringEpisode.airingAt)}
+                          </p>
+                        </div>
+                      ) : (
+                        <div className="mt-auto">
+                          <span className="inline-block bg-surface-container-high text-on-surface-variant border border-outline-variant px-2 py-1 font-label-caps text-[10px] clip-chip">
+                            Airing
+                          </span>
+                        </div>
+                      )}
+                    </div>
+                  </Link>
+                ))}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    );
+  }
+
   return (
-    <div className="flex-1 min-h-screen pt-[120px] px-margin-mobile md:px-margin-desktop bg-void-black pb-12">
+    <div className="flex-1 min-h-screen pt-30 px-margin-mobile md:px-margin-desktop bg-void-black pb-12">
       <div className="mb-stack-lg border-b border-outline-variant/20 pb-4">
         <h1 className="flex items-center gap-3 font-headline-xl text-3xl text-on-surface">
           <CalendarClock className="w-8 h-8 text-cyber-cyan" />
@@ -141,68 +211,7 @@ export default function ScheduleClient() {
         </p>
       </div>
 
-      {isLoading ? (
-        <div className="flex-1 flex items-center justify-center h-[50vh]">
-          <Grid size="60" speed="1" color="#FF003C" />
-        </div>
-      ) : !scheduleAnime || scheduleAnime.length === 0 ? (
-        <div className="flex flex-col items-center justify-center h-[50vh] text-center">
-          <div className="text-6xl mb-4">👾</div>
-          <h2 className="font-headline-xl text-on-surface-variant text-xl">NO DATA FOUND</h2>
-        </div>
-      ) : (
-        <div className="space-y-12">
-          {groupedSchedule.map((group) => {
-            const theme = getThemeProps(group.order);
-            return (
-              <div key={group.label}>
-                <h2 className={`font-headline-lg text-xl text-on-surface border-l-4 pl-3 mb-6 uppercase ${theme.border}`}>
-                  {group.label}
-                </h2>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-gutter">
-                  {group.items.map((anime) => (
-                    <Link key={anime.idMal} href={`/anime/${anime.idMal}`} className={`relative flex flex-row gap-4 bg-surface-container p-3 overflow-hidden group border border-outline-variant/20 transition-all duration-300 clip-corner ${theme.hoverBorder}`}>
-                      <div className="relative w-20 md:w-24 aspect-3/4 shrink-0 bg-void-black">
-                        <Image 
-                          src={anime.coverImage.large || anime.coverImage.extraLarge} 
-                          alt={anime.title.english || anime.title.romaji || ""} 
-                          fill 
-                          className="object-cover group-hover:scale-105 transition-transform duration-300"
-                        />
-                      </div>
-                      <div className="flex-1 flex flex-col min-w-0 py-1">
-                        <h3 className={`font-headline-md text-[14px] md:text-base text-white leading-tight line-clamp-2 transition-colors mb-2 ${theme.textHover}`}>
-                          {anime.title.english || anime.title.romaji}
-                        </h3>
-                        
-                        {anime.nextAiringEpisode ? (
-                          <div className="mt-auto">
-                            <span className={`inline-block border px-2 py-1 font-label-caps text-[10px] mb-1 clip-chip ${theme.chipBg} ${theme.chipText} ${theme.chipBorder}`}>
-                              EP {anime.nextAiringEpisode.episode}
-                            </span>
-                            <p className="text-on-surface-variant text-xs font-label-caps">
-                              {getCountdown(anime.nextAiringEpisode.airingAt)}
-                            </p>
-                            <p className="text-on-surface-variant/60 text-[10px] font-label-caps mt-0.5">
-                              {formatAiringDate(anime.nextAiringEpisode.airingAt)}
-                            </p>
-                          </div>
-                        ) : (
-                          <div className="mt-auto">
-                            <span className="inline-block bg-surface-container-high text-on-surface-variant border border-outline-variant px-2 py-1 font-label-caps text-[10px] clip-chip">
-                              Unknown Schedule
-                            </span>
-                          </div>
-                        )}
-                      </div>
-                    </Link>
-                  ))}
-                </div>
-              </div>
-            );
-          })}
-        </div>
-      )}
+      {content}
     </div>
   );
 }

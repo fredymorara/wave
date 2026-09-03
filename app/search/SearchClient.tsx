@@ -34,7 +34,7 @@ export default function SearchClient() {
       });
     };
     syncFilters();
-  }, [searchParams]);
+  }, [searchParams, query]);
   
   const { data, isLoading, isFetchingNextPage, fetchNextPage, hasNextPage } = useExploreAnime(query, filters);
   const results = data?.pages.flatMap((page) => page.media) || [];

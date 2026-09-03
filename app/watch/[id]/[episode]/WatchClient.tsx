@@ -3,8 +3,9 @@
 import Link from "next/link";
 import Image from "next/image";
 import { useEffect, useState, useRef } from "react";
-import { ArrowLeft, MessageSquare, Mic, FastForward, Server } from "lucide-react";
+import { ArrowLeft, MessageSquare, Mic, FastForward } from "lucide-react";
 import { useAnimeDetails } from "@/hooks/useAnime";
+import type { AniListAnime } from "@/lib/api/anilist";
 import { Grid } from 'ldrs/react';
 import 'ldrs/react/Grid.css';
 import { useWatchStore } from "@/store/useWatchStore";
@@ -13,47 +14,63 @@ import { CommentsSection } from "@/components/comments/CommentsSection";
 
 import { useSearchParams, useRouter } from "next/navigation";
 
-export default function WatchClient({ id, episode }: { id: string; episode: string }) {
-  const searchParams = useSearchParams();
-  const router = useRouter();
-  const initLang = searchParams.get("lang") === "dub" ? "dub" : "sub";
-  
-  const { data: anime, isLoading: isAnimeLoading } = useAnimeDetails(id);
-  const addToHistory = useWatchStore((state) => state.addToHistory);
+function getDubTooltip(isDubAvailable: boolean, dubCount?: number | null): string {
+  if (isDubAvailable) return "Switch to DUB audio";
+  if (dubCount && dubCount > 0) return `Dub only available up to Episode ${dubCount}`;
+  return "Dub not available for this episode";
+}
 
-  const [language, setLanguage] = useState<"sub" | "dub">(initLang);
-  const [autoNext, setAutoNext] = useState(true);
-  const [provider, setProvider] = useState<"ani" | "mal">("ani");
-  const playerRef = useRef<HTMLDivElement>(null);
-  
-  // Sub/Dub Availability State
-  const [counts, setCounts] = useState<{ is_sub: number | null, is_dub: number | null } | null>(null);
-  const [isCountsLoading, setIsCountsLoading] = useState(true);
-
-  // Episode calculations & Dub Availability
-  const epNum = parseInt(episode) || 1;
-  const isDubAvailable = counts !== null && counts.is_dub !== null && counts.is_dub > 0 && counts.is_dub >= epNum;
-
-  // Effective language: automatically guarantees "sub" is used if Dub is not available for this episode
-  const effectiveLanguage = (language === "dub" && !isDubAvailable) ? "sub" : language;
-
-  // Episode Pagination State
-  const [episodeChunk, setEpisodeChunk] = useState(() => {
-    return (!isNaN(epNum) && epNum > 0) ? Math.floor((epNum - 1) / 100) : 0;
-  });
-
-  const [prevEpisode, setPrevEpisode] = useState(episode);
-  if (episode !== prevEpisode) {
-    setPrevEpisode(episode);
-    if (!isNaN(epNum) && epNum > 0) {
-      setEpisodeChunk(Math.floor((epNum - 1) / 100));
+function calculateBaseWatchEpisodes(anime: AniListAnime | undefined, counts: { is_sub: number | null } | null, epNum: number): number {
+  if (!anime || anime.status === 'NOT_YET_RELEASED') return 0;
+  if (anime.nextAiringEpisode) {
+    return Math.max(0, anime.nextAiringEpisode.episode - 1);
+  }
+  if (anime.status === 'RELEASING') {
+    if (counts?.is_sub) return counts.is_sub;
+    if (anime.episodes) return anime.episodes;
+    if (anime.startDate?.year && anime.startDate?.month) {
+      const start = new Date(anime.startDate.year, anime.startDate.month - 1, anime.startDate.day || 1);
+      const elapsedWeeks = Math.floor((Date.now() - start.getTime()) / (7 * 24 * 60 * 60 * 1000));
+      return Math.max(1, Math.min(elapsedWeeks + 1, 2000));
     }
-    if (counts && (counts.is_dub === null || counts.is_dub < epNum) && language === "dub") {
-      setLanguage("sub");
+    return epNum || 12;
+  }
+  return anime.episodes || counts?.is_sub || 0;
+}
+
+function getApplicableWatchEpisodes(
+  baseEpisodes: number,
+  anime: AniListAnime | undefined,
+  counts: { is_sub: number | null, is_dub: number | null } | null,
+  effectiveLanguage: "sub" | "dub",
+  epNum: number
+): number {
+  let finalNum = baseEpisodes;
+  if (counts) {
+    const limit = effectiveLanguage === "dub" ? counts.is_dub : counts.is_sub;
+    if (limit !== null && limit !== undefined && limit > 0) {
+      if (anime?.nextAiringEpisode) {
+        finalNum = Math.min(baseEpisodes, limit);
+      } else if (anime?.status === 'FINISHED' && anime.episodes) {
+        finalNum = Math.min(anime.episodes, limit);
+      } else {
+        finalNum = limit;
+      }
+    } else if (effectiveLanguage === "dub") {
+      finalNum = 0;
     }
   }
 
-  // Sub/Dub Availability State
+  if (finalNum === 0 && epNum && anime?.status !== 'NOT_YET_RELEASED') {
+    return epNum;
+  }
+  return finalNum;
+}
+
+function useEpisodeCounts(id: string) {
+  const [counts, setCounts] = useState<{ is_sub: number | null; is_dub: number | null } | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+
   useEffect(() => {
     let isMounted = true;
     async function fetchCounts() {
@@ -64,129 +81,69 @@ export default function WatchClient({ id, episode }: { id: string; episode: stri
           if (isMounted) {
             if (data && (typeof data.is_sub === 'number' || typeof data.is_dub === 'number' || data.is_sub !== undefined)) {
               setCounts({ is_sub: data.is_sub ?? null, is_dub: data.is_dub ?? null });
-              if (data.is_dub === null || data.is_dub === 0 || data.is_dub < epNum) {
-                setLanguage("sub");
-              }
-            } else {
-              setCounts(null);
             }
+            setIsLoading(false);
           }
         } else if (isMounted) {
-          setCounts(null);
+          setIsLoading(false);
         }
       } catch (err) {
-        console.error("Failed to fetch episode counts for player:", err);
-        if (isMounted) {
-          setCounts(null);
-        }
-      } finally {
-        if (isMounted) {
-          setIsCountsLoading(false);
-        }
+        console.error("Failed to fetch episode counts", err);
+        if (isMounted) setIsLoading(false);
       }
     }
     fetchCounts();
-    return () => {
-      isMounted = false;
-    };
-  }, [id, epNum]);
+    return () => { isMounted = false; };
+  }, [id]);
 
-  // Log watch history
-  useEffect(() => {
-    if (anime) {
-      addToHistory({
-        mal_id: id,
-        title: anime.title.english || anime.title.romaji || "Anime",
-        image_url: anime.coverImage.extraLarge || anime.coverImage.large,
-        episode: episode,
-        language: effectiveLanguage,
-      });
-    }
-  }, [anime, episode, id, addToHistory, effectiveLanguage]);
+  return { counts, isLoading };
+}
 
-  const updateProgress = useWatchStore((state) => state.updateProgress);
-
-  // Fallback & Tracking Listener for MegaPlay
+function usePlayerEvents(
+  id: string,
+  provider: "ani" | "mal",
+  autoNext: boolean,
+  setStreamFailed: (v: boolean) => void,
+  updateProgress: (id: string, time: number, duration: number) => void
+) {
   useEffect(() => {
     function handleMessage(event: MessageEvent) {
-      let data = event.data;
-      if (typeof data === "string") {
-        try {
-          data = JSON.parse(data);
-        } catch {
-          return;
-        }
-      }
-      
+      if (event.origin && !event.origin.includes("megaplay.buzz")) return;
+      const data = event.data;
       if (data?.event === "error") {
-        console.warn("MegaPlay Error event received:", data);
         if (provider === "ani") {
-          console.log("Falling back from Server 1 to Server 2...");
-          setProvider("mal");
+          console.log("Stream error on ani provider, silently switching to mal...");
+          setStreamFailed(true);
         }
-      } else if (data?.event === "time") {
-        // Log time progress to zustand
+      } else if (data?.event === "timeupdate") {
         if (data.time && data.duration) {
           updateProgress(id, data.time, data.duration);
         }
-      } else if (data?.event === "complete") {
-        // Auto Next Episode Logic
-        if (autoNext) {
-          window.dispatchEvent(new CustomEvent('megaplay-complete'));
-        }
+      } else if (data?.event === "complete" && autoNext) {
+        window.dispatchEvent(new CustomEvent('megaplay-complete'));
       }
     }
-    
+
     window.addEventListener("message", handleMessage);
     return () => window.removeEventListener("message", handleMessage);
-  }, [provider, id, updateProgress, autoNext]);
+  }, [provider, id, updateProgress, autoNext, setStreamFailed]);
+}
 
-  // Episode count calculations: Only show actually released/aired episodes
-  let baseEpisodes = 0;
-  const isAiring = !!anime?.nextAiringEpisode;
+function useAutoNextEpisode(
+  id: string,
+  episode: string,
+  finalNumEpisodes: number,
+  effectiveLanguage: "sub" | "dub",
+  counts: { is_dub: number | null } | null
+) {
+  const router = useRouter();
 
-  if (anime?.status === 'NOT_YET_RELEASED') {
-    baseEpisodes = 0;
-  } else if (anime?.nextAiringEpisode) {
-    baseEpisodes = Math.max(0, anime.nextAiringEpisode.episode - 1);
-  } else if (anime?.status === 'RELEASING') {
-    // If releasing but schedule unknown, trust DB count or avoid assuming future unreleased episodes
-    baseEpisodes = counts?.is_sub ?? 0;
-  } else if (anime?.status === 'FINISHED') {
-    baseEpisodes = anime.episodes || 0;
-  } else {
-    baseEpisodes = anime?.episodes || 0;
-  }
-  
-  // Apply Sub/Dub limits from Anikoto DB
-  let finalNumEpisodes = baseEpisodes;
-  if (counts) {
-    const limit = effectiveLanguage === "dub" ? counts.is_dub : counts.is_sub;
-    if (limit !== null && limit !== undefined && limit > 0) {
-      if (isAiring) {
-        finalNumEpisodes = Math.min(baseEpisodes, limit);
-      } else if (anime?.status === 'FINISHED' && anime.episodes) {
-        finalNumEpisodes = Math.min(anime.episodes, limit);
-      } else {
-        finalNumEpisodes = limit;
-      }
-    } else if (effectiveLanguage === "dub") {
-      finalNumEpisodes = 0;
-    }
-  }
-
-  // Fallback only if we have active episode number
-  if (finalNumEpisodes === 0 && epNum && anime?.status !== 'NOT_YET_RELEASED') {
-    finalNumEpisodes = epNum;
-  }
-
-  // Handle auto next episode redirection
   useEffect(() => {
     function handleAutoNext() {
-      const currentEpNum = parseInt(episode);
+      const currentEpNum = Number.parseInt(episode, 10);
       const nextEpNum = currentEpNum + 1;
-      
-      if (!isNaN(currentEpNum) && nextEpNum <= finalNumEpisodes) {
+
+      if (!Number.isNaN(currentEpNum) && nextEpNum <= finalNumEpisodes) {
         let targetLang = effectiveLanguage;
         if (effectiveLanguage === "dub" && counts?.is_dub !== null && counts?.is_dub !== undefined && counts.is_dub < nextEpNum) {
           targetLang = "sub";
@@ -194,10 +151,61 @@ export default function WatchClient({ id, episode }: { id: string; episode: stri
         router.push(`/watch/${id}/${nextEpNum}?lang=${targetLang}`);
       }
     }
-    
+
     window.addEventListener('megaplay-complete', handleAutoNext);
     return () => window.removeEventListener('megaplay-complete', handleAutoNext);
   }, [episode, finalNumEpisodes, effectiveLanguage, counts, id, router]);
+}
+
+interface WatchClientProps {
+  readonly id: string;
+  readonly episode: string;
+}
+
+export default function WatchClient({ id, episode }: WatchClientProps) {
+  const searchParams = useSearchParams();
+  const initLang = searchParams.get("lang") === "dub" ? "dub" : "sub";
+
+  const { data: anime, isLoading: isAnimeLoading } = useAnimeDetails(id);
+  const { counts, isLoading: isCountsLoading } = useEpisodeCounts(id);
+  const addToHistory = useWatchStore((state) => state.addToHistory);
+  const updateProgress = useWatchStore((state) => state.updateProgress);
+
+  const [language, setLanguage] = useState<"sub" | "dub">(initLang);
+  const [autoNext, setAutoNext] = useState(true);
+  const [streamFailed, setStreamFailed] = useState(false);
+  const playerRef = useRef<HTMLDivElement>(null);
+
+  const hasDistinctAniId = Boolean(anime?.id && anime?.idMal && anime.id !== anime.idMal);
+  const provider: "ani" | "mal" = (hasDistinctAniId && !streamFailed) ? "ani" : "mal";
+
+  const epNum = Number.parseInt(episode, 10) || 1;
+  const isDubAvailable = counts?.is_dub !== null && counts?.is_dub !== undefined && counts.is_dub >= epNum;
+  const effectiveLanguage = (language === "dub" && !isDubAvailable) ? "sub" : language;
+
+  const [selectedChunk, setSelectedChunk] = useState<{ ep: string; chunk: number } | null>(null);
+  const activeChunk = (selectedChunk?.ep === episode) 
+    ? selectedChunk.chunk 
+    : Math.floor(Math.max(0, epNum - 1) / 100);
+
+  useEffect(() => {
+    if (anime) {
+      addToHistory({
+        mal_id: id,
+        title: anime.title.english || anime.title.romaji || "Anime",
+        image_url: anime.coverImage.extraLarge || anime.coverImage.large,
+        episode,
+        language: effectiveLanguage,
+      });
+    }
+  }, [anime, episode, id, addToHistory, effectiveLanguage]);
+
+  usePlayerEvents(id, provider, autoNext, setStreamFailed, updateProgress);
+
+  const baseEpisodes = calculateBaseWatchEpisodes(anime, counts, epNum);
+  const finalNumEpisodes = getApplicableWatchEpisodes(baseEpisodes, anime, counts, effectiveLanguage, epNum);
+
+  useAutoNextEpisode(id, episode, finalNumEpisodes, effectiveLanguage, counts);
 
 
   if (isAnimeLoading || isCountsLoading) {
@@ -220,14 +228,13 @@ export default function WatchClient({ id, episode }: { id: string; episode: stri
 
   const titleStr = anime.title.english || anime.title.romaji;
   
-  // Calculate iframe URL cleanly based on active provider and effective language
   const baseId = provider === "ani" ? (anime.id || id) : (anime.idMal || id);
   const iframeSrc = `https://megaplay.buzz/stream/${provider}/${baseId}/${episode}/${effectiveLanguage}?autoPlay=1`;
 
   const CHUNK_SIZE = 100;
   const numChunks = Math.ceil(finalNumEpisodes / CHUNK_SIZE);
-  const startEp = episodeChunk * CHUNK_SIZE + 1;
-  const endEp = Math.min((episodeChunk + 1) * CHUNK_SIZE, finalNumEpisodes);
+  const startEp = activeChunk * CHUNK_SIZE + 1;
+  const endEp = Math.min((activeChunk + 1) * CHUNK_SIZE, finalNumEpisodes);
   const currentEpisodes = Array.from({ length: Math.max(0, endEp - startEp + 1) }, (_, i) => startEp + i);
 
   return (
@@ -326,6 +333,7 @@ export default function WatchClient({ id, episode }: { id: string; episode: stri
           {/* Sub / Dub Selector */}
           <div className="flex items-center gap-1.5">
             <button 
+              type="button"
               onClick={() => setLanguage("sub")}
               className={`flex items-center gap-1.5 font-label-caps text-[12px] px-3 py-1.5 transition-all cursor-pointer clip-chip ${
                 effectiveLanguage === "sub" 
@@ -336,6 +344,7 @@ export default function WatchClient({ id, episode }: { id: string; episode: stri
               <MessageSquare className="w-3 h-3" /> SUB
             </button>
             <button 
+              type="button"
               onClick={() => {
                 if (isDubAvailable) {
                   setLanguage("dub");
@@ -347,18 +356,17 @@ export default function WatchClient({ id, episode }: { id: string; episode: stri
                   ? 'bg-neon-crimson text-void-black font-bold shadow-[0_0_10px_rgba(255,0,60,0.5)]' 
                   : 'bg-surface-container-low text-on-surface-variant hover:bg-surface-glass hover:text-white'
               } ${!isDubAvailable ? 'opacity-30 cursor-not-allowed pointer-events-none' : 'cursor-pointer'}`}
-              title={!isDubAvailable ? (counts?.is_dub ? `Dub only available up to Episode ${counts.is_dub}` : "Dub not available for this episode") : "Switch to DUB audio"}
+              title={getDubTooltip(isDubAvailable, counts?.is_dub)}
             >
               <Mic className="w-3 h-3" /> DUB
             </button>
           </div>
-          
 
-          
           <div className="w-px h-6 bg-outline-variant/50 hidden sm:block"></div>
           
           {/* Auto Next */}
           <button 
+            type="button"
             onClick={() => setAutoNext(!autoNext)}
             className={`flex items-center gap-2 font-label-caps text-[12px] px-3 py-1.5 border transition-all cursor-pointer clip-chip ${
               autoNext 
@@ -402,10 +410,11 @@ export default function WatchClient({ id, episode }: { id: string; episode: stri
                   const e = Math.min((i + 1) * CHUNK_SIZE, finalNumEpisodes);
                   return (
                     <button
-                      key={i}
-                      onClick={() => setEpisodeChunk(i)}
+                      type="button"
+                      key={`chunk-${s}-${e}`}
+                      onClick={() => setSelectedChunk({ ep: episode, chunk: i })}
                       className={`font-label-caps text-[12px] px-4 py-2 border clip-chip transition-all cursor-pointer ${
-                        episodeChunk === i 
+                        activeChunk === i 
                           ? 'bg-neon-crimson border-neon-crimson text-void-black font-bold shadow-[0_0_10px_rgba(255,0,60,0.5)]' 
                           : 'bg-surface-container border-outline-variant text-on-surface-variant hover:border-cyber-cyan hover:text-cyber-cyan hover:bg-cyber-cyan/10'
                       }`}

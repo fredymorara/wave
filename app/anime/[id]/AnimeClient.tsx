@@ -5,11 +5,57 @@ import Link from "next/link";
 import { useState, useEffect } from "react";
 import { Play, Star, MessageSquare, Mic } from "lucide-react";
 import { useAnimeDetails } from "@/hooks/useAnime";
+import type { AniListAnime } from "@/lib/api/anilist";
 import { Grid } from 'ldrs/react';
 import 'ldrs/react/Grid.css';
 import { WatchlistButton } from "@/components/watchlist/WatchlistButton";
 
-export default function AnimeClient({ id }: { id: string }) {
+function calculateBaseEpisodes(anime: AniListAnime, isSubCount?: number | null): number {
+  if (anime.status === 'NOT_YET_RELEASED') return 0;
+  if (anime.nextAiringEpisode) {
+    return Math.max(0, anime.nextAiringEpisode.episode - 1);
+  }
+  if (anime.status === 'RELEASING') {
+    if (isSubCount) return isSubCount;
+    if (anime.episodes) return anime.episodes;
+    if (anime.startDate?.year && anime.startDate?.month) {
+      const start = new Date(anime.startDate.year, anime.startDate.month - 1, anime.startDate.day || 1);
+      const elapsedWeeks = Math.floor((Date.now() - start.getTime()) / (7 * 24 * 60 * 60 * 1000));
+      return Math.max(1, Math.min(elapsedWeeks + 1, 2000));
+    }
+    return 12;
+  }
+  return anime.episodes || isSubCount || 0;
+}
+
+function getApplicableEpisodes(
+  baseEpisodes: number,
+  anime: AniListAnime,
+  counts: { is_sub: number | null, is_dub: number | null } | null,
+  language: "sub" | "dub"
+): number {
+  if (!counts) return baseEpisodes;
+  const limit = language === "dub" ? counts.is_dub : counts.is_sub;
+  if (limit !== null && limit !== undefined && limit > 0) {
+    if (anime.nextAiringEpisode) return Math.min(baseEpisodes, limit);
+    if (anime.status === 'FINISHED' && anime.episodes) return Math.min(anime.episodes, limit);
+    return limit;
+  }
+  return language === "dub" ? 0 : baseEpisodes;
+}
+
+function getCleanDescription(description?: string | null): string {
+  if (!description) return 'No description available.';
+  const sourceIndex = description.search(/(\(|<i>)?Source:/i);
+  if (sourceIndex === -1) return description;
+  return description.slice(0, sourceIndex).replace(/<br\s*\/?>\s*$/i, '');
+}
+
+interface AnimeClientProps {
+  readonly id: string;
+}
+
+export default function AnimeClient({ id }: AnimeClientProps) {
   const { data: anime, isLoading: isAnimeLoading } = useAnimeDetails(id);
   const [episodeChunk, setEpisodeChunk] = useState(0);
   const [language, setLanguage] = useState<"sub" | "dub">("sub");
@@ -49,49 +95,14 @@ export default function AnimeClient({ id }: { id: string }) {
     );
   }
 
-  // Calculate aired/released episodes: Only show actually released/aired episodes
-  let baseEpisodes = 0;
-  const isAiring = !!anime.nextAiringEpisode;
-
-  if (anime.status === 'NOT_YET_RELEASED') {
-    baseEpisodes = 0;
-  } else if (anime.nextAiringEpisode) {
-    baseEpisodes = Math.max(0, anime.nextAiringEpisode.episode - 1);
-  } else if (anime.status === 'RELEASING') {
-    baseEpisodes = counts?.is_sub ?? 0;
-  } else if (anime.status === 'FINISHED') {
-    baseEpisodes = anime.episodes || 0;
-  } else {
-    baseEpisodes = anime.episodes || 0;
-  }
-  
-  let numEpisodes = baseEpisodes;
-
-  // Apply Sub/Dub limits if available from Anikoto DB
-  if (counts) {
-    const limit = language === "dub" ? counts.is_dub : counts.is_sub;
-    if (limit !== null && limit !== undefined && limit > 0) {
-      if (isAiring) {
-        numEpisodes = Math.min(baseEpisodes, limit);
-      } else if (anime.status === 'FINISHED' && anime.episodes) {
-        numEpisodes = Math.min(anime.episodes, limit);
-      } else {
-        numEpisodes = limit;
-      }
-    } else if (language === "dub") {
-      numEpisodes = 0;
-    }
-  }
-
+  const baseEpisodes = calculateBaseEpisodes(anime, counts?.is_sub);
+  const numEpisodes = getApplicableEpisodes(baseEpisodes, anime, counts, language);
   const episodeArray = Array.from({ length: numEpisodes }, (_, i) => i + 1);
   
   const CHUNK_SIZE = 100;
   const numChunks = Math.ceil(episodeArray.length / CHUNK_SIZE);
   const currentEpisodes = episodeArray.slice(episodeChunk * CHUNK_SIZE, (episodeChunk + 1) * CHUNK_SIZE);
-
-  const cleanDescription = anime.description 
-    ? anime.description.replace(/(?:<br\s*\/?>|\n)*\s*(?:<i>)?\s*\(?Source:[\s\S]*$/i, '')
-    : 'No description available.';
+  const cleanDescription = getCleanDescription(anime.description);
 
   return (
     <>
@@ -149,12 +160,12 @@ export default function AnimeClient({ id }: { id: string }) {
                   <div className="flex items-center gap-3 bg-surface-container px-3 py-1 clip-chip border border-outline-variant/30 font-label-caps text-[10px]">
                     <div className="flex items-center gap-1">
                       <span className="text-on-surface-variant">SUB:</span>
-                      <span className="text-white font-bold">{counts.is_sub !== null ? counts.is_sub : '?'}</span>
+                      <span className="text-white font-bold">{counts.is_sub ?? '?'}</span>
                     </div>
                     <div className="w-px h-3 bg-outline-variant/50"></div>
                     <div className="flex items-center gap-1">
                       <span className="text-on-surface-variant">DUB:</span>
-                      <span className="text-white font-bold">{counts.is_dub !== null ? counts.is_dub : '?'}</span>
+                      <span className="text-white font-bold">{counts.is_dub ?? '?'}</span>
                     </div>
                   </div>
                 )}
@@ -239,6 +250,7 @@ export default function AnimeClient({ id }: { id: string }) {
             </div>
             <div className="flex items-center gap-2 bg-surface-container px-2 py-1 clip-chip border border-outline-variant/30">
               <button 
+                type="button"
                 onClick={() => setLanguage("sub")}
                 className={`flex items-center gap-1.5 font-label-caps text-[12px] px-3 py-1.5 transition-all cursor-pointer clip-chip ${
                   language === "sub" 
@@ -249,8 +261,9 @@ export default function AnimeClient({ id }: { id: string }) {
                 <MessageSquare className="w-3 h-3" /> SUB
               </button>
               <button 
+                type="button"
                 onClick={() => {
-                  if (counts && counts.is_dub && counts.is_dub > 0) {
+                  if (counts?.is_dub && counts.is_dub > 0) {
                     setLanguage("dub");
                   }
                 }}
@@ -275,7 +288,8 @@ export default function AnimeClient({ id }: { id: string }) {
                 const end = Math.min((i + 1) * CHUNK_SIZE, numEpisodes);
                 return (
                   <button
-                    key={i}
+                    type="button"
+                    key={`chunk-${start}-${end}`}
                     onClick={() => setEpisodeChunk(i)}
                     className={`font-label-caps text-[12px] px-4 py-2 border clip-chip transition-all ${
                       episodeChunk === i 

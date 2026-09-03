@@ -155,9 +155,49 @@ async function fetchAniList<T>(query: string, variables: Record<string, string |
   return json.data;
 }
 
+async function fetchDbFallback<T>(params: Record<string, string | number>): Promise<T | null> {
+  try {
+    let baseUrl = "";
+    if (typeof window !== "undefined") {
+      baseUrl = window.location.origin;
+    } else if (process.env.NEXT_PUBLIC_SITE_URL) {
+      baseUrl = process.env.NEXT_PUBLIC_SITE_URL;
+    } else if (process.env.VERCEL_URL) {
+      baseUrl = `https://${process.env.VERCEL_URL}`;
+    } else {
+      baseUrl = "http://localhost:3000";
+    }
+
+    const url = new URL("/api/anime/db-fallback", baseUrl);
+    Object.entries(params).forEach(([k, v]) => url.searchParams.set(k, String(v)));
+
+    const res = await fetch(url.toString(), { cache: "no-store" });
+    if (!res.ok) return null;
+    return await res.json() as T;
+  } catch (e) {
+    console.warn("[DB Fallback API] Request failed:", e);
+    return null;
+  }
+}
+
+function writeThroughCache(anime: AniListAnime | AniListAnime[]): void {
+  if (typeof window === "undefined") return;
+  try {
+    const list = Array.isArray(anime) ? anime : [anime];
+    const safeList = list.filter(isSafeAnime);
+    if (safeList.length === 0) return;
+
+    fetch("/api/anime/cache-metadata", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ animeList: safeList }),
+    }).catch(() => {});
+  } catch {}
+}
+
 export const anilistApi = {
   getTrending: async (limit = 15, page = 1): Promise<AniListAnime[]> => {
-    // Used for Hero Carousel and Trending Now
+    // 1. Tier 1: AniList
     if (!isAniListCircuitOpen()) {
       try {
         const query = `
@@ -170,16 +210,34 @@ export const anilistApi = {
           }
         `;
         const data = await fetchAniList<{ Page: { media: AniListAnime[] } }>(query, { limit, page });
-        return data.Page.media.filter(a => a.idMal && isSafeAnime(a));
+        const media = data.Page.media.filter(a => a.idMal && isSafeAnime(a));
+        if (media.length > 0) {
+          writeThroughCache(media);
+          return media;
+        }
       } catch (err) {
         console.warn("[AniList getTrending] Failed, using Jikan fallback:", err);
       }
     }
-    return jikanApi.getTrending(limit, page);
+
+    // 2. Tier 2: Jikan Fallback
+    try {
+      const jikanData = await jikanApi.getTrending(limit, page);
+      if (jikanData && jikanData.length > 0) {
+        writeThroughCache(jikanData);
+        return jikanData;
+      }
+    } catch (jikanErr) {
+      console.warn("[Jikan getTrending] Failed:", jikanErr);
+    }
+
+    // 3. Tier 3: Local Neon DB Fallback
+    const dbData = await fetchDbFallback<{ media: AniListAnime[] }>({ action: "trending", limit });
+    return dbData?.media || [];
   },
 
   getPopular: async (limit = 15): Promise<AniListAnime[]> => {
-    // Used for "Most Popular" (All Time)
+    // 1. Tier 1: AniList
     if (!isAniListCircuitOpen()) {
       try {
         const query = `
@@ -192,16 +250,34 @@ export const anilistApi = {
           }
         `;
         const data = await fetchAniList<{ Page: { media: AniListAnime[] } }>(query, { limit });
-        return data.Page.media.filter(a => a.idMal && isSafeAnime(a));
+        const media = data.Page.media.filter(a => a.idMal && isSafeAnime(a));
+        if (media.length > 0) {
+          writeThroughCache(media);
+          return media;
+        }
       } catch (err) {
         console.warn("[AniList getPopular] Failed, using Jikan fallback:", err);
       }
     }
-    return jikanApi.getPopular(limit);
+
+    // 2. Tier 2: Jikan Fallback
+    try {
+      const jikanData = await jikanApi.getPopular(limit);
+      if (jikanData && jikanData.length > 0) {
+        writeThroughCache(jikanData);
+        return jikanData;
+      }
+    } catch (jikanErr) {
+      console.warn("[Jikan getPopular] Failed:", jikanErr);
+    }
+
+    // 3. Tier 3: Local Neon DB Fallback
+    const dbData = await fetchDbFallback<{ media: AniListAnime[] }>({ action: "popular", limit });
+    return dbData?.media || [];
   },
 
   getRecentReleases: async (limit = 20): Promise<AniListAnime[]> => {
-    // Used for "Recent Releases" (Things that just aired)
+    // 1. Tier 1: AniList
     if (!isAniListCircuitOpen()) {
       try {
         const currentTime = Math.floor(Date.now() / 1000);
@@ -218,23 +294,40 @@ export const anilistApi = {
         `;
         const data = await fetchAniList<{ Page: { airingSchedules: { media: AniListAnime }[] } }>(query, { limit, time: currentTime });
         
-        // Extract media, filter duplicates, adult content, and ensure it has an idMal
         const uniqueMedia = new Map<number, AniListAnime>();
         data.Page.airingSchedules.forEach(schedule => {
           if (schedule.media && schedule.media.idMal && isSafeAnime(schedule.media) && !uniqueMedia.has(schedule.media.idMal)) {
             uniqueMedia.set(schedule.media.idMal, schedule.media);
           }
         });
-        return Array.from(uniqueMedia.values());
+        const media = Array.from(uniqueMedia.values());
+        if (media.length > 0) {
+          writeThroughCache(media);
+          return media;
+        }
       } catch (err) {
         console.warn("[AniList getRecentReleases] Failed, using Jikan fallback:", err);
       }
     }
-    return jikanApi.getRecentReleases(limit);
+
+    // 2. Tier 2: Jikan Fallback
+    try {
+      const jikanData = await jikanApi.getRecentReleases(limit);
+      if (jikanData && jikanData.length > 0) {
+        writeThroughCache(jikanData);
+        return jikanData;
+      }
+    } catch (jikanErr) {
+      console.warn("[Jikan getRecentReleases] Failed:", jikanErr);
+    }
+
+    // 3. Tier 3: Local Neon DB Fallback
+    const dbData = await fetchDbFallback<{ media: AniListAnime[] }>({ action: "trending", limit });
+    return dbData?.media || [];
   },
 
   getTopThisWeek: async (limit = 9): Promise<AniListAnime[]> => {
-    // Used for "Top Anime This Week" (Highest trending currently airing)
+    // 1. Tier 1: AniList
     if (!isAniListCircuitOpen()) {
       try {
         const query = `
@@ -247,16 +340,34 @@ export const anilistApi = {
           }
         `;
         const data = await fetchAniList<{ Page: { media: AniListAnime[] } }>(query, { limit });
-        return data.Page.media.filter(a => a.idMal && isSafeAnime(a));
+        const media = data.Page.media.filter(a => a.idMal && isSafeAnime(a));
+        if (media.length > 0) {
+          writeThroughCache(media);
+          return media;
+        }
       } catch (err) {
         console.warn("[AniList getTopThisWeek] Failed, using Jikan fallback:", err);
       }
     }
-    return jikanApi.getTopThisWeek(limit);
+
+    // 2. Tier 2: Jikan Fallback
+    try {
+      const jikanData = await jikanApi.getTopThisWeek(limit);
+      if (jikanData && jikanData.length > 0) {
+        writeThroughCache(jikanData);
+        return jikanData;
+      }
+    } catch (jikanErr) {
+      console.warn("[Jikan getTopThisWeek] Failed:", jikanErr);
+    }
+
+    // 3. Tier 3: Local Neon DB Fallback
+    const dbData = await fetchDbFallback<{ media: AniListAnime[] }>({ action: "popular", limit });
+    return dbData?.media || [];
   },
 
   getAiringSchedule: async (limit = 15): Promise<AniListAnime[]> => {
-    // Used for "Airing Now" (Things airing very soon)
+    // 1. Tier 1: AniList
     if (!isAniListCircuitOpen()) {
       try {
         const currentTime = Math.floor(Date.now() / 1000);
@@ -273,19 +384,36 @@ export const anilistApi = {
         `;
         const data = await fetchAniList<{ Page: { airingSchedules: { media: AniListAnime }[] } }>(query, { limit, time: currentTime });
         
-        // Extract media, filter duplicates, adult content, and ensure it has an idMal
         const uniqueMedia = new Map<number, AniListAnime>();
         data.Page.airingSchedules.forEach(schedule => {
           if (schedule.media && schedule.media.idMal && isSafeAnime(schedule.media) && !uniqueMedia.has(schedule.media.idMal)) {
             uniqueMedia.set(schedule.media.idMal, schedule.media);
           }
         });
-        return Array.from(uniqueMedia.values());
+        const media = Array.from(uniqueMedia.values());
+        if (media.length > 0) {
+          writeThroughCache(media);
+          return media;
+        }
       } catch (err) {
         console.warn("[AniList getAiringSchedule] Failed, using Jikan fallback:", err);
       }
     }
-    return jikanApi.getAiringSchedule(limit);
+
+    // 2. Tier 2: Jikan Fallback
+    try {
+      const jikanData = await jikanApi.getAiringSchedule(limit);
+      if (jikanData && jikanData.length > 0) {
+        writeThroughCache(jikanData);
+        return jikanData;
+      }
+    } catch (jikanErr) {
+      console.warn("[Jikan getAiringSchedule] Failed:", jikanErr);
+    }
+
+    // 3. Tier 3: Local Neon DB Fallback
+    const dbData = await fetchDbFallback<{ media: AniListAnime[] }>({ action: "trending", limit });
+    return dbData?.media || [];
   },
 
   searchAnime: async (
@@ -357,13 +485,32 @@ export const anilistApi = {
         }
 
         if (mergedResults.length > 0) {
+          writeThroughCache(mergedResults);
           return mergedResults.slice(0, limit);
         }
       } catch (err) {
         console.warn("[AniList searchAnime] Failed, using Jikan fallback:", err);
       }
     }
-    return jikanApi.searchAnime(search, filters, limit);
+
+    // 2. Tier 2: Jikan Fallback
+    try {
+      const jikanData = await jikanApi.searchAnime(search, filters, limit);
+      if (jikanData && jikanData.length > 0) {
+        writeThroughCache(jikanData);
+        return jikanData;
+      }
+    } catch (jikanErr) {
+      console.warn("[Jikan searchAnime] Failed:", jikanErr);
+    }
+
+    // 3. Tier 3: Local Neon DB Fallback
+    const dbData = await fetchDbFallback<{ media: AniListAnime[] }>({
+      action: search ? "search" : "popular",
+      q: search || "",
+      limit,
+    });
+    return dbData?.media || [];
   },
 
   searchAnimePaginated: async (
@@ -440,6 +587,7 @@ export const anilistApi = {
         }
 
         if (mergedResults.length > 0 || page > 1) {
+          writeThroughCache(mergedResults);
           return {
             media: mergedResults.slice(0, limit),
             hasNextPage
@@ -449,10 +597,32 @@ export const anilistApi = {
         console.warn("[AniList searchAnimePaginated] Failed, using Jikan fallback:", err);
       }
     }
-    return jikanApi.searchAnimePaginated(search, filters, limit, page);
+
+    // 2. Tier 2: Jikan Fallback
+    try {
+      const jikanData = await jikanApi.searchAnimePaginated(search, filters, limit, page);
+      if (jikanData && jikanData.media && jikanData.media.length > 0) {
+        writeThroughCache(jikanData.media);
+        return jikanData;
+      }
+    } catch (jikanErr) {
+      console.warn("[Jikan searchAnimePaginated] Failed:", jikanErr);
+    }
+
+    // 3. Tier 3: Local Neon DB Fallback
+    const dbData = await fetchDbFallback<{ media: AniListAnime[] }>({
+      action: search ? "search" : "popular",
+      q: search || "",
+      limit,
+    });
+    return {
+      media: dbData?.media || [],
+      hasNextPage: false,
+    };
   },
 
   getAnimeDetails: async (idOrMalId: number | string): Promise<AniListAnime & { recommendations?: AniListAnime[], relations?: (AniListAnime & { relationType: string })[] }> => {
+    // 1. Tier 1: AniList
     if (!isAniListCircuitOpen()) {
       try {
         const numId = Number(idOrMalId);
@@ -545,13 +715,35 @@ export const anilistApi = {
             media.relations = mappedRelations as (AniListAnime & { relationType: string })[];
           }
           
+          writeThroughCache(media);
           return media;
         }
       } catch (err) {
         console.warn(`[AniList getAnimeDetails] Failed for ID ${idOrMalId}, using Jikan fallback:`, err);
       }
     }
-    return jikanApi.getAnimeDetails(idOrMalId);
+
+    // 2. Tier 2: Jikan Fallback
+    try {
+      const jikanData = await jikanApi.getAnimeDetails(idOrMalId);
+      if (jikanData) {
+        writeThroughCache(jikanData);
+        return jikanData;
+      }
+    } catch (jikanErr) {
+      console.warn(`[Jikan getAnimeDetails] Failed for ID ${idOrMalId}:`, jikanErr);
+    }
+
+    // 3. Tier 3: Local Neon DB Fallback
+    const dbData = await fetchDbFallback<{ media: AniListAnime }>({
+      action: "details",
+      id: idOrMalId,
+    });
+    if (dbData?.media && isSafeAnime(dbData.media)) {
+      return dbData.media;
+    }
+
+    throw new Error(`Anime not found for ID: ${idOrMalId}`);
   },
 
   getAnimeTitlesByIds: async (malIds: number[]): Promise<Record<number, string>> => {

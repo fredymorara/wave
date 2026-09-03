@@ -15,6 +15,13 @@
       "when": 1785127629052,
       "tag": "0001_nervous_xavin",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1788404348397,
+      "tag": "0002_known_killer_shrike",
+      "breakpoints": true
     }
   ]
 }

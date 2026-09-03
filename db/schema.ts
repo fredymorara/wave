@@ -156,3 +156,29 @@ export const pageViews = pgTable("page_views", {
     index("pv_visitor_idx").on(table.visitorHash),
   ];
 });
+
+// Tier 3 Cache: Full anime catalog metadata
+export const animeMetadata = pgTable("anime_metadata", {
+  mal_id: integer("mal_id").primaryKey(),
+  ani_id: integer("ani_id"),
+  title_english: text("title_english"),
+  title_romaji: text("title_romaji"),
+  cover_image_large: text("cover_image_large"),
+  cover_image_extra_large: text("cover_image_extra_large"),
+  cover_color: text("cover_color"),
+  banner_image: text("banner_image"),
+  description: text("description"),
+  genres: text("genres").array(),
+  episodes: integer("episodes"),
+  format: text("format"),
+  status: text("status"),
+  average_score: integer("average_score"),
+  season_year: integer("season_year"),
+  is_adult: boolean("is_adult").default(false).notNull(),
+  updated_at: timestamp("updated_at").defaultNow().notNull(),
+}, (table) => [
+  index("anime_meta_ani_id_idx").on(table.ani_id),
+  index("anime_meta_status_score_idx").on(table.status, table.average_score),
+  index("anime_meta_updated_idx").on(table.updated_at),
+]);
+

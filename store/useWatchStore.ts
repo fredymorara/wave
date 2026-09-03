@@ -10,6 +10,8 @@ export interface WatchHistoryItem {
   time?: number;            // playback position in seconds (float)
   duration?: number;        // total duration in seconds (float)
   language?: "sub" | "dub";
+  max_episodes?: number;    // total available/aired episodes
+  status?: string;          // FINISHED, RELEASING, etc.
   dirty?: boolean;          // needs syncing to server
   lastSyncedAt?: number;    // last time this entry was synced to server
 }
@@ -21,13 +23,15 @@ export interface ResumeInfo {
   duration: number;
   percentage: number;
   isNextEpisode: boolean;
+  isCompleted?: boolean;
   previousEpisode?: number;
   language: "sub" | "dub";
 }
 
 /**
  * Netflix-style resume calculator:
- * - If >= 90% watched (or credits reached), Netflix advances to next episode at 0:00.
+ * - If >= 90% watched (or credits reached), Netflix advances to next episode at 0:00 ONLY IF the next episode exists.
+ * - If user is at or beyond the maximum available/aired episodes (e.g. series finale or caught up with airing), marks as completed and stays on current episode.
  * - If < 90% watched, resumes current episode at the exact timestamp.
  */
 export function getAnimeResumeInfo(item?: WatchHistoryItem, maxEpisodes?: number): ResumeInfo {
@@ -39,6 +43,7 @@ export function getAnimeResumeInfo(item?: WatchHistoryItem, maxEpisodes?: number
       duration: 0,
       percentage: 0,
       isNextEpisode: false,
+      isCompleted: false,
       language: "sub",
     };
   }
@@ -48,24 +53,42 @@ export function getAnimeResumeInfo(item?: WatchHistoryItem, maxEpisodes?: number
   const duration = item.duration || 0;
   const percentage = duration > 0 ? Math.min(100, Math.round((time / duration) * 100)) : 0;
   const language = item.language || "sub";
+  const effectiveMaxEpisodes = maxEpisodes ?? item.max_episodes;
 
-  // If >= 90% watched, advance to next episode starting from 0:00
+  // If >= 90% watched:
   if (percentage >= 90) {
+    // If anime is at or past the maximum available/aired episodes:
+    // Do NOT navigate to a non-existent next episode. Flag as completed / caught up.
+    if (effectiveMaxEpisodes && effectiveMaxEpisodes > 0 && currentEp >= effectiveMaxEpisodes) {
+      return {
+        hasProgress: true,
+        episode: currentEp,
+        time: 0,
+        duration,
+        percentage: 100,
+        isNextEpisode: false,
+        isCompleted: true,
+        previousEpisode: currentEp,
+        language,
+      };
+    }
+
+    // Next episode exists and is valid to advance to
     const nextEp = currentEp + 1;
-    const targetEp = (maxEpisodes && nextEp > maxEpisodes) ? currentEp : nextEp;
     return {
       hasProgress: true,
-      episode: targetEp,
-      time: targetEp === currentEp ? time : 0,
-      duration: targetEp === currentEp ? duration : 0,
-      percentage: targetEp === currentEp ? percentage : 0,
-      isNextEpisode: targetEp > currentEp,
+      episode: nextEp,
+      time: 0,
+      duration: 0,
+      percentage: 0,
+      isNextEpisode: true,
+      isCompleted: false,
       previousEpisode: currentEp,
       language,
     };
   }
 
-  // Still watching current episode
+  // Still watching current episode (< 90%)
   return {
     hasProgress: true,
     episode: currentEp,
@@ -73,6 +96,7 @@ export function getAnimeResumeInfo(item?: WatchHistoryItem, maxEpisodes?: number
     duration,
     percentage,
     isNextEpisode: false,
+    isCompleted: false,
     language,
   };
 }

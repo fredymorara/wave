@@ -59,7 +59,7 @@ export default function HomeClient() {
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 gap-gutter">
               {historyItems.map((item, idx) => {
-                const resume = getAnimeResumeInfo(item);
+                const resume = getAnimeResumeInfo(item, item.max_episodes);
                 const targetEp = resume.episode;
                 const progressPct = resume.percentage;
 
@@ -82,11 +82,19 @@ export default function HomeClient() {
                         {item.title}
                       </h3>
                       <p className="font-label-caps text-label-caps text-on-surface-variant">
-                        {resume.isNextEpisode ? `Episode ${targetEp} • Up Next` : `Episode ${targetEp}${progressPct > 0 ? ` (${progressPct}%)` : ""}`}
+                        {resume.isCompleted
+                          ? `Episode ${targetEp} • Completed`
+                          : resume.isNextEpisode 
+                          ? `Episode ${targetEp} • Up Next` 
+                          : `Episode ${targetEp}${progressPct > 0 ? ` (${progressPct}%)` : ""}`}
                       </p>
                     </div>
                     {/* Progress Bar */}
-                    {!resume.isNextEpisode && item.time && item.duration ? (
+                    {resume.isCompleted ? (
+                      <div className="absolute bottom-0 left-0 h-1 bg-surface-container-high w-full z-20">
+                        <div className="h-full bg-cyber-cyan w-full" />
+                      </div>
+                    ) : !resume.isNextEpisode && item.time && item.duration ? (
                       <div className="absolute bottom-0 left-0 h-1 bg-surface-container-high w-full z-20">
                         <div 
                           className="h-full bg-neon-crimson" 

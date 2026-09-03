@@ -199,12 +199,16 @@ export default function AnimeClient({ id }: AnimeClientProps) {
                 >
                   <Play className="w-5 h-5 fill-void-black group-hover:scale-110 transition-transform" />
                   {resumeInfo?.hasProgress
-                    ? (resumeInfo.isNextEpisode 
+                    ? (resumeInfo.isCompleted
+                        ? (anime.status === "FINISHED"
+                            ? `COMPLETED • REPLAY EP ${resumeInfo.episode}`
+                            : `CAUGHT UP (EP ${resumeInfo.episode}) • REPLAY`)
+                        : resumeInfo.isNextEpisode 
                         ? `CONTINUE EP ${resumeInfo.episode}` 
                         : `RESUME EP ${resumeInfo.episode}${resumeInfo.percentage > 0 ? ` (${resumeInfo.percentage}%)` : ""}`)
                     : "START WATCHING"}
                 </Link>
-                {resumeInfo?.hasProgress && resumeInfo.episode > 1 && (
+                {resumeInfo?.hasProgress && (resumeInfo.episode > 1 || resumeInfo.isCompleted) && (
                   <Link
                     href={`/watch/${id}/1?lang=${language === "dub" && counts && counts.is_dub !== null && 1 > counts.is_dub ? "sub" : language}`}
                     className="font-label-caps text-xs text-on-surface-variant hover:text-white border border-outline-variant/50 hover:border-cyber-cyan px-4 py-4 clip-chip transition-colors"

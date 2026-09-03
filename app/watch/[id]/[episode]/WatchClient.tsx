@@ -190,15 +190,18 @@ export default function WatchClient({ id, episode }: WatchClientProps) {
 
   useEffect(() => {
     if (anime && isSafeAnime(anime)) {
+      const maxEps = counts?.is_sub ?? anime.episodes ?? undefined;
       addToHistory({
         mal_id: id,
         title: anime.title.english || anime.title.romaji || "Anime",
         image_url: anime.coverImage.extraLarge || anime.coverImage.large,
         episode,
+        max_episodes: maxEps,
+        status: anime.status || undefined,
         language: effectiveLanguage,
       });
     }
-  }, [anime, episode, id, addToHistory, effectiveLanguage]);
+  }, [anime, counts, episode, id, addToHistory, effectiveLanguage]);
 
   usePlayerEvents(id, provider, autoNext, setStreamFailed, updateProgress);
 

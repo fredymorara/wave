@@ -1,4 +1,5 @@
-import { AniListAnime } from "./anilist";
+import { AniListAnime, isSafeAnime } from "./anilist";
+import { getSearchCandidates } from "@/lib/utils/searchNormalize";
 
 const JIKAN_BASE_URL = "https://api.jikan.moe/v4";
 const KITSU_BASE_URL = "https://kitsu.io/api/edge";
@@ -51,6 +52,7 @@ export interface JikanAnime {
   type?: string;
   status?: string;
   score?: number;
+  rating?: string;
   year?: number;
   aired?: { prop?: JikanAiredProp };
   relations?: JikanRelation[];
@@ -68,6 +70,8 @@ interface KitsuAttributes {
   showType?: string;
   episodeCount?: number | null;
   averageRating?: string | number;
+  ageRating?: string;
+  ageRatingGuide?: string;
   startDate?: string;
   slug?: string;
 }
@@ -209,6 +213,13 @@ export function mapJikanToAniList(jikan: JikanAnime): AniListAnime {
   const titleEnglish = jikan.title_english || jikan.title || null;
   const titleRomaji = jikan.title || jikan.title_japanese || titleEnglish;
 
+  const genres = Array.isArray(jikan.genres)
+    ? jikan.genres.map((g) => g.name).filter(Boolean)
+    : [];
+  const isHentaiGenre = genres.some((g) => g.toLowerCase() === "hentai" || g.toLowerCase() === "erotica");
+  const isHentaiRating = Boolean(jikan.rating && (jikan.rating.toLowerCase().includes("hentai") || jikan.rating.toLowerCase().startsWith("rx")));
+  const isAdult = isHentaiGenre || isHentaiRating;
+
   return {
     id: jikan.mal_id,
     idMal: jikan.mal_id,
@@ -223,9 +234,8 @@ export function mapJikanToAniList(jikan: JikanAnime): AniListAnime {
       color: null,
     },
     description: jikan.synopsis || null,
-    genres: Array.isArray(jikan.genres)
-      ? jikan.genres.map((g) => g.name).filter(Boolean)
-      : [],
+    genres,
+    isAdult,
     episodes: jikan.episodes || null,
     format: jikan.type ? String(jikan.type).toUpperCase() : "TV",
     status,
@@ -279,6 +289,8 @@ function mapKitsuToAniList(kitsuItem: KitsuItem, malId?: number | null): AniList
     };
   }
 
+  const isAdult = attrs.ageRating === "R18" || Boolean(attrs.ageRatingGuide && attrs.ageRatingGuide.toLowerCase().includes("hentai"));
+
   return {
     id: resolvedMalId || Number(kitsuItem.id),
     idMal: resolvedMalId,
@@ -294,6 +306,7 @@ function mapKitsuToAniList(kitsuItem: KitsuItem, malId?: number | null): AniList
     },
     description: attrs.synopsis || attrs.description || null,
     genres: [],
+    isAdult,
     episodes: attrs.episodeCount || null,
     format: attrs.showType ? String(attrs.showType).toUpperCase() : "TV",
     status,
@@ -346,6 +359,7 @@ function parseKitsuDataWithMappings(kitsuResponse: KitsuResponse<KitsuItem[]>): 
 function deduplicateAnime(list: AniListAnime[]): AniListAnime[] {
   const seen = new Set<number | string>();
   return list.filter((item) => {
+    if (!isSafeAnime(item)) return false;
     const key = item.idMal || item.id;
     if (!key || seen.has(key)) return false;
     seen.add(key);
@@ -380,7 +394,7 @@ function buildKitsuFilterQuery(
   limit = 20,
   offset = 0
 ): string {
-  const params: string[] = [];
+  const params: string[] = ["filter[sfw]=true"];
   const trimmedSearch = search?.trim();
 
   if (trimmedSearch) {
@@ -543,7 +557,7 @@ export const jikanApi = {
 
     try {
       const safeLimit = Math.min(limit, 25);
-      const data = await fetchJikan<{ data: JikanAnime[] }>(`/top/anime?limit=${safeLimit}`);
+      const data = await fetchJikan<{ data: JikanAnime[] }>(`/top/anime?sfw=true&limit=${safeLimit}`);
       return deduplicateAnime((data.data || []).map(mapJikanToAniList));
     } catch {
       return [];
@@ -562,7 +576,7 @@ export const jikanApi = {
 
     try {
       const safeLimit = Math.min(limit, 25);
-      const data = await fetchJikan<{ data: JikanAnime[] }>(`/seasons/now?limit=${safeLimit}`);
+      const data = await fetchJikan<{ data: JikanAnime[] }>(`/seasons/now?sfw=true&limit=${safeLimit}`);
       return deduplicateAnime((data.data || []).map(mapJikanToAniList));
     } catch {
       return [];
@@ -581,7 +595,7 @@ export const jikanApi = {
 
     try {
       const safeLimit = Math.min(limit, 25);
-      const data = await fetchJikan<{ data: JikanAnime[] }>(`/top/anime?limit=${safeLimit}`);
+      const data = await fetchJikan<{ data: JikanAnime[] }>(`/top/anime?sfw=true&limit=${safeLimit}`);
       return deduplicateAnime((data.data || []).map(mapJikanToAniList));
     } catch {
       return [];
@@ -642,7 +656,7 @@ export const jikanApi = {
     // 2. Fallback to Jikan schedules
     try {
       const safeLimit = Math.min(limit, 25);
-      const data = await fetchJikan<{ data: JikanAnime[] }>(`/schedules?limit=${safeLimit}`);
+      const data = await fetchJikan<{ data: JikanAnime[] }>(`/schedules?sfw=true&limit=${safeLimit}`);
       return deduplicateAnime((data.data || []).map(mapJikanToAniList));
     } catch {
       return [];
@@ -654,28 +668,39 @@ export const jikanApi = {
     filters?: { genre?: string; year?: number; format?: string; sort?: string; score?: number; status?: string },
     limit = 20
   ): Promise<AniListAnime[]> => {
-    // 1. Try Kitsu with rich filter query
-    try {
-      const endpoint = buildKitsuFilterQuery(search, filters, limit, 0);
-      const kitsuData = await fetchKitsu<KitsuResponse<KitsuItem[]>>(endpoint);
-      const media = parseKitsuDataWithMappings(kitsuData);
-      if (media.length > 0) return deduplicateAnime(media);
-    } catch (e) {
-      console.warn("[Kitsu searchAnime] Failed, trying Jikan:", e);
+    if (search && search.toLowerCase().includes("hentai")) {
+      return [];
     }
 
-    // 2. Fallback to Jikan search
-    if (search && search.trim().length > 0) {
+    const candidates = search && search.trim().length > 0 ? getSearchCandidates(search) : [search];
+
+    // 1. Try Kitsu with candidates
+    for (const candidate of candidates) {
       try {
-        const params = new URLSearchParams();
-        params.set("q", search.trim());
-        params.set("limit", String(limit));
-        const data = await fetchJikan<{ data: JikanAnime[] }>(`/anime?${params.toString()}`);
-        if (data?.data?.length) {
-          return deduplicateAnime(data.data.map(mapJikanToAniList));
-        }
+        const endpoint = buildKitsuFilterQuery(candidate, filters, limit, 0);
+        const kitsuData = await fetchKitsu<KitsuResponse<KitsuItem[]>>(endpoint);
+        const media = parseKitsuDataWithMappings(kitsuData);
+        if (media.length > 0) return deduplicateAnime(media);
       } catch (e) {
-        console.warn("[Jikan searchAnime] Failed:", e);
+        console.warn("[Kitsu searchAnime] Failed, trying next candidate/Jikan:", e);
+      }
+    }
+
+    // 2. Fallback to Jikan search with candidates
+    if (search && search.trim().length > 0) {
+      for (const candidate of candidates) {
+        try {
+          const params = new URLSearchParams();
+          params.set("q", candidate.trim());
+          params.set("limit", String(limit));
+          params.set("sfw", "true");
+          const data = await fetchJikan<{ data: JikanAnime[] }>(`/anime?${params.toString()}`);
+          if (data?.data?.length) {
+            return deduplicateAnime(data.data.map(mapJikanToAniList));
+          }
+        } catch (e) {
+          console.warn("[Jikan searchAnime] Failed:", e);
+        }
       }
     }
 
@@ -688,40 +713,52 @@ export const jikanApi = {
     limit = 20,
     page = 1
   ): Promise<{ media: AniListAnime[]; hasNextPage: boolean }> => {
+    if (search && search.toLowerCase().includes("hentai")) {
+      return { media: [], hasNextPage: false };
+    }
+
     const safeLimit = Math.min(Math.max(1, limit), 20);
     const offset = (page - 1) * safeLimit;
+    const candidates = search && search.trim().length > 0 ? getSearchCandidates(search) : [search];
 
-    // 1. Try Kitsu with complete filters & pagination
-    try {
-      const endpoint = buildKitsuFilterQuery(search, filters, safeLimit, offset);
-      const kitsuData = await fetchKitsu<KitsuResponse<KitsuItem[]>>(endpoint);
-      const media = deduplicateAnime(parseKitsuDataWithMappings(kitsuData));
-      return {
-        media,
-        hasNextPage: media.length === safeLimit,
-      };
-    } catch (e) {
-      console.warn("[Kitsu searchAnimePaginated] Failed, trying Jikan:", e);
+    // 1. Try Kitsu with candidates
+    for (const candidate of candidates) {
+      try {
+        const endpoint = buildKitsuFilterQuery(candidate, filters, safeLimit, offset);
+        const kitsuData = await fetchKitsu<KitsuResponse<KitsuItem[]>>(endpoint);
+        const media = deduplicateAnime(parseKitsuDataWithMappings(kitsuData));
+        if (media.length > 0 || page > 1) {
+          return {
+            media,
+            hasNextPage: media.length === safeLimit,
+          };
+        }
+      } catch (e) {
+        console.warn("[Kitsu searchAnimePaginated] Failed, trying next candidate/Jikan:", e);
+      }
     }
 
     // 2. Fallback to Jikan search if text provided
     if (search && search.trim().length > 0) {
-      try {
-        const params = new URLSearchParams();
-        params.set("q", search.trim());
-        params.set("limit", String(safeLimit));
-        params.set("page", String(page));
-        const data = await fetchJikan<{ data: JikanAnime[]; pagination?: { has_next_page?: boolean } }>(
-          `/anime?${params.toString()}`
-        );
-        if (data?.data?.length) {
-          return {
-            media: deduplicateAnime(data.data.map(mapJikanToAniList)),
-            hasNextPage: Boolean(data?.pagination?.has_next_page),
-          };
+      for (const candidate of candidates) {
+        try {
+          const params = new URLSearchParams();
+          params.set("q", candidate.trim());
+          params.set("limit", String(safeLimit));
+          params.set("page", String(page));
+          params.set("sfw", "true");
+          const data = await fetchJikan<{ data: JikanAnime[]; pagination?: { has_next_page?: boolean } }>(
+            `/anime?${params.toString()}`
+          );
+          if (data?.data?.length) {
+            return {
+              media: deduplicateAnime(data.data.map(mapJikanToAniList)),
+              hasNextPage: Boolean(data?.pagination?.has_next_page),
+            };
+          }
+        } catch (e) {
+          console.warn("[Jikan searchAnimePaginated] Failed:", e);
         }
-      } catch (e) {
-        console.warn("[Jikan searchAnimePaginated] Failed:", e);
       }
     }
 
@@ -745,6 +782,9 @@ export const jikanApi = {
 
       if (jikanAnime) {
         const baseMedia = mapJikanToAniList(jikanAnime);
+        if (!isSafeAnime(baseMedia)) {
+          throw new Error("Anime not found (content restricted)");
+        }
 
         // Attempt to enrich with real AniList ID for the player
         try {
@@ -754,8 +794,8 @@ export const jikanApi = {
           }
         } catch {}
 
-        const relations = parseJikanRelations(jikanAnime.relations);
-        const recommendations = parseJikanRecommendations(jikanAnime.recommendations);
+        const relations = parseJikanRelations(jikanAnime.relations).filter(isSafeAnime);
+        const recommendations = parseJikanRecommendations(jikanAnime.recommendations).filter(isSafeAnime);
 
         return {
           ...baseMedia,
@@ -770,6 +810,9 @@ export const jikanApi = {
     // 2. Fallback to Kitsu
     const kitsuMedia = await fetchKitsuAnimeDetails(malId, idOrMalId);
     if (kitsuMedia) {
+      if (!isSafeAnime(kitsuMedia)) {
+        throw new Error("Anime not found (content restricted)");
+      }
       return {
         ...kitsuMedia,
         relations: undefined,

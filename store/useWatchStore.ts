@@ -14,34 +14,67 @@ export interface WatchHistoryItem {
   lastSyncedAt?: number;    // last time this entry was synced to server
 }
 
-export interface SyncConflict {
-  animeId: string;
-  local: WatchHistoryItem;
-  server: {
-    episodeNumber: number;
-    progressSeconds: number;
-    durationSeconds: number;
-    title: string | null;
-    imageUrl: string | null;
-    language: string;
-    updatedAt: string;
-  };
+export interface ResumeInfo {
+  hasProgress: boolean;
+  episode: number;
+  time: number;
+  duration: number;
+  percentage: number;
+  isNextEpisode: boolean;
+  previousEpisode?: number;
+  language: "sub" | "dub";
 }
 
-interface WatchStoreState {
-  history: Record<string, WatchHistoryItem>;
-  pendingConflicts: SyncConflict[];
-  addToHistory: (item: Omit<WatchHistoryItem, 'timestamp' | 'dirty'>) => void;
-  updateProgress: (mal_id: string | number, time: number, duration: number) => void;
-  removeFromHistory: (mal_id: string | number) => void;
-  clearHistory: () => void;
-  markDirty: (mal_id: string | number) => void;
-  markSynced: (mal_id: string | number) => void;
-  getDirtyEntries: () => WatchHistoryItem[];
-  mergeFromServer: (serverItems: ServerWatchItem[]) => void;
-  resolveConflict: (animeId: string, choice: "server" | "local") => void;
-  resolveAllConflicts: (choice: "server" | "local") => void;
-  clearConflicts: () => void;
+/**
+ * Netflix-style resume calculator:
+ * - If >= 90% watched (or credits reached), Netflix advances to next episode at 0:00.
+ * - If < 90% watched, resumes current episode at the exact timestamp.
+ */
+export function getAnimeResumeInfo(item?: WatchHistoryItem, maxEpisodes?: number): ResumeInfo {
+  if (!item) {
+    return {
+      hasProgress: false,
+      episode: 1,
+      time: 0,
+      duration: 0,
+      percentage: 0,
+      isNextEpisode: false,
+      language: "sub",
+    };
+  }
+
+  const currentEp = Number(item.episode) || 1;
+  const time = item.time || 0;
+  const duration = item.duration || 0;
+  const percentage = duration > 0 ? Math.min(100, Math.round((time / duration) * 100)) : 0;
+  const language = item.language || "sub";
+
+  // If >= 90% watched, advance to next episode starting from 0:00
+  if (percentage >= 90) {
+    const nextEp = currentEp + 1;
+    const targetEp = (maxEpisodes && nextEp > maxEpisodes) ? currentEp : nextEp;
+    return {
+      hasProgress: true,
+      episode: targetEp,
+      time: targetEp === currentEp ? time : 0,
+      duration: targetEp === currentEp ? duration : 0,
+      percentage: targetEp === currentEp ? percentage : 0,
+      isNextEpisode: targetEp > currentEp,
+      previousEpisode: currentEp,
+      language,
+    };
+  }
+
+  // Still watching current episode
+  return {
+    hasProgress: true,
+    episode: currentEp,
+    time,
+    duration,
+    percentage,
+    isNextEpisode: false,
+    language,
+  };
 }
 
 export interface ServerWatchItem {
@@ -57,36 +90,60 @@ export interface ServerWatchItem {
   updatedAt: string;
 }
 
-const CONFLICT_EPISODE_THRESHOLD = 0;   // any episode difference = conflict
-const CONFLICT_PROGRESS_THRESHOLD = 60; // >60s progress difference = conflict
+interface WatchStoreState {
+  history: Record<string, WatchHistoryItem>;
+  getResumeInfo: (mal_id: string | number, maxEpisodes?: number) => ResumeInfo;
+  addToHistory: (item: Omit<WatchHistoryItem, 'timestamp' | 'dirty'>) => void;
+  updateProgress: (mal_id: string | number, time: number, duration: number) => void;
+  removeFromHistory: (mal_id: string | number) => void;
+  clearHistory: () => void;
+  markDirty: (mal_id: string | number) => void;
+  markSynced: (mal_id: string | number) => void;
+  getDirtyEntries: () => WatchHistoryItem[];
+  mergeFromServer: (serverItems: ServerWatchItem[]) => void;
+}
 
 export const useWatchStore = create<WatchStoreState>()(
   persist(
     (set, get) => ({
       history: {},
-      pendingConflicts: [],
+
+      getResumeInfo: (mal_id, maxEpisodes) => {
+        const item = get().history[String(mal_id)];
+        return getAnimeResumeInfo(item, maxEpisodes);
+      },
 
       addToHistory: (item) =>
-        set((state) => ({
-          history: {
-            ...state.history,
-            [item.mal_id]: {
-              ...state.history[item.mal_id], // preserve existing time/duration
-              ...item,
-              timestamp: Date.now(),
-              dirty: true,
-            },
-          },
-        })),
-
-      updateProgress: (mal_id, time, duration) =>
         set((state) => {
-          if (!state.history[mal_id]) return state;
+          const key = String(item.mal_id);
+          const existing = state.history[key];
+          const isSameEpisode = existing && String(existing.episode) === String(item.episode);
+
           return {
             history: {
               ...state.history,
-              [mal_id]: {
-                ...state.history[mal_id],
+              [key]: {
+                ...existing,
+                ...item,
+                // Only preserve playback position if staying on the same episode
+                time: isSameEpisode ? existing?.time : (item.time ?? 0),
+                duration: isSameEpisode ? existing?.duration : (item.duration ?? 0),
+                timestamp: Date.now(),
+                dirty: true,
+              },
+            },
+          };
+        }),
+
+      updateProgress: (mal_id, time, duration) =>
+        set((state) => {
+          const key = String(mal_id);
+          if (!state.history[key]) return state;
+          return {
+            history: {
+              ...state.history,
+              [key]: {
+                ...state.history[key],
                 time,
                 duration,
                 dirty: true,
@@ -98,7 +155,7 @@ export const useWatchStore = create<WatchStoreState>()(
       removeFromHistory: (mal_id) =>
         set((state) => {
           const newHistory = { ...state.history };
-          delete newHistory[mal_id];
+          delete newHistory[String(mal_id)];
           return { history: newHistory };
         }),
 
@@ -106,23 +163,25 @@ export const useWatchStore = create<WatchStoreState>()(
 
       markDirty: (mal_id) =>
         set((state) => {
-          if (!state.history[mal_id]) return state;
+          const key = String(mal_id);
+          if (!state.history[key]) return state;
           return {
             history: {
               ...state.history,
-              [mal_id]: { ...state.history[mal_id], dirty: true },
+              [key]: { ...state.history[key], dirty: true },
             },
           };
         }),
 
       markSynced: (mal_id) =>
         set((state) => {
-          if (!state.history[mal_id]) return state;
+          const key = String(mal_id);
+          if (!state.history[key]) return state;
           return {
             history: {
               ...state.history,
-              [mal_id]: {
-                ...state.history[mal_id],
+              [key]: {
+                ...state.history[key],
                 dirty: false,
                 lastSyncedAt: Date.now(),
               },
@@ -135,12 +194,17 @@ export const useWatchStore = create<WatchStoreState>()(
         return Object.values(history).filter((item) => item.dirty);
       },
 
+      /**
+       * Netflix-style automatic reconciliation:
+       * Silently picks the furthest progress in the series without prompting the user.
+       * - Furthest episode wins.
+       * - If same episode, furthest progress seconds/time wins.
+       * - If local wins, marked dirty so it syncs up to cloud.
+       * - If cloud wins, local updates and marked clean.
+       */
       mergeFromServer: (serverItems) =>
         set((state) => {
           const newHistory = { ...state.history };
-          const conflicts: SyncConflict[] = [];
-
-          // Create a set of server IDs to detect deletions
           const serverIds = new Set(serverItems.map((s) => s.animeId));
 
           for (const serverItem of serverItems) {
@@ -163,35 +227,32 @@ export const useWatchStore = create<WatchStoreState>()(
               continue;
             }
 
-            // Local entry exists — check for conflicts
-            const localEp = Number(localItem.episode);
-            const serverEp = serverItem.episodeNumber;
+            // Both exist — Netflix auto-determination
+            const localEp = Number(localItem.episode) || 1;
+            const serverEp = serverItem.episodeNumber || 1;
             const localProgress = localItem.time || 0;
-            const serverProgress = serverItem.progressSeconds;
-            const episodeDiff = Math.abs(localEp - serverEp);
-            const progressDiff = Math.abs(localProgress - serverProgress);
+            const serverProgress = serverItem.progressSeconds || 0;
 
-            const hasConflict =
-              episodeDiff > CONFLICT_EPISODE_THRESHOLD ||
-              (episodeDiff === 0 && progressDiff > CONFLICT_PROGRESS_THRESHOLD);
+            let useServer = false;
+            if (serverEp > localEp) {
+              // Cloud watched a further episode
+              useServer = true;
+            } else if (localEp > serverEp) {
+              // Local watched a further episode
+              useServer = false;
+            } else {
+              // Same episode: furthest progress seconds wins
+              if (serverProgress > localProgress) {
+                useServer = true;
+              } else if (localProgress > serverProgress) {
+                useServer = false;
+              } else {
+                // Exact tie: use server
+                useServer = true;
+              }
+            }
 
-            if (hasConflict && localItem.dirty) {
-              // Significant difference + local has unsaved changes → ask user
-              conflicts.push({
-                animeId: serverItem.animeId,
-                local: localItem,
-                server: {
-                  episodeNumber: serverItem.episodeNumber,
-                  progressSeconds: serverItem.progressSeconds,
-                  durationSeconds: serverItem.durationSeconds,
-                  title: serverItem.title,
-                  imageUrl: serverItem.imageUrl,
-                  language: serverItem.language,
-                  updatedAt: serverItem.updatedAt,
-                },
-              });
-            } else if (!localItem.dirty) {
-              // Local is clean (already synced) — take server silently
+            if (useServer) {
               newHistory[serverItem.animeId] = {
                 ...localItem,
                 episode: serverItem.episodeNumber,
@@ -204,13 +265,16 @@ export const useWatchStore = create<WatchStoreState>()(
                 dirty: false,
                 lastSyncedAt: Date.now(),
               };
+            } else {
+              // Local is further ahead: keep local and mark dirty so it syncs up
+              newHistory[serverItem.animeId] = {
+                ...localItem,
+                dirty: true,
+              };
             }
-            // If local is dirty but no conflict, keep local (it will sync up on next push)
           }
 
-          // Handle remote deletions:
-          // If a local item exists, is NOT dirty, was previously synced, but is missing from the server array,
-          // it must have been deleted remotely. We should delete it locally.
+          // Handle remote deletions
           for (const localId of Object.keys(newHistory)) {
             const item = newHistory[localId];
             if (!serverIds.has(localId) && !item.dirty && item.lastSyncedAt !== undefined) {
@@ -220,77 +284,8 @@ export const useWatchStore = create<WatchStoreState>()(
 
           return {
             history: newHistory,
-            pendingConflicts: conflicts,
           };
         }),
-
-      resolveConflict: (animeId, choice) =>
-        set((state) => {
-          const conflict = state.pendingConflicts.find((c) => c.animeId === animeId);
-          if (!conflict) return state;
-
-          const newHistory = { ...state.history };
-
-          if (choice === "server") {
-            newHistory[animeId] = {
-              mal_id: animeId,
-              title: conflict.server.title || conflict.local.title,
-              image_url: conflict.server.imageUrl || conflict.local.image_url,
-              episode: conflict.server.episodeNumber,
-              timestamp: new Date(conflict.server.updatedAt).getTime(),
-              time: conflict.server.progressSeconds,
-              duration: conflict.server.durationSeconds,
-              language: (conflict.server.language as "sub" | "dub") || "sub",
-              dirty: false,
-              lastSyncedAt: Date.now(),
-            };
-          } else {
-            // Keep local — mark dirty so it syncs up
-            newHistory[animeId] = {
-              ...conflict.local,
-              dirty: true,
-            };
-          }
-
-          return {
-            history: newHistory,
-            pendingConflicts: state.pendingConflicts.filter((c) => c.animeId !== animeId),
-          };
-        }),
-
-      resolveAllConflicts: (choice) =>
-        set((state) => {
-          const newHistory = { ...state.history };
-
-          for (const conflict of state.pendingConflicts) {
-            if (choice === "server") {
-              newHistory[conflict.animeId] = {
-                mal_id: conflict.animeId,
-                title: conflict.server.title || conflict.local.title,
-                image_url: conflict.server.imageUrl || conflict.local.image_url,
-                episode: conflict.server.episodeNumber,
-                timestamp: new Date(conflict.server.updatedAt).getTime(),
-                time: conflict.server.progressSeconds,
-                duration: conflict.server.durationSeconds,
-                language: (conflict.server.language as "sub" | "dub") || "sub",
-                dirty: false,
-                lastSyncedAt: Date.now(),
-              };
-            } else {
-              newHistory[conflict.animeId] = {
-                ...conflict.local,
-                dirty: true,
-              };
-            }
-          }
-
-          return {
-            history: newHistory,
-            pendingConflicts: [],
-          };
-        }),
-
-      clearConflicts: () => set({ pendingConflicts: [] }),
     }),
     {
       name: 'wave-anime-storage',

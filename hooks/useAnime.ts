@@ -51,7 +51,7 @@ export function useSearchAnime(query: string, filters?: { genre?: string; year?:
     queryKey: ["anime", "search", query, filters],
     queryFn: () => anilistApi.searchAnime(query, filters),
     staleTime: 60 * 60 * 1000, // 1 hour
-    enabled: query.length >= 3 || !!filters?.genre || !!filters?.year || !!filters?.format || !!filters?.score || !!filters?.status,
+    enabled: query.trim().length >= 2 || !!filters?.genre || !!filters?.year || !!filters?.format || !!filters?.score || !!filters?.status,
     retry: 1,
   });
 }

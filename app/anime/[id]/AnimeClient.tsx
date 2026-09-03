@@ -5,10 +5,11 @@ import Link from "next/link";
 import { useState, useEffect } from "react";
 import { Play, Star, MessageSquare, Mic } from "lucide-react";
 import { useAnimeDetails } from "@/hooks/useAnime";
-import type { AniListAnime } from "@/lib/api/anilist";
+import { type AniListAnime, isSafeAnime } from "@/lib/api/anilist";
 import { Grid } from 'ldrs/react';
 import 'ldrs/react/Grid.css';
 import { WatchlistButton } from "@/components/watchlist/WatchlistButton";
+import { useWatchStore, getAnimeResumeInfo } from "@/store/useWatchStore";
 
 function calculateBaseEpisodes(anime: AniListAnime, isSubCount?: number | null): number {
   if (anime.status === 'NOT_YET_RELEASED') return 0;
@@ -60,6 +61,13 @@ export default function AnimeClient({ id }: AnimeClientProps) {
   const [episodeChunk, setEpisodeChunk] = useState(0);
   const [language, setLanguage] = useState<"sub" | "dub">("sub");
   const [counts, setCounts] = useState<{ is_sub: number | null, is_dub: number | null } | null>(null);
+  const [mounted, setMounted] = useState(false);
+
+  const watchHistoryItem = useWatchStore((state) => state.history[String(id)]);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   // Fetch Anikoto Sub/Dub counts
   useEffect(() => {
@@ -87,7 +95,7 @@ export default function AnimeClient({ id }: AnimeClientProps) {
     );
   }
 
-  if (!anime) {
+  if (!anime || !isSafeAnime(anime)) {
     return (
       <div className="flex-1 flex items-center justify-center min-h-screen bg-void-black text-on-surface">
         <h1 className="font-headline-xl text-headline-xl">Anime not found</h1>
@@ -98,6 +106,11 @@ export default function AnimeClient({ id }: AnimeClientProps) {
   const baseEpisodes = calculateBaseEpisodes(anime, counts?.is_sub);
   const numEpisodes = getApplicableEpisodes(baseEpisodes, anime, counts, language);
   const episodeArray = Array.from({ length: numEpisodes }, (_, i) => i + 1);
+
+  const resumeInfo = mounted ? getAnimeResumeInfo(watchHistoryItem, numEpisodes) : null;
+  const targetEpisode = resumeInfo?.hasProgress ? resumeInfo.episode : 1;
+  const effectiveResumeLang = (resumeInfo?.hasProgress ? resumeInfo.language : language) || "sub";
+  const finalResumeLang = (effectiveResumeLang === "dub" && counts && counts.is_dub !== null && targetEpisode > counts.is_dub) ? "sub" : effectiveResumeLang;
   
   const CHUNK_SIZE = 100;
   const numChunks = Math.ceil(episodeArray.length / CHUNK_SIZE);
@@ -179,14 +192,26 @@ export default function AnimeClient({ id }: AnimeClientProps) {
                 ))}
               </div>
               
-              <div className="flex items-center gap-4 mt-6">
+              <div className="flex flex-wrap items-center gap-4 mt-6">
                 <Link 
-                  href={`/watch/${id}/1?lang=${language === "dub" && counts && counts.is_dub !== null && 1 > counts.is_dub ? "sub" : language}`}
+                  href={`/watch/${id}/${targetEpisode}?lang=${finalResumeLang}`}
                   className="flex items-center justify-center gap-2 bg-neon-crimson text-void-black font-label-caps font-bold px-8 py-4 clip-corner hover:bg-white hover:drop-shadow-[0_0_15px_rgba(255,0,60,0.6)] transition-all duration-300 scale-105 active:scale-95 group"
                 >
                   <Play className="w-5 h-5 fill-void-black group-hover:scale-110 transition-transform" />
-                  START WATCHING
+                  {resumeInfo?.hasProgress
+                    ? (resumeInfo.isNextEpisode 
+                        ? `CONTINUE EP ${resumeInfo.episode}` 
+                        : `RESUME EP ${resumeInfo.episode}${resumeInfo.percentage > 0 ? ` (${resumeInfo.percentage}%)` : ""}`)
+                    : "START WATCHING"}
                 </Link>
+                {resumeInfo?.hasProgress && resumeInfo.episode > 1 && (
+                  <Link
+                    href={`/watch/${id}/1?lang=${language === "dub" && counts && counts.is_dub !== null && 1 > counts.is_dub ? "sub" : language}`}
+                    className="font-label-caps text-xs text-on-surface-variant hover:text-white border border-outline-variant/50 hover:border-cyber-cyan px-4 py-4 clip-chip transition-colors"
+                  >
+                    WATCH EP 1
+                  </Link>
+                )}
                 <WatchlistButton animeId={id as string} />
               </div>
             </div>
@@ -307,12 +332,16 @@ export default function AnimeClient({ id }: AnimeClientProps) {
           <div className="grid grid-cols-5 md:grid-cols-10 gap-2">
             {currentEpisodes.length > 0 ? (
               currentEpisodes.map((epNum) => {
-                // Predictively switch to sub if dub isn't out yet
                 const targetLang = (language === "dub" && counts && counts.is_dub !== null && epNum > counts.is_dub) ? "sub" : language;
-                
+                const isCurrentWatchEp = resumeInfo?.hasProgress && resumeInfo.episode === epNum;
+
                 return (
                   <Link key={epNum} href={`/watch/${id}/${epNum}?lang=${targetLang}`}>
-                    <div className="bg-surface-container hover:bg-neon-crimson hover:text-void-black text-on-surface border border-outline-variant hover:border-neon-crimson flex items-center justify-center p-3 font-headline-lg transition-colors clip-chip text-center cursor-pointer">
+                    <div className={`relative bg-surface-container hover:bg-neon-crimson hover:text-void-black text-on-surface border transition-colors clip-chip text-center cursor-pointer flex items-center justify-center p-3 font-headline-lg ${
+                      isCurrentWatchEp 
+                        ? 'border-cyber-cyan text-cyber-cyan shadow-[0_0_10px_rgba(0,240,255,0.3)] bg-cyber-cyan/10 font-bold' 
+                        : 'border-outline-variant hover:border-neon-crimson'
+                    }`}>
                       {epNum}
                     </div>
                   </Link>

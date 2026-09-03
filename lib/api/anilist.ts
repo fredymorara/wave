@@ -1,4 +1,5 @@
 import { jikanApi } from "./jikan";
+import { getSearchCandidates } from "@/lib/utils/searchNormalize";
 
 const ANILIST_API_URL = "https://graphql.anilist.co";
 
@@ -17,6 +18,7 @@ export interface AniListAnime {
   };
   description: string | null;
   genres: string[];
+  isAdult?: boolean;
   episodes: number | null;
   format: string | null;
   status: string | null;
@@ -33,10 +35,29 @@ export interface AniListAnime {
   } | null;
 }
 
+export function isSafeAnime(anime?: AniListAnime | null): boolean {
+  if (!anime) return false;
+  if (anime.isAdult) return false;
+
+  const genres = anime.genres || [];
+  for (const g of genres) {
+    const lower = g.toLowerCase();
+    if (lower === "hentai" || lower === "erotica") {
+      return false;
+    }
+  }
+
+  const title = (anime.title?.english || anime.title?.romaji || "").toLowerCase();
+  if (title.includes("hentai")) return false;
+
+  return true;
+}
+
 const MEDIA_FIELDS = `
   id
   idMal
   type
+  isAdult
   title {
     english
     romaji
@@ -142,14 +163,14 @@ export const anilistApi = {
         const query = `
           query($limit: Int, $page: Int) {
             Page(page: $page, perPage: $limit) {
-              media(sort: TRENDING_DESC, type: ANIME, isAdult: false) {
+              media(sort: TRENDING_DESC, type: ANIME, isAdult: false, genre_not_in: ["Hentai"]) {
                 ${MEDIA_FIELDS}
               }
             }
           }
         `;
         const data = await fetchAniList<{ Page: { media: AniListAnime[] } }>(query, { limit, page });
-        return data.Page.media.filter(a => a.idMal);
+        return data.Page.media.filter(a => a.idMal && isSafeAnime(a));
       } catch (err) {
         console.warn("[AniList getTrending] Failed, using Jikan fallback:", err);
       }
@@ -164,14 +185,14 @@ export const anilistApi = {
         const query = `
           query($limit: Int) {
             Page(page: 1, perPage: $limit) {
-              media(sort: POPULARITY_DESC, type: ANIME, isAdult: false) {
+              media(sort: POPULARITY_DESC, type: ANIME, isAdult: false, genre_not_in: ["Hentai"]) {
                 ${MEDIA_FIELDS}
               }
             }
           }
         `;
         const data = await fetchAniList<{ Page: { media: AniListAnime[] } }>(query, { limit });
-        return data.Page.media.filter(a => a.idMal);
+        return data.Page.media.filter(a => a.idMal && isSafeAnime(a));
       } catch (err) {
         console.warn("[AniList getPopular] Failed, using Jikan fallback:", err);
       }
@@ -197,10 +218,10 @@ export const anilistApi = {
         `;
         const data = await fetchAniList<{ Page: { airingSchedules: { media: AniListAnime }[] } }>(query, { limit, time: currentTime });
         
-        // Extract media, filter duplicates and ensure it has an idMal
+        // Extract media, filter duplicates, adult content, and ensure it has an idMal
         const uniqueMedia = new Map<number, AniListAnime>();
         data.Page.airingSchedules.forEach(schedule => {
-          if (schedule.media && schedule.media.idMal && !uniqueMedia.has(schedule.media.idMal)) {
+          if (schedule.media && schedule.media.idMal && isSafeAnime(schedule.media) && !uniqueMedia.has(schedule.media.idMal)) {
             uniqueMedia.set(schedule.media.idMal, schedule.media);
           }
         });
@@ -219,14 +240,14 @@ export const anilistApi = {
         const query = `
           query($limit: Int) {
             Page(page: 1, perPage: $limit) {
-              media(status: RELEASING, type: ANIME, sort: TRENDING_DESC, isAdult: false, format: TV) {
+              media(status: RELEASING, type: ANIME, sort: TRENDING_DESC, isAdult: false, genre_not_in: ["Hentai"], format: TV) {
                 ${MEDIA_FIELDS}
               }
             }
           }
         `;
         const data = await fetchAniList<{ Page: { media: AniListAnime[] } }>(query, { limit });
-        return data.Page.media.filter(a => a.idMal);
+        return data.Page.media.filter(a => a.idMal && isSafeAnime(a));
       } catch (err) {
         console.warn("[AniList getTopThisWeek] Failed, using Jikan fallback:", err);
       }
@@ -252,10 +273,10 @@ export const anilistApi = {
         `;
         const data = await fetchAniList<{ Page: { airingSchedules: { media: AniListAnime }[] } }>(query, { limit, time: currentTime });
         
-        // Extract media, filter duplicates and ensure it has an idMal
+        // Extract media, filter duplicates, adult content, and ensure it has an idMal
         const uniqueMedia = new Map<number, AniListAnime>();
         data.Page.airingSchedules.forEach(schedule => {
-          if (schedule.media && schedule.media.idMal && !uniqueMedia.has(schedule.media.idMal)) {
+          if (schedule.media && schedule.media.idMal && isSafeAnime(schedule.media) && !uniqueMedia.has(schedule.media.idMal)) {
             uniqueMedia.set(schedule.media.idMal, schedule.media);
           }
         });
@@ -272,8 +293,13 @@ export const anilistApi = {
     filters?: { genre?: string; year?: number; format?: string; sort?: string; score?: number; status?: string },
     limit = 20
   ): Promise<AniListAnime[]> => {
+    if (search && search.toLowerCase().includes("hentai")) {
+      return [];
+    }
+
     if (!isAniListCircuitOpen()) {
       try {
+        const candidates = search && search.trim().length > 0 ? getSearchCandidates(search) : [search];
         let sort = filters?.sort ? filters.sort : (search ? "SEARCH_MATCH" : "TRENDING_DESC");
         if (sort === "SEARCH_MATCH" && (!search || search.trim().length === 0)) {
           sort = "TRENDING_DESC";
@@ -290,7 +316,8 @@ export const anilistApi = {
                 status: $status,
                 averageScore_greater: $averageScore_greater,
                 sort: [${sort}], 
-                isAdult: false
+                isAdult: false,
+                genre_not_in: ["Hentai"]
               ) {
                 ${MEDIA_FIELDS}
               }
@@ -298,16 +325,40 @@ export const anilistApi = {
           }
         `;
         
-        const variables: Record<string, string | number> = { limit };
-        if (search && search.trim().length > 0) variables.search = search;
-        if (filters?.genre && filters.genre !== "Any") variables.genre = filters.genre;
-        if (filters?.year && filters.year > 0) variables.seasonYear = filters.year;
-        if (filters?.format && filters.format !== "Any") variables.format = filters.format;
-        if (filters?.status && filters.status !== "Any") variables.status = filters.status;
-        if (filters?.score && filters.score > 0) variables.averageScore_greater = filters.score;
+        const mergedResults: AniListAnime[] = [];
+        const seenIds = new Set<number>();
 
-        const data = await fetchAniList<{ Page: { media: AniListAnime[] } }>(query, variables);
-        return data.Page.media.filter(a => a.idMal);
+        for (const candidate of candidates) {
+          const variables: Record<string, string | number> = { limit };
+          if (candidate && candidate.trim().length > 0) variables.search = candidate;
+          if (filters?.genre && filters.genre !== "Any") variables.genre = filters.genre;
+          if (filters?.year && filters.year > 0) variables.seasonYear = filters.year;
+          if (filters?.format && filters.format !== "Any") variables.format = filters.format;
+          if (filters?.status && filters.status !== "Any") variables.status = filters.status;
+          if (filters?.score && filters.score > 0) variables.averageScore_greater = filters.score;
+
+          try {
+            const data = await fetchAniList<{ Page: { media: AniListAnime[] } }>(query, variables);
+            const batch = data.Page.media.filter((a) => a.idMal && isSafeAnime(a));
+            for (const item of batch) {
+              if (item.idMal && !seenIds.has(item.idMal)) {
+                seenIds.add(item.idMal);
+                mergedResults.push(item);
+              }
+            }
+          } catch (e) {
+            console.warn(`[AniList candidate query failed for "${candidate}"]:`, e);
+          }
+
+          // If we returned fewer than 3 results, continue loop to secondary query and merge
+          if (mergedResults.length >= 3) {
+            break;
+          }
+        }
+
+        if (mergedResults.length > 0) {
+          return mergedResults.slice(0, limit);
+        }
       } catch (err) {
         console.warn("[AniList searchAnime] Failed, using Jikan fallback:", err);
       }
@@ -321,8 +372,13 @@ export const anilistApi = {
     limit = 20,
     page = 1
   ): Promise<{ media: AniListAnime[], hasNextPage: boolean }> => {
+    if (search && search.toLowerCase().includes("hentai")) {
+      return { media: [], hasNextPage: false };
+    }
+
     if (!isAniListCircuitOpen()) {
       try {
+        const candidates = search && search.trim().length > 0 ? getSearchCandidates(search) : [search];
         let sort = filters?.sort ? filters.sort : (search ? "SEARCH_MATCH" : "TRENDING_DESC");
         if (sort === "SEARCH_MATCH" && (!search || search.trim().length === 0)) {
           sort = "TRENDING_DESC";
@@ -342,7 +398,8 @@ export const anilistApi = {
                 status: $status,
                 averageScore_greater: $averageScore_greater,
                 sort: [${sort}], 
-                isAdult: false
+                isAdult: false,
+                genre_not_in: ["Hentai"]
               ) {
                 ${MEDIA_FIELDS}
               }
@@ -350,19 +407,44 @@ export const anilistApi = {
           }
         `;
         
-        const variables: Record<string, string | number> = { limit, page };
-        if (search && search.trim().length > 0) variables.search = search;
-        if (filters?.genre && filters.genre !== "Any") variables.genre = filters.genre;
-        if (filters?.year && filters.year > 0) variables.seasonYear = filters.year;
-        if (filters?.format && filters.format !== "Any") variables.format = filters.format;
-        if (filters?.status && filters.status !== "Any") variables.status = filters.status;
-        if (filters?.score && filters.score > 0) variables.averageScore_greater = filters.score;
+        const mergedResults: AniListAnime[] = [];
+        const seenIds = new Set<number>();
+        let hasNextPage = false;
 
-        const data = await fetchAniList<{ Page: { pageInfo: { hasNextPage: boolean }, media: AniListAnime[] } }>(query, variables);
-        return {
-          media: data.Page.media.filter(a => a.idMal),
-          hasNextPage: data.Page.pageInfo.hasNextPage
-        };
+        for (const candidate of candidates) {
+          const variables: Record<string, string | number> = { limit, page };
+          if (candidate && candidate.trim().length > 0) variables.search = candidate;
+          if (filters?.genre && filters.genre !== "Any") variables.genre = filters.genre;
+          if (filters?.year && filters.year > 0) variables.seasonYear = filters.year;
+          if (filters?.format && filters.format !== "Any") variables.format = filters.format;
+          if (filters?.status && filters.status !== "Any") variables.status = filters.status;
+          if (filters?.score && filters.score > 0) variables.averageScore_greater = filters.score;
+
+          try {
+            const data = await fetchAniList<{ Page: { pageInfo: { hasNextPage: boolean }, media: AniListAnime[] } }>(query, variables);
+            hasNextPage = hasNextPage || data.Page.pageInfo.hasNextPage;
+            const batch = data.Page.media.filter((a) => a.idMal && isSafeAnime(a));
+            for (const item of batch) {
+              if (item.idMal && !seenIds.has(item.idMal)) {
+                seenIds.add(item.idMal);
+                mergedResults.push(item);
+              }
+            }
+          } catch (e) {
+            console.warn(`[AniList paginated candidate query failed for "${candidate}"]:`, e);
+          }
+
+          if (page > 1 || mergedResults.length >= 3) {
+            break;
+          }
+        }
+
+        if (mergedResults.length > 0 || page > 1) {
+          return {
+            media: mergedResults.slice(0, limit),
+            hasNextPage
+          };
+        }
       } catch (err) {
         console.warn("[AniList searchAnimePaginated] Failed, using Jikan fallback:", err);
       }
@@ -377,7 +459,7 @@ export const anilistApi = {
         
         const buildQuery = (isMal: boolean) => `
           query($id: Int) {
-            Media(${isMal ? "idMal: $id" : "id: $id"}, type: ANIME) {
+            Media(${isMal ? "idMal: $id" : "id: $id"}, type: ANIME, isAdult: false) {
               ${MEDIA_FIELDS}
               recommendations(perPage: 10, sort: RATING_DESC) {
                 nodes {
@@ -420,20 +502,25 @@ export const anilistApi = {
         }
 
         if (data?.Media) {
+          // Block any hentai/adult content immediately
+          if (!isSafeAnime(data.Media)) {
+            throw new Error("Anime not found (content restricted)");
+          }
+
           const media: AniListAnime & { recommendations?: AniListAnime[], relations?: (AniListAnime & { relationType: string })[] } = {
             ...data.Media,
             recommendations: undefined,
             relations: undefined
           };
           
-          // Map recommendations
+          // Map recommendations and filter out adult/hentai
           if (data.Media.recommendations?.nodes) {
             media.recommendations = data.Media.recommendations.nodes
               .map((n) => n.mediaRecommendation)
-              .filter((r) => r && (r.idMal || r.id));
+              .filter((r) => r && (r.idMal || r.id) && isSafeAnime(r));
           }
           
-          // Map relations, filter OTHER/MANGA, sort by startDate
+          // Map relations, filter OTHER/MANGA/ADULT, sort by startDate
           if (data.Media.relations?.edges) {
             const mappedRelations = data.Media.relations.edges
               .map((edge) => ({
@@ -443,6 +530,7 @@ export const anilistApi = {
               .filter((r) => 
                 r && 
                 (r.idMal || r.id) && 
+                isSafeAnime(r) &&
                 r.type !== "MANGA" && 
                 r.relationType !== "OTHER" &&
                 r.relationType !== "CHARACTER"
@@ -474,7 +562,7 @@ export const anilistApi = {
         const query = `
           query($idMal_in: [Int]) {
             Page(page: 1, perPage: 50) {
-              media(idMal_in: $idMal_in, type: ANIME) {
+              media(idMal_in: $idMal_in, type: ANIME, isAdult: false, genre_not_in: ["Hentai"]) {
                 idMal
                 title {
                   romaji

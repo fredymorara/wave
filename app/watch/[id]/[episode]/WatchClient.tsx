@@ -5,7 +5,7 @@ import Image from "next/image";
 import { useEffect, useState, useRef } from "react";
 import { ArrowLeft, MessageSquare, Mic, FastForward } from "lucide-react";
 import { useAnimeDetails } from "@/hooks/useAnime";
-import type { AniListAnime } from "@/lib/api/anilist";
+import { type AniListAnime, isSafeAnime } from "@/lib/api/anilist";
 import { Grid } from 'ldrs/react';
 import 'ldrs/react/Grid.css';
 import { useWatchStore } from "@/store/useWatchStore";
@@ -189,7 +189,7 @@ export default function WatchClient({ id, episode }: WatchClientProps) {
     : Math.floor(Math.max(0, epNum - 1) / 100);
 
   useEffect(() => {
-    if (anime) {
+    if (anime && isSafeAnime(anime)) {
       addToHistory({
         mal_id: id,
         title: anime.title.english || anime.title.romaji || "Anime",
@@ -218,7 +218,7 @@ export default function WatchClient({ id, episode }: WatchClientProps) {
     );
   }
 
-  if (!anime) {
+  if (!anime || !isSafeAnime(anime)) {
     return (
       <div className="flex-1 flex flex-col items-center justify-center min-h-screen bg-void-black text-on-surface">
         <h1 className="font-headline-xl text-headline-xl">Anime not found</h1>

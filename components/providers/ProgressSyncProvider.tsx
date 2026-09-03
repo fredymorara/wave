@@ -1,14 +1,13 @@
 "use client";
 
 import { useProgressSync } from "@/hooks/useProgressSync";
-import { SyncConflictModal } from "@/components/sync/SyncConflictModal";
 
 /**
- * ProgressSyncProvider — mounts the background sync hook
- * and the conflict resolution modal at the app root level.
+ * ProgressSyncProvider — mounts the background sync hook at the app root level.
+ * Handles silent background synchronization using Netflix-style auto-determination.
  * Must be rendered inside QueryProvider (for session access).
  */
 export function ProgressSyncProvider() {
   useProgressSync();
-  return <SyncConflictModal />;
+  return null;
 }

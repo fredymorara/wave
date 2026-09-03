@@ -4,7 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { Play, CalendarClock, ChevronLeft, ChevronRight } from "lucide-react";
 import { useTrendingAnime, useRecentEpisodes, useAniListBanners, useSchedule, useTopThisWeek } from "@/hooks/useAnime";
-import { useWatchStore } from "@/store/useWatchStore";
+import { useWatchStore, getAnimeResumeInfo } from "@/store/useWatchStore";
 import { HeroCarousel } from "@/components/home/HeroCarousel";
 import { useEffect, useState, useRef } from "react";
 import { Grid } from 'ldrs/react';
@@ -58,37 +58,45 @@ export default function HomeClient() {
               Continue Watching
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 gap-gutter">
-              {historyItems.map((item, idx) => (
-                <Link key={`history-${item.mal_id}-${idx}`} href={`/watch/${item.mal_id}/${item.episode}?lang=${item.language || "sub"}`} className="relative aspect-video bg-surface-container overflow-hidden group border border-outline-variant/30 hover:border-cyber-cyan transition-all block">
-                  <Image 
-                    src={item.image_url} 
-                    alt={item.title} 
-                    fill 
-                    className="object-cover opacity-60 group-hover:opacity-100 transition-opacity z-0"
-                  />
-                  <div className="absolute inset-0 bg-linear-to-t from-void-black via-void-black/40 to-transparent z-0" />
-                  <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity z-10 bg-black/20">
-                    <div className="bg-neon-crimson/90 clip-corner p-3 drop-shadow-[0_0_10px_rgba(255,0,60,0.8)]">
-                      <Play className="text-void-black w-6 h-6 fill-current ml-1" />
+              {historyItems.map((item, idx) => {
+                const resume = getAnimeResumeInfo(item);
+                const targetEp = resume.episode;
+                const progressPct = resume.percentage;
+
+                return (
+                  <Link key={`history-${item.mal_id}-${idx}`} href={`/watch/${item.mal_id}/${targetEp}?lang=${item.language || "sub"}`} className="relative aspect-video bg-surface-container overflow-hidden group border border-outline-variant/30 hover:border-cyber-cyan transition-all block">
+                    <Image 
+                      src={item.image_url} 
+                      alt={item.title} 
+                      fill 
+                      className="object-cover opacity-60 group-hover:opacity-100 transition-opacity z-0"
+                    />
+                    <div className="absolute inset-0 bg-linear-to-t from-void-black via-void-black/40 to-transparent z-0" />
+                    <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity z-10 bg-black/20">
+                      <div className="bg-neon-crimson/90 clip-corner p-3 drop-shadow-[0_0_10px_rgba(255,0,60,0.8)]">
+                        <Play className="text-void-black w-6 h-6 fill-current ml-1" />
+                      </div>
                     </div>
-                  </div>
-                  <div className="absolute bottom-0 left-0 p-4 z-10 w-full bg-linear-to-t from-void-black to-transparent">
-                    <h3 className="font-headline-md text-headline-sm text-on-surface line-clamp-1 group-hover:text-cyber-cyan transition-colors">
-                      {item.title}
-                    </h3>
-                    <p className="font-label-caps text-label-caps text-on-surface-variant">Episode {item.episode}</p>
-                  </div>
-                  {/* Progress Bar */}
-                  {item.time && item.duration && (
-                    <div className="absolute bottom-0 left-0 h-1 bg-surface-container-high w-full z-20">
-                      <div 
-                        className="h-full bg-neon-crimson" 
-                        style={{ width: `${Math.min((item.time / item.duration) * 100, 100)}%` }} 
-                      />
+                    <div className="absolute bottom-0 left-0 p-4 z-10 w-full bg-linear-to-t from-void-black to-transparent">
+                      <h3 className="font-headline-md text-headline-sm text-on-surface line-clamp-1 group-hover:text-cyber-cyan transition-colors">
+                        {item.title}
+                      </h3>
+                      <p className="font-label-caps text-label-caps text-on-surface-variant">
+                        {resume.isNextEpisode ? `Episode ${targetEp} • Up Next` : `Episode ${targetEp}${progressPct > 0 ? ` (${progressPct}%)` : ""}`}
+                      </p>
                     </div>
-                  )}
-                </Link>
-              ))}
+                    {/* Progress Bar */}
+                    {!resume.isNextEpisode && item.time && item.duration ? (
+                      <div className="absolute bottom-0 left-0 h-1 bg-surface-container-high w-full z-20">
+                        <div 
+                          className="h-full bg-neon-crimson" 
+                          style={{ width: `${Math.min((item.time / item.duration) * 100, 100)}%` }} 
+                        />
+                      </div>
+                    ) : null}
+                  </Link>
+                );
+              })}
             </div>
           </section>
         )}

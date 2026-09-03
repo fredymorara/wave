@@ -59,7 +59,7 @@ export function Navbar() {
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
-    if (query.trim().length >= 3) {
+    if (query.trim().length >= 2) {
       setIsFocused(false);
       router.push(`/search?q=${encodeURIComponent(query.trim())}`);
     }
@@ -131,7 +131,7 @@ export function Navbar() {
             </form>
             
             {/* Auto-suggest Dropdown */}
-            {isFocused && query.length >= 3 && (
+            {isFocused && query.length >= 2 && (
               <div className="absolute top-full mt-2 w-75 right-0 bg-surface-container border border-outline-variant/30 shadow-[0_10px_30px_rgba(0,0,0,0.8)] z-50 flex flex-col clip-corner">
                 {isSearchLoading ? (
                   <div className="flex items-center justify-center py-6 text-cyber-cyan">

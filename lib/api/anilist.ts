@@ -88,7 +88,15 @@ const MEDIA_FIELDS = `
 
 // Circuit breaker state to prevent spamming AniList when disabled/down
 let circuitOpenUntil = 0;
-const CIRCUIT_BREAKER_DURATION_MS = 5 * 60 * 1000; // 5 minutes
+const CIRCUIT_BREAKER_DURATION_MS = 90 * 1000; // 90 seconds
+
+export const ANILIST_HEADERS: Record<string, string> = {
+  "Content-Type": "application/json",
+  "Accept": "application/json",
+  "Origin": "https://anilist.co",
+  "Referer": "https://anilist.co/",
+  "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+};
 
 export function isAniListCircuitOpen(): boolean {
   return Date.now() < circuitOpenUntil;
@@ -96,7 +104,7 @@ export function isAniListCircuitOpen(): boolean {
 
 export function tripAniListCircuit(reason: string) {
   circuitOpenUntil = Date.now() + CIRCUIT_BREAKER_DURATION_MS;
-  console.warn(`[AniList Circuit Breaker] Tripped for 5m (${reason}). Falling back to Jikan API.`);
+  console.warn(`[AniList Circuit Breaker] Tripped for 90s (${reason}). Falling back to Jikan API.`);
 }
 
 async function fetchAniList<T>(query: string, variables: Record<string, string | number | boolean | number[]> = {}): Promise<T> {
@@ -106,29 +114,43 @@ async function fetchAniList<T>(query: string, variables: Record<string, string |
 
   const isClient = typeof window !== "undefined";
   const url = isClient ? "/api/anilist" : ANILIST_API_URL;
+  const headers = isClient
+    ? { "Content-Type": "application/json", "Accept": "application/json" }
+    : ANILIST_HEADERS;
 
   let response: Response;
   try {
     response = await fetch(url, {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "Accept": "application/json",
-      },
+      headers,
       body: JSON.stringify({ query, variables }),
     });
   } catch (err: unknown) {
-    tripAniListCircuit(err instanceof Error ? err.message : "Network error");
-    throw err;
+    if (isClient) {
+      try {
+        response = await fetch(ANILIST_API_URL, {
+          method: "POST",
+          headers: { "Content-Type": "application/json", "Accept": "application/json" },
+          body: JSON.stringify({ query, variables }),
+        });
+      } catch {
+        tripAniListCircuit(err instanceof Error ? err.message : "Network error");
+        throw err;
+      }
+    } else {
+      tripAniListCircuit(err instanceof Error ? err.message : "Network error");
+      throw err;
+    }
   }
 
   if (!response.ok) {
     if (response.status === 429) {
-      // Very basic backoff for AniList (limit is generous: 90 req / min)
-      await new Promise((res) => setTimeout(res, 2000));
+      const retryAfterHeader = response.headers.get("Retry-After");
+      const delayMs = retryAfterHeader ? Math.max(1000, Number(retryAfterHeader) * 1000) : 2000;
+      await new Promise((res) => setTimeout(res, Math.min(delayMs, 5000)));
       const retry = await fetch(url, {
         method: "POST",
-        headers: { "Content-Type": "application/json", "Accept": "application/json" },
+        headers,
         body: JSON.stringify({ query, variables }),
       });
       if (!retry.ok) {

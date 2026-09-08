@@ -1,6 +1,14 @@
-import { NextResponse } from 'next/server';
+import { NextResponse } from "next/server";
 
 const ANILIST_API_URL = "https://graphql.anilist.co";
+
+const ANILIST_HEADERS: Record<string, string> = {
+  "Content-Type": "application/json",
+  "Accept": "application/json",
+  "Origin": "https://anilist.co",
+  "Referer": "https://anilist.co/",
+  "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+};
 
 export async function POST(request: Request) {
   try {
@@ -8,11 +16,7 @@ export async function POST(request: Request) {
 
     const response = await fetch(ANILIST_API_URL, {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "Accept": "application/json",
-        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
-      },
+      headers: ANILIST_HEADERS,
       body: JSON.stringify(body),
       // Next.js caching policy
       next: { revalidate: 300 }, // 5 minutes cache for repeated queries
@@ -20,20 +24,32 @@ export async function POST(request: Request) {
 
     if (!response.ok) {
       if (response.status === 429) {
-        // Simple backoff retry on server
-        await new Promise((res) => setTimeout(res, 1500));
+        // Parse Retry-After header if present, otherwise default to 2s
+        const retryAfterHeader = response.headers.get("Retry-After");
+        const delayMs = retryAfterHeader ? Math.max(1000, Number(retryAfterHeader) * 1000) : 2000;
+        await new Promise((res) => setTimeout(res, Math.min(delayMs, 5000)));
+
         const retry = await fetch(ANILIST_API_URL, {
           method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            "Accept": "application/json",
-            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
-          },
+          headers: ANILIST_HEADERS,
           body: JSON.stringify(body),
         });
 
-        const retryData = await retry.json();
-        return NextResponse.json(retryData, { status: retry.status });
+        if (retry.ok) {
+          const retryData = await retry.json();
+          return NextResponse.json(retryData, {
+            status: 200,
+            headers: {
+              "Cache-Control": "public, s-maxage=300, stale-while-revalidate=600",
+            },
+          });
+        }
+
+        const retryData = await retry.json().catch(() => null);
+        return NextResponse.json(
+          retryData || { errors: [{ message: `AniList rate limited (${retry.status})` }] },
+          { status: retry.status }
+        );
       }
 
       const errorText = await response.text();

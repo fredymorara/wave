@@ -394,7 +394,7 @@ function buildKitsuFilterQuery(
   limit = 20,
   offset = 0
 ): string {
-  const params: string[] = ["filter[sfw]=true"];
+  const params: string[] = ["filter[ageRating]=G,PG,R"];
   const trimmedSearch = search?.trim();
 
   if (trimmedSearch) {

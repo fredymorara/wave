@@ -19,13 +19,12 @@ export function useNotifications() {
   const queryClient = useQueryClient();
 
   const { data, isLoading } = useQuery({
-    queryKey: ["notifications"],
+    queryKey: ["notifications", session?.user?.id ?? "guest"],
     queryFn: async () => {
       const res = await fetch("/api/notifications");
       if (!res.ok) throw new Error("Failed to fetch notifications");
       return res.json();
     },
-    enabled: !!session,
     refetchInterval: 30000, // Poll every 30s
     refetchIntervalInBackground: false, // Don't poll when tab is hidden
     refetchOnWindowFocus: true, // Fetch immediately when tab gets focus
@@ -42,7 +41,7 @@ export function useNotifications() {
       if (!res.ok) throw new Error("Failed to mark read");
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["notifications"] });
+      queryClient.invalidateQueries({ queryKey: ["notifications", session?.user?.id ?? "guest"] });
     },
   });
 
@@ -56,7 +55,7 @@ export function useNotifications() {
       if (!res.ok) throw new Error("Failed to mark all read");
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["notifications"] });
+      queryClient.invalidateQueries({ queryKey: ["notifications", session?.user?.id ?? "guest"] });
     },
   });
 
@@ -64,7 +63,15 @@ export function useNotifications() {
     items: (data?.items || []) as NotificationItem[],
     unreadCount: (data?.unreadCount || 0) as number,
     isLoading,
-    markAsRead: (id: string, isBroadcast: boolean) => markAsReadMutation.mutate({ id, isBroadcast }),
-    markAllAsRead: () => markAllAsReadMutation.mutate(),
+    markAsRead: (id: string, isBroadcast: boolean) => {
+      if (session) {
+        markAsReadMutation.mutate({ id, isBroadcast });
+      }
+    },
+    markAllAsRead: () => {
+      if (session) {
+        markAllAsReadMutation.mutate();
+      }
+    },
   };
 }

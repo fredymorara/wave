@@ -1,5 +1,6 @@
 import { MessageSquare, Megaphone, BellOff } from "lucide-react";
 import { useNotifications } from "@/hooks/useNotifications";
+import { useSession } from "@/lib/auth-client";
 import { timeAgo } from "@/lib/timeAgo";
 import { useRouter } from "next/navigation";
 
@@ -9,6 +10,7 @@ interface NotificationPanelProps {
 
 export function NotificationPanel({ onClose }: NotificationPanelProps) {
   const { items, unreadCount, markAsRead, markAllAsRead, isLoading } = useNotifications();
+  const { data: session } = useSession();
   const router = useRouter();
 
   const handleItemClick = (id: string, isBroadcast: boolean, linkUrl: string | null) => {
@@ -24,10 +26,10 @@ export function NotificationPanel({ onClose }: NotificationPanelProps) {
       {/* Header */}
       <div className="px-4 py-3 border-b border-outline-variant/20 flex items-center justify-between bg-surface-container/50">
         <h3 className="font-headline-md text-sm text-on-surface uppercase tracking-wider">Notifications</h3>
-        {unreadCount > 0 && (
+        {session && unreadCount > 0 && (
           <button 
             onClick={() => markAllAsRead()}
-            className="text-[10px] font-label-caps text-neon-crimson hover:text-white transition-colors"
+            className="text-[10px] font-label-caps text-neon-crimson hover:text-white transition-colors cursor-pointer"
           >
             Mark All Read
           </button>

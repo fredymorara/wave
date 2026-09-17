@@ -7,8 +7,42 @@ import { eq, and, desc, sql, inArray } from "drizzle-orm";
 
 export async function GET() {
   try {
+    if (!process.env.DATABASE_URL) {
+      return NextResponse.json({ items: [], unreadCount: 0 });
+    }
+
     const session = await auth.api.getSession({ headers: await headers() });
-    if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+    if (!session) {
+      // Unauthenticated / guest visitors receive public admin broadcasts
+      const publicBroadcasts = await db
+        .select({
+          id: broadcasts.id,
+          title: broadcasts.title,
+          message: broadcasts.message,
+          linkUrl: broadcasts.linkUrl,
+          linkLabel: broadcasts.linkLabel,
+          createdAt: broadcasts.createdAt,
+        })
+        .from(broadcasts)
+        .orderBy(desc(broadcasts.createdAt))
+        .limit(10);
+
+      const items = publicBroadcasts.map(b => ({
+        id: b.id,
+        type: "admin_broadcast",
+        title: b.title,
+        message: b.message,
+        linkUrl: b.linkUrl,
+        linkLabel: b.linkLabel,
+        actorName: "Admin",
+        read: true,
+        createdAt: b.createdAt,
+        isBroadcast: true,
+      }));
+
+      return NextResponse.json({ items, unreadCount: 0 });
+    }
 
     const userId = session.user.id;
 
@@ -73,7 +107,7 @@ export async function GET() {
 export async function PATCH(req: Request) {
   try {
     const session = await auth.api.getSession({ headers: await headers() });
-    if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    if (!session) return NextResponse.json({ success: true });
 
     const userId = session.user.id;
     const body = await req.json().catch(() => ({}));

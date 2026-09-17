@@ -195,26 +195,24 @@ export function Navbar() {
           </button>
 
           {/* Mobile Notification Toggle */}
-          {session && (
-            <div className="relative md:hidden">
-              <button 
-                onClick={() => {
-                  setIsNotificationPanelOpen(!isNotificationPanelOpen);
-                  setIsMobileMenuOpen(false);
-                  setIsMobileSearchOpen(false);
-                }}
-                className="text-on-surface-variant hover:text-cyber-cyan transition-colors p-2 nav-glow relative"
-              >
-                <Bell className="w-5 h-5" />
-                {unreadCount > 0 && (
-                  <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-neon-crimson rounded-full shadow-[0_0_8px_#FF003C]" />
-                )}
-              </button>
-              {isNotificationPanelOpen && (
-                <NotificationPanel onClose={() => setIsNotificationPanelOpen(false)} />
+          <div className="relative md:hidden">
+            <button 
+              onClick={() => {
+                setIsNotificationPanelOpen(!isNotificationPanelOpen);
+                setIsMobileMenuOpen(false);
+                setIsMobileSearchOpen(false);
+              }}
+              className="text-on-surface-variant hover:text-cyber-cyan transition-colors p-2 nav-glow relative"
+            >
+              <Bell className="w-5 h-5" />
+              {unreadCount > 0 && (
+                <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-neon-crimson rounded-full shadow-[0_0_8px_#FF003C]" />
               )}
-            </div>
-          )}
+            </button>
+            {isNotificationPanelOpen && (
+              <NotificationPanel onClose={() => setIsNotificationPanelOpen(false)} />
+            )}
+          </div>
           
           {/* Mobile Menu Toggle */}
           <button 
@@ -228,25 +226,23 @@ export function Navbar() {
             {isMobileMenuOpen ? <X className="w-5 h-5 animate-in spin-in-90 duration-300" /> : <Menu className="w-5 h-5 animate-in spin-in-[-90deg] duration-300" />}
           </button>
 
-          {session && (
-            <div className="relative hidden md:block">
-              <button 
-                onClick={() => {
-                  setIsNotificationPanelOpen(!isNotificationPanelOpen);
-                  setIsProfileMenuOpen(false);
-                }}
-                className="text-on-surface-variant hover:text-cyber-cyan transition-colors p-2 nav-glow relative"
-              >
-                <Bell className="w-5 h-5" />
-                {unreadCount > 0 && (
-                  <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-neon-crimson rounded-full shadow-[0_0_8px_#FF003C]" />
-                )}
-              </button>
-              {isNotificationPanelOpen && (
-                <NotificationPanel onClose={() => setIsNotificationPanelOpen(false)} />
+          <div className="relative hidden md:block">
+            <button 
+              onClick={() => {
+                setIsNotificationPanelOpen(!isNotificationPanelOpen);
+                setIsProfileMenuOpen(false);
+              }}
+              className="text-on-surface-variant hover:text-cyber-cyan transition-colors p-2 nav-glow relative"
+            >
+              <Bell className="w-5 h-5" />
+              {unreadCount > 0 && (
+                <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-neon-crimson rounded-full shadow-[0_0_8px_#FF003C]" />
               )}
-            </div>
-          )}
+            </button>
+            {isNotificationPanelOpen && (
+              <NotificationPanel onClose={() => setIsNotificationPanelOpen(false)} />
+            )}
+          </div>
           
           {isPending ? (
             <div className="hidden md:block w-8 h-8 bg-surface-container animate-pulse clip-chip" />

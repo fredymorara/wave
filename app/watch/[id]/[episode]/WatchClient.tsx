@@ -106,21 +106,48 @@ function usePlayerEvents(
   setStreamFailed: (v: boolean) => void,
   updateProgress: (id: string, time: number, duration: number) => void
 ) {
+  const hasTriggeredRef = useRef(false);
+
+  // Reset completion trigger on anime/id change
+  useEffect(() => {
+    hasTriggeredRef.current = false;
+  }, [id]);
+
   useEffect(() => {
     function handleMessage(event: MessageEvent) {
-      if (event.origin && !event.origin.includes("megaplay.buzz")) return;
-      const data = event.data;
-      if (data?.event === "error") {
+      let data = event.data;
+      if (typeof data === "string") {
+        try {
+          data = JSON.parse(data);
+        } catch {
+          return;
+        }
+      }
+
+      if (!data || typeof data !== "object") return;
+
+      if (data.event === "error") {
         if (provider === "ani") {
           console.log("Stream error on ani provider, silently switching to mal...");
           setStreamFailed(true);
         }
-      } else if (data?.event === "timeupdate") {
-        if (data.time && data.duration) {
-          updateProgress(id, data.time, data.duration);
+      } else if (data.event === "time" || data.event === "timeupdate" || data.event === "CURRENT_TIME") {
+        const time = Number(data.time ?? data.position ?? 0);
+        const duration = Number(data.duration ?? 0);
+        if (duration > 0 && time > 0) {
+          updateProgress(id, time, duration);
+
+          // Failsafe auto-trigger if video reaches the final seconds and has not yet triggered complete
+          if (autoNext && !hasTriggeredRef.current && duration > 20 && time >= duration - 1.5) {
+            hasTriggeredRef.current = true;
+            window.dispatchEvent(new CustomEvent('megaplay-complete'));
+          }
         }
-      } else if (data?.event === "complete" && autoNext) {
-        window.dispatchEvent(new CustomEvent('megaplay-complete'));
+      } else if ((data.event === "complete" || data.event === "ended") && autoNext) {
+        if (!hasTriggeredRef.current) {
+          hasTriggeredRef.current = true;
+          window.dispatchEvent(new CustomEvent('megaplay-complete'));
+        }
       }
     }
 
@@ -132,19 +159,31 @@ function usePlayerEvents(
 function useAutoNextEpisode(
   id: string,
   episode: string,
-  finalNumEpisodes: number,
+  maxAvailableEpisodes: number,
   effectiveLanguage: "sub" | "dub",
   counts: { is_dub: number | null } | null
 ) {
   const router = useRouter();
 
   useEffect(() => {
+    let triggered = false;
+
     function handleAutoNext() {
+      if (triggered) return;
+
       const currentEpNum = Number.parseInt(episode, 10);
       const nextEpNum = currentEpNum + 1;
 
-      if (!Number.isNaN(currentEpNum) && nextEpNum <= finalNumEpisodes) {
+      if (!Number.isNaN(currentEpNum)) {
+        // If we have a known upper episode limit, do not advance past the series/season finale
+        if (maxAvailableEpisodes > 0 && nextEpNum > maxAvailableEpisodes) {
+          return;
+        }
+
+        triggered = true;
+
         let targetLang = effectiveLanguage;
+        // If current stream is dub but next episode only has sub available, auto-switch to sub
         if (effectiveLanguage === "dub" && counts?.is_dub !== null && counts?.is_dub !== undefined && counts.is_dub < nextEpNum) {
           targetLang = "sub";
         }
@@ -154,7 +193,7 @@ function useAutoNextEpisode(
 
     window.addEventListener('megaplay-complete', handleAutoNext);
     return () => window.removeEventListener('megaplay-complete', handleAutoNext);
-  }, [episode, finalNumEpisodes, effectiveLanguage, counts, id, router]);
+  }, [episode, maxAvailableEpisodes, effectiveLanguage, counts, id, router]);
 }
 
 interface WatchClientProps {
@@ -188,9 +227,13 @@ export default function WatchClient({ id, episode }: WatchClientProps) {
     ? selectedChunk.chunk 
     : Math.floor(Math.max(0, epNum - 1) / 100);
 
+  const baseEpisodes = calculateBaseWatchEpisodes(anime, counts, epNum);
+  const finalNumEpisodes = getApplicableWatchEpisodes(baseEpisodes, anime, counts, effectiveLanguage, epNum);
+  const maxAvailableEpisodes = Math.max(baseEpisodes, finalNumEpisodes);
+
   useEffect(() => {
     if (anime && isSafeAnime(anime)) {
-      const maxEps = counts?.is_sub ?? anime.episodes ?? undefined;
+      const maxEps = baseEpisodes > 0 ? baseEpisodes : (anime.episodes || undefined);
       addToHistory({
         mal_id: id,
         title: anime.title.english || anime.title.romaji || "Anime",
@@ -201,14 +244,10 @@ export default function WatchClient({ id, episode }: WatchClientProps) {
         language: effectiveLanguage,
       });
     }
-  }, [anime, counts, episode, id, addToHistory, effectiveLanguage]);
+  }, [anime, baseEpisodes, episode, id, addToHistory, effectiveLanguage]);
 
   usePlayerEvents(id, provider, autoNext, setStreamFailed, updateProgress);
-
-  const baseEpisodes = calculateBaseWatchEpisodes(anime, counts, epNum);
-  const finalNumEpisodes = getApplicableWatchEpisodes(baseEpisodes, anime, counts, effectiveLanguage, epNum);
-
-  useAutoNextEpisode(id, episode, finalNumEpisodes, effectiveLanguage, counts);
+  useAutoNextEpisode(id, episode, maxAvailableEpisodes, effectiveLanguage, counts);
 
 
   if (isAnimeLoading || isCountsLoading) {
@@ -380,7 +419,7 @@ export default function WatchClient({ id, episode }: WatchClientProps) {
             <FastForward className="w-3.5 h-3.5 shrink-0" /> 
             <span>AUTO NEXT</span>
           </button>
-          
+
           <div className="w-px h-6 bg-outline-variant/50"></div>
           
           <WatchlistButton animeId={id} className="px-3 py-1.5 bg-transparent border-none hover:bg-surface-glass text-xs cursor-pointer" showText={false} />

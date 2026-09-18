@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import { Play, Star, MessageSquare, Mic } from "lucide-react";
 import { useAnimeDetails } from "@/hooks/useAnime";
 import { type AniListAnime, isSafeAnime } from "@/lib/api/anilist";
@@ -63,6 +63,54 @@ export default function AnimeClient({ id }: AnimeClientProps) {
   const [language, setLanguage] = useState<"sub" | "dub">("sub");
   const [counts, setCounts] = useState<{ is_sub: number | null, is_dub: number | null } | null>(null);
   const mounted = useMounted();
+  const bannerRef = useRef<HTMLDivElement>(null);
+
+  // 60/120fps Velvet LERP scroll parallax on GPU via CSS variables (Zero React Re-renders)
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const mediaQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
+    if (mediaQuery.matches) return;
+
+    let targetY = 0;
+    let currentY = 0;
+    let animationFrameId: number;
+    let isRunning = false;
+
+    const render = () => {
+      currentY += (targetY - currentY) * 0.12;
+
+      if (bannerRef.current) {
+        const parallaxY = currentY * 0.35;
+        const opacity = Math.max(0.4 - currentY / 1200, 0.1);
+
+        bannerRef.current.style.setProperty("--banner-y", `${parallaxY.toFixed(2)}px`);
+        bannerRef.current.style.setProperty("--banner-opacity", `${opacity.toFixed(3)}`);
+      }
+
+      if (Math.abs(targetY - currentY) > 0.05) {
+        animationFrameId = requestAnimationFrame(render);
+      } else {
+        isRunning = false;
+      }
+    };
+
+    const handleScroll = () => {
+      const y = window.scrollY;
+      if (y < 900) {
+        targetY = y;
+        if (!isRunning) {
+          isRunning = true;
+          animationFrameId = requestAnimationFrame(render);
+        }
+      }
+    };
+
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => {
+      window.removeEventListener("scroll", handleScroll);
+      cancelAnimationFrame(animationFrameId);
+    };
+  }, []);
 
   const watchHistoryItem = useWatchStore((state) => state.history[String(id)]);
 
@@ -135,9 +183,15 @@ export default function AnimeClient({ id }: AnimeClientProps) {
 
   return (
     <>
-      <div className="relative w-full h-100 md:h-125 lg:h-150 mt-18">
+      <div ref={bannerRef} className="relative w-full h-100 md:h-125 lg:h-150 mt-18 overflow-hidden">
         <div className="absolute inset-0 bg-void-black z-0" />
-        <div className="absolute inset-0 z-0 opacity-40 mix-blend-screen">
+        <div 
+          className="absolute inset-0 z-0 mix-blend-screen will-change-transform scale-110 pointer-events-none"
+          style={{
+            transform: "translate3d(0, var(--banner-y, 0px), 0)",
+            opacity: "var(--banner-opacity, 0.4)",
+          }}
+        >
           <Image 
             src={anime.bannerImage || anime.coverImage.extraLarge} 
             alt={anime.title.english || anime.title.romaji || ""} 
@@ -147,7 +201,7 @@ export default function AnimeClient({ id }: AnimeClientProps) {
             priority
           />
         </div>
-        <div className="absolute inset-0 bg-linear-to-t from-void-black via-void-black/80 to-transparent z-10" />
+        <div className="absolute inset-0 bg-linear-to-t from-void-black via-void-black/80 to-transparent z-10 pointer-events-none" />
         
         <div className="absolute bottom-0 left-0 w-full z-20 px-margin-mobile md:px-margin-desktop pb-12">
           <div className="flex flex-col md:flex-row items-end md:items-center gap-6">

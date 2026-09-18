@@ -26,13 +26,14 @@ export default function SearchClient() {
   const status = searchParams.get("status") || "Any";
   const sort = searchParams.get("sort") || (urlQuery ? "SEARCH_MATCH" : "TRENDING_DESC");
 
-  // Local state ONLY for what the user is currently typing in the input box
+  // Local state for user typing, synced with urlQuery without cascading effect renders
+  const [prevUrlQuery, setPrevUrlQuery] = useState(urlQuery);
   const [searchInput, setSearchInput] = useState(urlQuery);
 
-  // Sync search input if URL changes externally (e.g. back/forward navigation or navbar search)
-  useEffect(() => {
+  if (prevUrlQuery !== urlQuery) {
+    setPrevUrlQuery(urlQuery);
     setSearchInput(urlQuery);
-  }, [urlQuery]);
+  }
 
   // Stable memoized filters: ONLY creates a new reference when primitive values actually change
   const filters: CatalogFilters = useMemo(

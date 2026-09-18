@@ -5,8 +5,10 @@ import Link from "next/link";
 import { Play, CalendarClock, ChevronLeft, ChevronRight } from "lucide-react";
 import { useTrendingAnime, useRecentEpisodes, useAniListBanners, useSchedule, useTopThisWeek } from "@/hooks/useAnime";
 import { useWatchStore, getAnimeResumeInfo } from "@/store/useWatchStore";
+import { timeAgo } from "@/lib/timeAgo";
+import { useMounted } from "@/hooks/useMounted";
 import { HeroCarousel } from "@/components/home/HeroCarousel";
-import { useEffect, useState, useRef } from "react";
+import { useRef } from "react";
 import { Grid } from 'ldrs/react';
 import 'ldrs/react/Grid.css';
 
@@ -19,11 +21,7 @@ export default function HomeClient() {
 
   // Hydration safe store access
   const history = useWatchStore((state) => state.history);
-  const [mounted, setMounted] = useState(false);
-  useEffect(() => {
-    const timer = setTimeout(() => setMounted(true), 0);
-    return () => clearTimeout(timer);
-  }, []);
+  const mounted = useMounted();
 
   const trendingRef = useRef<HTMLDivElement>(null);
   const scheduleRef = useRef<HTMLDivElement>(null);
@@ -54,9 +52,18 @@ export default function HomeClient() {
         {/* Continue Watching Section */}
         {mounted && historyItems.length > 0 && (
           <section className="px-margin-mobile md:px-margin-desktop">
-            <h2 className="font-headline-xl text-headline-xl text-on-surface uppercase border-l-4 border-cyber-cyan pl-3 mb-stack-lg flex items-center gap-2">
-              Continue Watching
-            </h2>
+            <div className="flex justify-between items-center mb-stack-lg">
+              <h2 className="font-headline-xl text-headline-xl text-on-surface uppercase border-l-4 border-cyber-cyan pl-3 flex items-center gap-2">
+                Continue Watching
+              </h2>
+              <Link
+                href="/continue-watching"
+                className="font-label-caps text-xs text-cyber-cyan hover:text-white border border-cyber-cyan/40 hover:border-cyber-cyan px-3 py-1.5 clip-chip transition-all flex items-center gap-1.5 group cursor-pointer"
+              >
+                <span>VIEW ALL</span>
+                <ChevronRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" />
+              </Link>
+            </div>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 gap-gutter">
               {historyItems.map((item, idx) => {
                 const resume = getAnimeResumeInfo(item, item.max_episodes);
@@ -81,23 +88,30 @@ export default function HomeClient() {
                       <h3 className="font-headline-md text-headline-sm text-on-surface line-clamp-1 group-hover:text-cyber-cyan transition-colors">
                         {item.title}
                       </h3>
-                      <p className="font-label-caps text-label-caps text-on-surface-variant">
-                        {resume.isCompleted
-                          ? `Episode ${targetEp} • Completed`
-                          : resume.isNextEpisode 
-                          ? `Episode ${targetEp} • Up Next` 
-                          : `Episode ${targetEp}${progressPct > 0 ? ` (${progressPct}%)` : ""}`}
-                      </p>
+                      <div className="flex items-center justify-between font-label-caps text-label-caps text-on-surface-variant">
+                        <span>
+                          {resume.isCompleted
+                            ? `Episode ${targetEp} • Completed`
+                            : resume.isNextEpisode 
+                            ? `Episode ${targetEp} • Up Next` 
+                            : `Episode ${targetEp}${progressPct > 0 ? ` (${progressPct}%)` : ""}`}
+                        </span>
+                        {item.timestamp && (
+                          <span className="text-[10px] text-outline-variant">
+                            {timeAgo(item.timestamp)}
+                          </span>
+                        )}
+                      </div>
                     </div>
                     {/* Progress Bar */}
                     {resume.isCompleted ? (
                       <div className="absolute bottom-0 left-0 h-1 bg-surface-container-high w-full z-20">
-                        <div className="h-full bg-cyber-cyan w-full" />
+                        <div className="h-full bg-cyber-cyan w-full shadow-[0_0_8px_#00F0FF]" />
                       </div>
                     ) : !resume.isNextEpisode && item.time && item.duration ? (
                       <div className="absolute bottom-0 left-0 h-1 bg-surface-container-high w-full z-20">
                         <div 
-                          className="h-full bg-neon-crimson" 
+                          className="h-full bg-neon-crimson shadow-[0_0_8px_#FF003C]" 
                           style={{ width: `${Math.min((item.time / item.duration) * 100, 100)}%` }} 
                         />
                       </div>

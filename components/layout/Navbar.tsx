@@ -95,6 +95,12 @@ export function Navbar() {
             >
               Catalog
             </Link>
+            <Link
+              href="/continue-watching"
+              className={`${pathname === "/continue-watching" ? "text-neon-crimson border-b-2 border-neon-crimson pb-1" : "text-on-surface-variant hover:text-cyber-cyan hover:drop-shadow-[0_0_8px_#FF003C]"} transition-all duration-300 scale-105 active:scale-95`}
+            >
+              Recents
+            </Link>
             <a
               href="https://flicmovies.me"
               target="_blank"
@@ -303,6 +309,13 @@ export function Navbar() {
               className={`px-4 py-3 font-label-caps uppercase clip-chip transition-all ${pathname === "/search" ? "text-neon-crimson bg-neon-crimson/10 border-l-2 border-neon-crimson" : "text-on-surface bg-surface-container/40 hover:bg-surface-glass"}`}
             >
               Catalog
+            </Link>
+            <Link
+              href="/continue-watching"
+              onClick={() => setIsMobileMenuOpen(false)}
+              className={`px-4 py-3 font-label-caps uppercase clip-chip transition-all ${pathname === "/continue-watching" ? "text-neon-crimson bg-neon-crimson/10 border-l-2 border-neon-crimson" : "text-on-surface bg-surface-container/40 hover:bg-surface-glass"}`}
+            >
+              Recents
             </Link>
             <a
               href="https://flicmovies.me"

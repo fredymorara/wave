@@ -71,8 +71,8 @@ export function CommentsSection({ animeId, episodeNumber }: CommentsSectionProps
   return (
     <div className="flex flex-col gap-6 w-full mt-8 lg:mt-0">
       <div className="flex items-center gap-2 border-b border-outline-variant pb-4">
-        <h2 className="font-headline-xl text-[20px] text-on-surface">COMMENTS</h2>
-        <span className="bg-neon-crimson text-void-black font-label-caps text-[10px] px-2 py-0.5 clip-chip">{comments.length}</span>
+        <h2 className="font-headline-xl text-xl text-on-surface tracking-wider">COMMENTS</h2>
+        <span className="bg-neon-crimson text-void-black font-label-caps text-xs px-2 py-0.5 clip-chip font-bold">{comments.length}</span>
       </div>
 
       <form onSubmit={handleSubmit} className="flex flex-col gap-2 relative">
@@ -113,7 +113,7 @@ export function CommentsSection({ animeId, episodeNumber }: CommentsSectionProps
                 </div>
                 <div>
                   <p className="font-headline-md text-sm text-on-surface">{comment.user?.name || "Unknown"}</p>
-                  <p className="font-label-caps text-[10px] text-on-surface-variant">
+                  <p className="font-label-caps text-xs text-on-surface-variant">
                     {new Date(comment.createdAt).toLocaleDateString()}
                   </p>
                 </div>

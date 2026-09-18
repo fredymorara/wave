@@ -255,7 +255,7 @@ export default function WatchClient({ id, episode }: WatchClientProps) {
       <div className="flex-1 flex flex-col items-center justify-center min-h-screen bg-void-black relative">
         <div className="absolute inset-0 pointer-events-none opacity-5 bg-[repeating-linear-gradient(0deg,transparent,transparent_2px,rgba(255,255,255,0.03)_2px,rgba(255,255,255,0.03)_4px)]" />
         <Grid size="60" speed="1" color="#FF003C" />
-        <span className="mt-8 font-label-caps text-cyber-cyan text-[10px] uppercase tracking-widest animate-pulse">INITIATING STREAM LINK...</span>
+        <span className="mt-8 font-label-caps text-cyber-cyan text-xs uppercase tracking-widest animate-pulse">INITIATING STREAM LINK...</span>
       </div>
     );
   }
@@ -285,12 +285,12 @@ export default function WatchClient({ id, episode }: WatchClientProps) {
       <div className="w-full bg-void-black px-margin-mobile md:px-margin-desktop py-4 flex items-center gap-4">
         <Link href={`/anime/${id}`} className="text-on-surface-variant hover:text-cyber-cyan transition-colors flex items-center gap-2 group">
           <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
-          <span className="font-label-caps text-[12px] uppercase tracking-widest"><span className="text-outline-variant mr-1">[</span>RETURN<span className="text-outline-variant ml-1">]</span></span>
+          <span className="font-label-caps text-xs uppercase tracking-widest"><span className="text-outline-variant mr-1">[</span>RETURN<span className="text-outline-variant ml-1">]</span></span>
         </Link>
       </div>
 
       {/* Anime Info Context */}
-      <div className="w-full max-w-[1600px] mx-auto px-margin-mobile md:px-margin-desktop mb-6">
+      <div className="w-full px-margin-mobile md:px-margin-desktop mb-6">
         <div className="bg-surface-container/50 border border-outline-variant/30 clip-corner relative overflow-hidden group">
           {/* Faded Banner Background */}
           {(anime.bannerImage || anime.coverImage?.extraLarge) && (
@@ -319,14 +319,14 @@ export default function WatchClient({ id, episode }: WatchClientProps) {
               <h1 className="font-headline-xl text-2xl md:text-3xl text-on-surface mb-2 drop-shadow-[0_0_10px_rgba(255,255,255,0.1)]">{titleStr}</h1>
               <div className="flex items-center gap-3 mb-2">
                 <span className="text-cyber-cyan font-bold font-headline-lg">{anime.averageScore ? `${(anime.averageScore / 10).toFixed(1)}/10` : "N/A"}</span>
-                <span className="text-on-surface-variant font-label-caps text-[10px]">&bull;</span>
-                <span className="text-on-surface-variant font-label-caps text-[10px] uppercase tracking-wider">{anime.seasonYear || 'N/A'}</span>
-                <span className="text-on-surface-variant font-label-caps text-[10px]">&bull;</span>
-                <span className="text-on-surface-variant font-label-caps text-[10px] uppercase tracking-wider">{anime.status?.replace('_', ' ')}</span>
+                <span className="text-on-surface-variant font-label-caps text-xs">&bull;</span>
+                <span className="text-on-surface-variant font-label-caps text-xs uppercase tracking-wider">{anime.seasonYear || 'N/A'}</span>
+                <span className="text-on-surface-variant font-label-caps text-xs">&bull;</span>
+                <span className="text-on-surface-variant font-label-caps text-xs uppercase tracking-wider">{anime.status?.replace('_', ' ')}</span>
               </div>
               <div className="flex flex-wrap gap-2 mb-3">
                 {anime.genres?.slice(0, 4).map(g => (
-                  <span key={g} className="text-[10px] font-label-caps px-2 py-0.5 border border-outline-variant/30 text-on-surface-variant">{g}</span>
+                  <span key={g} className="text-xs font-label-caps px-2 py-0.5 border border-outline-variant/30 text-on-surface-variant">{g}</span>
                 ))}
               </div>
               <p 
@@ -339,8 +339,8 @@ export default function WatchClient({ id, episode }: WatchClientProps) {
       </div>
 
       {/* Video Player Section */}
-      <section className="w-full bg-black relative">
-        <div ref={playerRef} className="w-full max-w-[1600px] mx-auto aspect-video bg-surface-container flex items-center justify-center shadow-[0_0_30px_rgba(255,0,60,0.1)] relative">
+      <section className="w-full bg-black relative px-margin-mobile md:px-margin-desktop">
+        <div ref={playerRef} className="w-full aspect-video bg-surface-container flex items-center justify-center shadow-[0_0_30px_rgba(255,0,60,0.1)] relative">
           {/* Iframe key removes episode so it doesn't unmount on auto-next, allowing fullscreen preservation */}
           <iframe
             key={`${provider}-${effectiveLanguage}`}
@@ -353,20 +353,18 @@ export default function WatchClient({ id, episode }: WatchClientProps) {
         </div>
       </section>
 
-
-
       {/* Player Controls Bar */}
-      <div className="w-full max-w-[1600px] mx-auto bg-surface-container-lowest border-b border-surface-variant px-margin-mobile md:px-margin-desktop py-4 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+      <div className="w-full bg-surface-container-lowest border-b border-surface-variant px-margin-mobile md:px-margin-desktop py-4 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
           <div className="flex flex-wrap items-center gap-2 mb-1">
-            <span className="font-label-caps text-cyber-cyan uppercase tracking-widest border border-cyber-cyan px-2 py-0.5 text-[10px] clip-corner bg-cyber-cyan/10">
+            <span className="font-label-caps text-cyber-cyan uppercase tracking-widest border border-cyber-cyan px-2 py-0.5 text-xs clip-corner bg-cyber-cyan/10">
               {anime.format || "TV"}
             </span>
-            <span className="font-label-caps text-on-surface-variant text-[12px]">
+            <span className="font-label-caps text-on-surface-variant text-xs">
               EPISODE {episode}
             </span>
           </div>
-          <h1 className="font-headline-xl text-[24px] md:text-[28px] text-on-surface drop-shadow-[0_0_10px_rgba(255,255,255,0.1)] line-clamp-1">
+          <h1 className="font-headline-xl text-2xl md:text-3xl text-on-surface drop-shadow-[0_0_10px_rgba(255,255,255,0.1)] line-clamp-1">
             {titleStr}
           </h1>
         </div>
@@ -377,7 +375,7 @@ export default function WatchClient({ id, episode }: WatchClientProps) {
             <button 
               type="button"
               onClick={() => setLanguage("sub")}
-              className={`flex items-center gap-1.5 font-label-caps text-[12px] px-3 py-1.5 transition-all cursor-pointer clip-chip ${
+              className={`flex items-center gap-1.5 font-label-caps text-xs px-3 py-1.5 transition-all cursor-pointer clip-chip ${
                 effectiveLanguage === "sub" 
                   ? 'bg-neon-crimson text-void-black font-bold shadow-[0_0_10px_rgba(255,0,60,0.5)]' 
                   : 'bg-surface-container-low text-on-surface-variant hover:bg-surface-glass hover:text-white'
@@ -393,7 +391,7 @@ export default function WatchClient({ id, episode }: WatchClientProps) {
                 }
               }}
               disabled={!isDubAvailable}
-              className={`flex items-center gap-1.5 font-label-caps text-[12px] px-3 py-1.5 transition-all clip-chip ${
+              className={`flex items-center gap-1.5 font-label-caps text-xs px-3 py-1.5 transition-all clip-chip ${
                 effectiveLanguage === "dub" 
                   ? 'bg-neon-crimson text-void-black font-bold shadow-[0_0_10px_rgba(255,0,60,0.5)]' 
                   : 'bg-surface-container-low text-on-surface-variant hover:bg-surface-glass hover:text-white'
@@ -410,7 +408,7 @@ export default function WatchClient({ id, episode }: WatchClientProps) {
           <button 
             type="button"
             onClick={() => setAutoNext(!autoNext)}
-            className={`flex items-center gap-2 font-label-caps text-[12px] px-3 py-1.5 border transition-all cursor-pointer clip-chip ${
+            className={`flex items-center gap-2 font-label-caps text-xs px-3 py-1.5 border transition-all cursor-pointer clip-chip ${
               autoNext 
                 ? 'border-neon-crimson text-neon-crimson bg-neon-crimson/10 shadow-[0_0_10px_rgba(255,0,60,0.2)]' 
                 : 'border-outline-variant text-on-surface-variant hover:text-white hover:border-white'
@@ -427,7 +425,7 @@ export default function WatchClient({ id, episode }: WatchClientProps) {
       </div>
 
       {/* Content Layout */}
-      <div className="w-full max-w-[1600px] mx-auto px-margin-mobile md:px-margin-desktop py-8 grid grid-cols-1 lg:grid-cols-12 gap-gutter">
+      <div className="w-full px-margin-mobile md:px-margin-desktop py-8 grid grid-cols-1 lg:grid-cols-12 gap-gutter">
         
         {/* Left Column: Context & Episodes */}
         <div className="lg:col-span-8 flex flex-col gap-stack-lg">
@@ -435,9 +433,9 @@ export default function WatchClient({ id, episode }: WatchClientProps) {
           {/* Episode Selector */}
           <div>
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-outline-variant pb-4 mb-4">
-              <h2 className="font-headline-xl text-[20px] text-on-surface uppercase tracking-widest">EPISODES <span className="text-neon-crimson font-label-caps text-[12px] align-top">{finalNumEpisodes}</span></h2>
+              <h2 className="font-headline-xl text-xl text-on-surface uppercase tracking-widest">EPISODES <span className="text-neon-crimson font-label-caps text-xs align-top">{finalNumEpisodes}</span></h2>
               {anime.nextAiringEpisode && (
-                <div className="text-[11px] font-label-caps text-neon-crimson border border-neon-crimson/30 bg-neon-crimson/5 px-3 py-1.5 clip-chip self-start sm:self-auto flex items-center gap-2">
+                <div className="text-xs font-label-caps text-neon-crimson border border-neon-crimson/30 bg-neon-crimson/5 px-3 py-1.5 clip-chip self-start sm:self-auto flex items-center gap-2">
                   <span className="w-1.5 h-1.5 bg-neon-crimson animate-pulse shadow-[0_0_8px_rgba(255,0,60,0.8)]"></span>
                   EP {anime.nextAiringEpisode.episode} AIRS ON {new Date(anime.nextAiringEpisode.airingAt * 1000).toLocaleString(undefined, { weekday: 'short', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' }).toUpperCase()}
                 </div>
@@ -455,7 +453,7 @@ export default function WatchClient({ id, episode }: WatchClientProps) {
                       type="button"
                       key={`chunk-${s}-${e}`}
                       onClick={() => setSelectedChunk({ ep: episode, chunk: i })}
-                      className={`font-label-caps text-[12px] px-4 py-2 border clip-chip transition-all cursor-pointer ${
+                      className={`font-label-caps text-xs px-4 py-2 border clip-chip transition-all cursor-pointer ${
                         activeChunk === i 
                           ? 'bg-neon-crimson border-neon-crimson text-void-black font-bold shadow-[0_0_10px_rgba(255,0,60,0.5)]' 
                           : 'bg-surface-container border-outline-variant text-on-surface-variant hover:border-cyber-cyan hover:text-cyber-cyan hover:bg-cyber-cyan/10'
@@ -500,7 +498,7 @@ export default function WatchClient({ id, episode }: WatchClientProps) {
         {/* Right Column: Recommendations */}
         <div className="lg:col-span-4 flex flex-col gap-stack-lg mt-8 lg:mt-0">
           <div className="flex items-center justify-between border-b border-outline-variant pb-4">
-            <h2 className="font-headline-xl text-[20px] text-on-surface">MORE LIKE THIS</h2>
+            <h2 className="font-headline-xl text-xl text-on-surface tracking-wider">MORE LIKE THIS</h2>
           </div>
           
           <div className="grid grid-cols-2 gap-4">
@@ -510,17 +508,18 @@ export default function WatchClient({ id, episode }: WatchClientProps) {
                   src={rec.coverImage?.extraLarge || rec.coverImage?.large || ""} 
                   alt={rec.title?.english || rec.title?.romaji || ""} 
                   fill 
+                  sizes="(max-width: 640px) 50vw, (max-width: 1024px) 25vw, 15vw"
                   className="object-cover opacity-80 group-hover:opacity-100 group-hover:scale-105 transition-all duration-300 z-0"
                 />
                 <div className="absolute inset-0 bg-linear-to-t from-void-black via-void-black/20 to-transparent z-0" />
-                <div className="absolute top-2 right-2 bg-void-black/80 text-neon-crimson font-label-caps text-[10px] px-2 py-1 border border-neon-crimson/50 clip-chip z-10">
+                <div className="absolute top-2 right-2 bg-void-black/80 text-neon-crimson font-label-caps text-xs px-2 py-1 border border-neon-crimson/50 clip-chip z-10">
                   {rec.averageScore ? (rec.averageScore / 10).toFixed(1) : "N/A"}
                 </div>
                 <div className="absolute bottom-0 left-0 w-full p-3 z-10">
-                  <h3 className="font-headline-lg text-[14px] text-white leading-tight line-clamp-2 group-hover:text-cyber-cyan transition-colors">
+                  <h3 className="font-headline-md text-sm text-white leading-tight line-clamp-2 group-hover:text-cyber-cyan transition-colors">
                     {rec.title?.english || rec.title?.romaji}
                   </h3>
-                  <span className="font-label-caps text-[10px] text-on-surface-variant mt-1 inline-block">
+                  <span className="font-label-caps text-xs text-on-surface-variant mt-1 inline-block">
                     {rec.format || 'TV'}
                   </span>
                 </div>

@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { Play, Star, MessageSquare, Mic } from "lucide-react";
 import { useAnimeDetails } from "@/hooks/useAnime";
 import { type AniListAnime, isSafeAnime } from "@/lib/api/anilist";
@@ -10,6 +10,7 @@ import { Grid } from 'ldrs/react';
 import 'ldrs/react/Grid.css';
 import { WatchlistButton } from "@/components/watchlist/WatchlistButton";
 import { useWatchStore, getAnimeResumeInfo } from "@/store/useWatchStore";
+import { useMounted } from "@/hooks/useMounted";
 
 function calculateBaseEpisodes(anime: AniListAnime, isSubCount?: number | null): number {
   if (anime.status === 'NOT_YET_RELEASED') return 0;
@@ -61,31 +62,60 @@ export default function AnimeClient({ id }: AnimeClientProps) {
   const [episodeChunk, setEpisodeChunk] = useState(0);
   const [language, setLanguage] = useState<"sub" | "dub">("sub");
   const [counts, setCounts] = useState<{ is_sub: number | null, is_dub: number | null } | null>(null);
-  const [mounted, setMounted] = useState(false);
+  const mounted = useMounted();
 
   const watchHistoryItem = useWatchStore((state) => state.history[String(id)]);
 
+  // Fetch Anikoto Sub/Dub counts with cleanup signal
   useEffect(() => {
-    setMounted(true);
-  }, []);
-
-  // Fetch Anikoto Sub/Dub counts
-  useEffect(() => {
+    const controller = new AbortController();
     async function fetchCounts() {
       try {
-        const res = await fetch(`/api/episodes/${id}`);
+        const res = await fetch(`/api/episodes/${id}`, { signal: controller.signal });
         if (res.ok) {
           const data = await res.json();
           if (data && (typeof data.is_sub === 'number' || typeof data.is_dub === 'number' || data.is_sub !== undefined)) {
             setCounts({ is_sub: data.is_sub ?? null, is_dub: data.is_dub ?? null });
           }
         }
-      } catch (err) {
-        console.error("Failed to fetch episode counts", err);
+      } catch (err: unknown) {
+        if ((err as Error)?.name !== 'AbortError') {
+          console.error("Failed to fetch episode counts", err);
+        }
       }
     }
     if (anime) fetchCounts();
+    return () => controller.abort();
   }, [anime, id]);
+
+  const baseEpisodes = useMemo(
+    () => (anime ? calculateBaseEpisodes(anime, counts?.is_sub) : 0),
+    [anime, counts?.is_sub]
+  );
+  const numEpisodes = useMemo(
+    () => (anime ? getApplicableEpisodes(baseEpisodes, anime, counts, language) : 0),
+    [baseEpisodes, anime, counts, language]
+  );
+  const episodeArray = useMemo(
+    () => Array.from({ length: numEpisodes }, (_, i) => i + 1),
+    [numEpisodes]
+  );
+
+  const resumeInfo = mounted ? getAnimeResumeInfo(watchHistoryItem, numEpisodes) : null;
+  const targetEpisode = resumeInfo?.hasProgress ? resumeInfo.episode : 1;
+  const effectiveResumeLang = (resumeInfo?.hasProgress ? resumeInfo.language : language) || "sub";
+  const finalResumeLang = (effectiveResumeLang === "dub" && counts && counts.is_dub !== null && targetEpisode > counts.is_dub) ? "sub" : effectiveResumeLang;
+  
+  const CHUNK_SIZE = 100;
+  const numChunks = Math.ceil(episodeArray.length / CHUNK_SIZE);
+  const currentEpisodes = useMemo(
+    () => episodeArray.slice(episodeChunk * CHUNK_SIZE, (episodeChunk + 1) * CHUNK_SIZE),
+    [episodeArray, episodeChunk]
+  );
+  const cleanDescription = useMemo(
+    () => (anime ? getCleanDescription(anime.description) : ''),
+    [anime]
+  );
 
   if (isAnimeLoading) {
     return (
@@ -103,20 +133,6 @@ export default function AnimeClient({ id }: AnimeClientProps) {
     );
   }
 
-  const baseEpisodes = calculateBaseEpisodes(anime, counts?.is_sub);
-  const numEpisodes = getApplicableEpisodes(baseEpisodes, anime, counts, language);
-  const episodeArray = Array.from({ length: numEpisodes }, (_, i) => i + 1);
-
-  const resumeInfo = mounted ? getAnimeResumeInfo(watchHistoryItem, numEpisodes) : null;
-  const targetEpisode = resumeInfo?.hasProgress ? resumeInfo.episode : 1;
-  const effectiveResumeLang = (resumeInfo?.hasProgress ? resumeInfo.language : language) || "sub";
-  const finalResumeLang = (effectiveResumeLang === "dub" && counts && counts.is_dub !== null && targetEpisode > counts.is_dub) ? "sub" : effectiveResumeLang;
-  
-  const CHUNK_SIZE = 100;
-  const numChunks = Math.ceil(episodeArray.length / CHUNK_SIZE);
-  const currentEpisodes = episodeArray.slice(episodeChunk * CHUNK_SIZE, (episodeChunk + 1) * CHUNK_SIZE);
-  const cleanDescription = getCleanDescription(anime.description);
-
   return (
     <>
       <div className="relative w-full h-100 md:h-125 lg:h-150 mt-18">
@@ -126,6 +142,7 @@ export default function AnimeClient({ id }: AnimeClientProps) {
             src={anime.bannerImage || anime.coverImage.extraLarge} 
             alt={anime.title.english || anime.title.romaji || ""} 
             fill 
+            sizes="100vw"
             className="object-cover"
             priority
           />
@@ -133,12 +150,13 @@ export default function AnimeClient({ id }: AnimeClientProps) {
         <div className="absolute inset-0 bg-linear-to-t from-void-black via-void-black/80 to-transparent z-10" />
         
         <div className="absolute bottom-0 left-0 w-full z-20 px-margin-mobile md:px-margin-desktop pb-12">
-          <div className="max-w-[1600px] mx-auto flex flex-col md:flex-row items-end md:items-center gap-6">
+          <div className="flex flex-col md:flex-row items-end md:items-center gap-6">
             <div className="relative w-32 h-48 md:w-48 md:h-72 shrink-0 border-2 border-outline-variant/30 shadow-[0_0_30px_rgba(255,0,60,0.2)] clip-corner bg-surface-container overflow-hidden hidden md:block">
               <Image 
                 src={anime.coverImage.extraLarge || anime.coverImage.large} 
                 alt={anime.title.english || anime.title.romaji || ""} 
                 fill 
+                sizes="(max-width: 768px) 128px, 192px"
                 className="object-cover"
                 priority
               />
@@ -146,20 +164,20 @@ export default function AnimeClient({ id }: AnimeClientProps) {
             
             <div className="flex-1 flex flex-col gap-3">
               <div className="flex flex-wrap items-center gap-2 mb-1">
-                <span className="font-label-caps text-cyber-cyan uppercase tracking-widest border border-cyber-cyan px-2 py-0.5 text-[10px] clip-corner bg-cyber-cyan/10">
+                <span className="font-label-caps text-cyber-cyan uppercase tracking-widest border border-cyber-cyan px-2 py-0.5 text-xs clip-corner bg-cyber-cyan/10">
                   {anime.format || "TV"}
                 </span>
                 {anime.seasonYear && (
-                  <span className="font-label-caps text-on-surface-variant text-[12px]">
+                  <span className="font-label-caps text-on-surface-variant text-xs">
                     {anime.seasonYear}
                   </span>
                 )}
-                <span className="font-label-caps text-on-surface-variant text-[12px] uppercase">
+                <span className="font-label-caps text-on-surface-variant text-xs uppercase">
                   &bull; {anime.status?.replace('_', ' ')}
                 </span>
               </div>
               
-              <h1 className="font-headline-xl text-[32px] md:text-[48px] lg:text-[64px] text-white leading-tight drop-shadow-[0_0_10px_rgba(255,255,255,0.2)]">
+              <h1 className="font-headline-xl text-3xl md:text-5xl lg:text-display text-white leading-tight drop-shadow-[0_0_10px_rgba(255,255,255,0.2)]">
                 {anime.title.english || anime.title.romaji}
               </h1>
               
@@ -170,7 +188,7 @@ export default function AnimeClient({ id }: AnimeClientProps) {
                 </div>
                 
                 {counts && (
-                  <div className="flex items-center gap-3 bg-surface-container px-3 py-1 clip-chip border border-outline-variant/30 font-label-caps text-[10px]">
+                  <div className="flex items-center gap-3 bg-surface-container px-3 py-1 clip-chip border border-outline-variant/30 font-label-caps text-xs">
                     <div className="flex items-center gap-1">
                       <span className="text-on-surface-variant">SUB:</span>
                       <span className="text-white font-bold">{counts.is_sub ?? '?'}</span>
@@ -186,7 +204,7 @@ export default function AnimeClient({ id }: AnimeClientProps) {
               
               <div className="flex flex-wrap gap-2 mt-4">
                 {anime.genres.map((g: string) => (
-                  <span key={g} className="font-label-caps text-[10px] uppercase tracking-wider px-3 py-1 border border-outline-variant/30 text-on-surface-variant clip-chip">
+                  <span key={g} className="font-label-caps text-xs uppercase tracking-wider px-3 py-1 border border-outline-variant/30 text-on-surface-variant clip-chip">
                     {g}
                   </span>
                 ))}
@@ -223,9 +241,9 @@ export default function AnimeClient({ id }: AnimeClientProps) {
         </div>
       </div>
       
-      <div className="w-full max-w-[1600px] mx-auto bg-void-black">
+      <div className="w-full bg-void-black">
         <section className="px-margin-mobile md:px-margin-desktop py-8 border-b border-outline-variant/20">
-          <h2 className="font-headline-xl text-[20px] text-on-surface">SYNOPSIS</h2>
+          <h2 className="font-headline-xl text-xl text-on-surface tracking-wider">SYNOPSIS</h2>
           <p 
             className="text-on-surface-variant text-base md:text-lg leading-relaxed max-w-4xl"
             dangerouslySetInnerHTML={{ __html: cleanDescription }}
@@ -235,7 +253,7 @@ export default function AnimeClient({ id }: AnimeClientProps) {
         {anime.relations && anime.relations.length > 0 && (
           <section className="px-margin-mobile md:px-margin-desktop py-8 border-b border-outline-variant/20">
             <div className="flex items-center justify-between border-b border-outline-variant pb-4 mb-6">
-              <h2 className="font-headline-xl text-[20px] text-on-surface">FRANCHISE</h2>
+              <h2 className="font-headline-xl text-xl text-on-surface tracking-wider">FRANCHISE</h2>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 pb-4">
               {anime.relations.map((rel) => (
@@ -245,15 +263,16 @@ export default function AnimeClient({ id }: AnimeClientProps) {
                       src={rel.coverImage?.large || rel.coverImage?.extraLarge || ""} 
                       alt={rel.title?.english || rel.title?.romaji || ""} 
                       fill 
+                      sizes="64px"
                       className="object-cover opacity-80 group-hover:opacity-100 group-hover:scale-105 transition-all duration-300"
                     />
                   </div>
                   <div className="flex flex-col justify-center overflow-hidden">
-                    <span className="text-cyber-cyan font-label-caps text-[10px] uppercase mb-1 tracking-widest">{rel.relationType.replace('_', ' ')}</span>
-                    <h3 className="font-headline-lg text-[14px] text-on-surface line-clamp-2 group-hover:text-neon-crimson transition-colors">
+                    <span className="text-cyber-cyan font-label-caps text-xs uppercase mb-1 tracking-widest">{rel.relationType.replace('_', ' ')}</span>
+                    <h3 className="font-headline-md text-sm text-on-surface line-clamp-2 group-hover:text-neon-crimson transition-colors">
                       {rel.title?.english || rel.title?.romaji}
                     </h3>
-                    <span className="text-on-surface-variant font-label-caps text-[10px] mt-2">
+                    <span className="text-on-surface-variant font-label-caps text-xs mt-2">
                       {rel.format || 'TV'} &bull; {rel.seasonYear || rel.startDate?.year || 'N/A'}
                     </span>
                   </div>
@@ -271,7 +290,7 @@ export default function AnimeClient({ id }: AnimeClientProps) {
             <div className="flex flex-col sm:flex-row sm:items-center gap-4">
               <h2 className="font-headline-xl text-headline-xl text-on-surface">EPISODES <span className="text-neon-crimson font-label-caps text-label-caps text-sm align-top">{numEpisodes}</span></h2>
               {anime.nextAiringEpisode && (
-                <div className="text-[11px] font-label-caps text-neon-crimson border border-neon-crimson/30 bg-neon-crimson/5 px-3 py-1.5 clip-chip self-start flex items-center gap-2">
+                <div className="text-xs font-label-caps text-neon-crimson border border-neon-crimson/30 bg-neon-crimson/5 px-3 py-1.5 clip-chip self-start flex items-center gap-2">
                   <span className="w-1.5 h-1.5 bg-neon-crimson animate-pulse shadow-[0_0_8px_rgba(255,0,60,0.8)]"></span>
                   EP {anime.nextAiringEpisode.episode} AIRS ON {new Date(anime.nextAiringEpisode.airingAt * 1000).toLocaleString(undefined, { weekday: 'short', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' }).toUpperCase()}
                 </div>
@@ -281,7 +300,7 @@ export default function AnimeClient({ id }: AnimeClientProps) {
               <button 
                 type="button"
                 onClick={() => setLanguage("sub")}
-                className={`flex items-center gap-1.5 font-label-caps text-[12px] px-3 py-1.5 transition-all cursor-pointer clip-chip ${
+                className={`flex items-center gap-1.5 font-label-caps text-xs px-3 py-1.5 transition-all cursor-pointer clip-chip ${
                   language === "sub" 
                     ? 'bg-neon-crimson text-void-black font-bold shadow-[0_0_10px_rgba(255,0,60,0.5)]' 
                     : 'bg-surface-container-low text-on-surface-variant hover:bg-surface-glass hover:text-white'
@@ -297,7 +316,7 @@ export default function AnimeClient({ id }: AnimeClientProps) {
                   }
                 }}
                 disabled={counts !== null && (!counts.is_dub || counts.is_dub <= 0)}
-                className={`flex items-center gap-1.5 font-label-caps text-[12px] px-3 py-1.5 transition-all clip-chip ${
+                className={`flex items-center gap-1.5 font-label-caps text-xs px-3 py-1.5 transition-all clip-chip ${
                   language === "dub" 
                     ? 'bg-neon-crimson text-void-black font-bold shadow-[0_0_10px_rgba(255,0,60,0.5)]' 
                     : 'bg-surface-container-low text-on-surface-variant hover:bg-surface-glass hover:text-white'
@@ -320,7 +339,7 @@ export default function AnimeClient({ id }: AnimeClientProps) {
                     type="button"
                     key={`chunk-${start}-${end}`}
                     onClick={() => setEpisodeChunk(i)}
-                    className={`font-label-caps text-[12px] px-4 py-2 border clip-chip transition-all ${
+                    className={`font-label-caps text-xs px-4 py-2 border clip-chip transition-all ${
                       episodeChunk === i 
                         ? 'bg-neon-crimson border-neon-crimson text-void-black font-bold' 
                         : 'bg-surface-container border-outline-variant text-on-surface-variant hover:border-cyber-cyan hover:text-cyber-cyan'
@@ -361,7 +380,7 @@ export default function AnimeClient({ id }: AnimeClientProps) {
         <div className="lg:col-span-4 flex flex-col gap-stack-lg mt-12 lg:mt-0">
 
           <div className="flex items-center justify-between border-b border-outline-variant pb-4">
-            <h2 className="font-headline-xl text-[20px] text-on-surface">MORE LIKE THIS</h2>
+            <h2 className="font-headline-xl text-xl text-on-surface tracking-wider">MORE LIKE THIS</h2>
           </div>
           
           <div className="grid grid-cols-2 gap-4">
@@ -372,17 +391,18 @@ export default function AnimeClient({ id }: AnimeClientProps) {
                     src={rec.coverImage?.extraLarge || ""} 
                     alt={rec.title?.english || rec.title?.romaji || ""} 
                     fill 
+                    sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 20vw"
                     className="object-cover opacity-80 group-hover:opacity-100 group-hover:scale-105 transition-all duration-500 z-0"
                   />
                   <div className="absolute inset-0 bg-linear-to-t from-void-black via-void-black/20 to-transparent z-0" />
-                  <div className="absolute top-2 right-2 bg-void-black/80 text-neon-crimson font-label-caps text-[10px] px-2 py-1 border border-neon-crimson/50 clip-chip z-10">
+                  <div className="absolute top-2 right-2 bg-void-black/80 text-neon-crimson font-label-caps text-xs px-2 py-1 border border-neon-crimson/50 clip-chip z-10">
                     {rec.averageScore ? (rec.averageScore / 10).toFixed(1) : "N/A"}
                   </div>
                   <div className="absolute bottom-0 left-0 w-full p-3 z-10">
-                    <h3 className="font-headline-lg text-[14px] text-white leading-tight line-clamp-2 group-hover:text-cyber-cyan transition-colors drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">
+                    <h3 className="font-headline-md text-sm text-white leading-tight line-clamp-2 group-hover:text-cyber-cyan transition-colors drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">
                       {rec.title?.english || rec.title?.romaji}
                     </h3>
-                    <span className="font-label-caps text-[10px] text-on-surface-variant mt-1 inline-block">
+                    <span className="font-label-caps text-xs text-on-surface-variant mt-1 inline-block">
                       {rec.format || 'TV'}
                     </span>
                   </div>

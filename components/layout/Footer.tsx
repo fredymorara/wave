@@ -13,6 +13,7 @@ export function Footer() {
         <div className="flex flex-wrap justify-center gap-stack-md font-label-md text-label-md uppercase">
           <Link className="text-on-surface-variant hover:text-cyber-cyan transition-opacity duration-200" href="/">Home</Link>
           <Link className="text-on-surface-variant hover:text-cyber-cyan transition-opacity duration-200" href="/schedule">Schedule</Link>
+          <Link className="text-on-surface-variant hover:text-cyber-cyan transition-opacity duration-200" href="/continue-watching">Recents</Link>
           <a className="text-on-surface-variant hover:text-cyber-cyan transition-opacity duration-200" href="https://flicmovies.me" target="_blank" rel="noopener noreferrer">Movies & TV Shows</a>
           <a className="text-on-surface-variant hover:text-cyber-cyan transition-opacity duration-200" href="https://sports.flicmovies.me" target="_blank" rel="noopener noreferrer">Sports</a>
           <a className="text-on-surface-variant hover:text-cyber-cyan transition-opacity duration-200" href="#">Terms & Privacy</a>

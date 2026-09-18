@@ -14,6 +14,7 @@ import { User as UserIcon } from "lucide-react";
 import 'ldrs/react/Grid.css';
 import { NotificationPanel } from "@/components/notifications/NotificationPanel";
 import { useNotifications } from "@/hooks/useNotifications";
+import { WaveLogo } from "@/components/ui/WaveLogo";
 
 export function Navbar() {
   const router = useRouter();
@@ -71,10 +72,10 @@ export function Navbar() {
         <div className="flex items-center gap-4 lg:gap-gutter">
           <Link
             href="/"
-            className="flex items-center gap-2 font-headline-lg lg:font-headline-xl text-headline-lg lg:text-headline-xl text-neon-crimson tracking-tighter italic font-black whitespace-nowrap"
+            className="flex items-center group whitespace-nowrap focus:outline-none"
+            aria-label="Wave Anime Home"
           >
-            <Grid size="35" speed="1" color="#FF003C" />
-            <span><span className="text-on-surface">WAVE</span>ANIME</span>
+            <WaveLogo variant="full" size="md" />
           </Link>
           <div className="hidden md:flex items-center gap-4 lg:gap-stack-md font-label-caps text-[10px] lg:text-label-caps uppercase">
             <Link

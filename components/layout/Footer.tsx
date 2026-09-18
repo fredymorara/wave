@@ -1,15 +1,13 @@
 import Link from "next/link";
-import { Grid } from 'ldrs/react';
-import 'ldrs/react/Grid.css';
+import { WaveLogo } from "@/components/ui/WaveLogo";
 
 export function Footer() {
   return (
     <footer className="bg-void-black py-stack-lg border-t border-outline-variant mt-auto z-10 relative">
       <div className="flex flex-col md:flex-row justify-between items-center px-margin-desktop gap-stack-md">
-        <div className="flex items-center gap-2 font-headline-lg text-headline-lg text-neon-crimson italic font-black">
-          <Grid size="30" speed="1" color="#FF003C" />
-          <span><span className="text-on-surface">WAVE</span>ANIME</span>
-        </div>
+        <Link href="/" className="flex items-center group whitespace-nowrap focus:outline-none" aria-label="Wave Anime Home">
+          <WaveLogo variant="full" size="md" />
+        </Link>
         <div className="flex flex-wrap justify-center gap-stack-md font-label-md text-label-md uppercase">
           <Link className="text-on-surface-variant hover:text-cyber-cyan transition-opacity duration-200" href="/">Home</Link>
           <Link className="text-on-surface-variant hover:text-cyber-cyan transition-opacity duration-200" href="/schedule">Schedule</Link>

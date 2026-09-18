@@ -174,7 +174,7 @@ const ContinueWatchingCard = React.memo(function ContinueWatchingCard({
   );
 });
 
-export function ContinueWatchingClient() {
+export default function ContinueWatchingClient() {
   const mounted = useMounted();
   const [activeFilter, setActiveFilter] = useState<"all" | "in_progress" | "completed">("all");
   const [searchQuery, setSearchQuery] = useState("");
@@ -498,3 +498,6 @@ export function ContinueWatchingClient() {
     </div>
   );
 }
+
+export { ContinueWatchingClient };
+

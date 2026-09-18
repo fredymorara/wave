@@ -1,0 +1,56 @@
+<svg viewBox="0 0 360 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="wave-crimson-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FF3366" />
+      <stop offset="60%" stop-color="#FF003C" />
+      <stop offset="100%" stop-color="#A80028" />
+    </linearGradient>
+    <linearGradient id="wave-cyan-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#00F0FF" />
+      <stop offset="70%" stop-color="#00B8D4" />
+      <stop offset="100%" stop-color="#007799" />
+    </linearGradient>
+    <linearGradient id="wave-core-grad" x1="50%" y1="0%" x2="50%" y2="100%">
+      <stop offset="0%" stop-color="#00F0FF" />
+      <stop offset="40%" stop-color="#BD00FF" />
+      <stop offset="100%" stop-color="#FF003C" />
+    </linearGradient>
+    <filter id="wave-glow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="2" result="blur" />
+      <feComposite in="SourceGraphic" in2="blur" operator="over" />
+    </filter>
+  </defs>
+
+  <!-- Icon Emblem Scaled at (x=6, y=6, w=68, h=68) -->
+  <g transform="translate(6, 6) scale(0.68)">
+    <polygon points="22,6 78,6 94,22 94,78 78,94 22,94 6,78 6,22" fill="#020204" stroke="#FF003C" stroke-opacity="0.4" stroke-width="1.5" />
+    <path d="M 30 42 L 50 16 L 68 30 L 60 34 L 50 24 L 38 38 Z" fill="url(#wave-cyan-grad)" opacity="0.9" filter="url(#wave-glow)" />
+    <path d="M 22 48 L 44 22 L 54 32 L 48 35 L 42 29 L 28 45 Z" fill="#00F0FF" opacity="0.6" />
+    <polygon points="68,40 71,40 71,58 68,58" fill="#00F0FF" />
+    <polygon points="74,34 77,34 77,64 74,64" fill="#00F0FF" />
+    <polygon points="80,42 83,42 83,56 80,56" fill="#00F0FF" opacity="0.8" />
+    <polygon points="28,46 31,46 31,54 28,54" fill="#FF003C" opacity="0.8" />
+    <polygon points="22,38 25,38 25,62 22,62" fill="#FF003C" />
+    <polygon points="10,22 24,22 40,82 26,82" fill="url(#wave-crimson-grad)" filter="url(#wave-glow)" />
+    <polygon points="14,26 22,26 35,76 28,76" fill="#FF6685" opacity="0.8" />
+    <polygon points="90,22 76,22 60,82 74,82" fill="url(#wave-cyan-grad)" filter="url(#wave-glow)" />
+    <polygon points="86,26 78,26 65,76 72,76" fill="#80F7FF" opacity="0.8" />
+    <polygon points="50,28 62,78 52,78 50,66 48,78 38,78" fill="url(#wave-core-grad)" filter="url(#wave-glow)" />
+    <polygon points="50,28 53,60 50,56 47,60" fill="#FFFFFF" />
+    <path d="M 12 10 L 6 10 L 6 16" stroke="#FF003C" stroke-width="1.5" />
+    <path d="M 88 10 L 94 10 L 94 16" stroke="#00F0FF" stroke-width="1.5" />
+    <path d="M 6 84 L 6 90 L 12 90" stroke="#FF003C" stroke-width="1.5" />
+    <path d="M 94 84 L 94 90 L 88 90" stroke="#00F0FF" stroke-width="1.5" />
+  </g>
+
+  <!-- Typographic Wordmark -->
+  <text x="88" y="48" font-family="'Space Grotesk', 'Arial Black', sans-serif" font-size="34" font-weight="900" font-style="italic" letter-spacing="-1.5">
+    <tspan fill="#FFFFFF">WAVE</tspan>
+    <tspan fill="#FF003C">ANIME</tspan>
+  </text>
+
+  <!-- Subtitle Tagline -->
+  <text x="90" y="66" font-family="'JetBrains Mono', monospace" font-size="9" font-weight="600" letter-spacing="2.5" fill="#00F0FF">
+    ウェイブ <tspan fill="#FF003C">///</tspan> NEXT-GEN ANIME STREAMING
+  </text>
+</svg>

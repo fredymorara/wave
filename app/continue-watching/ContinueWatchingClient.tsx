@@ -18,6 +18,7 @@ import {
 import { useWatchStore, getAnimeResumeInfo, type WatchHistoryItem } from "@/store/useWatchStore";
 import { timeAgo } from "@/lib/timeAgo";
 import { useMounted } from "@/hooks/useMounted";
+import { useSession } from "@/lib/auth-client";
 
 function formatSeconds(sec?: number): string {
   if (!sec || Number.isNaN(sec) || sec < 0 || !Number.isFinite(sec)) return "0:00";
@@ -176,6 +177,7 @@ const ContinueWatchingCard = React.memo(function ContinueWatchingCard({
 
 export default function ContinueWatchingClient() {
   const mounted = useMounted();
+  const { data: session } = useSession();
   const [activeFilter, setActiveFilter] = useState<"all" | "in_progress" | "completed">("all");
   const [searchQuery, setSearchQuery] = useState("");
   const [showClearConfirm, setShowClearConfirm] = useState(false);
@@ -187,14 +189,33 @@ export default function ContinueWatchingClient() {
   const removeFromHistory = useWatchStore((state) => state.removeFromHistory);
   const clearHistory = useWatchStore((state) => state.clearHistory);
 
-  const handleRemove = useCallback((malId: string | number) => {
-    removeFromHistory(malId);
-  }, [removeFromHistory]);
+  const handleRemove = useCallback(
+    async (malId: string | number) => {
+      removeFromHistory(malId);
+      if (session?.user) {
+        try {
+          await fetch(`/api/progress/${encodeURIComponent(String(malId))}`, {
+            method: "DELETE",
+          });
+        } catch (e) {
+          console.error("Failed to delete progress from DB:", e);
+        }
+      }
+    },
+    [removeFromHistory, session?.user]
+  );
 
-  const handleClearAll = useCallback(() => {
+  const handleClearAll = useCallback(async () => {
     clearHistory();
     setShowClearConfirm(false);
-  }, [clearHistory]);
+    if (session?.user) {
+      try {
+        await fetch("/api/progress", { method: "DELETE" });
+      } catch (e) {
+        console.error("Failed to clear progress from DB:", e);
+      }
+    }
+  }, [clearHistory, session?.user]);
 
   // Keyboard accessibility and body scroll lock for confirmation modal
   useEffect(() => {

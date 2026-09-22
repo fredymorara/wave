@@ -1,14 +1,6 @@
 import { useQuery, useInfiniteQuery } from "@tanstack/react-query";
 import { anilistApi } from "@/lib/api/anilist";
 
-export function useTopAnime(limit = 15) {
-  return useQuery({
-    queryKey: ["anime", "top", limit],
-    queryFn: () => anilistApi.getPopular(limit),
-    staleTime: 60 * 60 * 1000, // 1 hour
-    retry: 1,
-  });
-}
 
 export function useTrendingAnime(limit = 15, page = 1) {
   return useQuery({

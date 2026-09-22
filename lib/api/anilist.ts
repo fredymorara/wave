@@ -90,7 +90,7 @@ const MEDIA_FIELDS = `
 let circuitOpenUntil = 0;
 const CIRCUIT_BREAKER_DURATION_MS = 90 * 1000; // 90 seconds
 
-export const ANILIST_HEADERS: Record<string, string> = {
+const ANILIST_HEADERS: Record<string, string> = {
   "Content-Type": "application/json",
   "Accept": "application/json",
   "Origin": "https://anilist.co",
@@ -98,11 +98,11 @@ export const ANILIST_HEADERS: Record<string, string> = {
   "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
 };
 
-export function isAniListCircuitOpen(): boolean {
+function isAniListCircuitOpen(): boolean {
   return Date.now() < circuitOpenUntil;
 }
 
-export function tripAniListCircuit(reason: string) {
+function tripAniListCircuit(reason: string) {
   circuitOpenUntil = Date.now() + CIRCUIT_BREAKER_DURATION_MS;
   console.warn(`[AniList Circuit Breaker] Tripped for 90s (${reason}). Falling back to Jikan API.`);
 }

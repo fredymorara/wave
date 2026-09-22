@@ -1,7 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useSession } from "@/lib/auth-client";
 
-export interface NotificationItem {
+interface NotificationItem {
   id: string;
   type: string;
   title: string;

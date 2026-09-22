@@ -5,7 +5,7 @@
  */
 
 // Common acronyms and abbreviations mapped to full canonical titles
-export const ANIME_ABBREVIATIONS: Record<string, string> = {
+const ANIME_ABBREVIATIONS: Record<string, string> = {
   db: "Dragon Ball",
   dbz: "Dragon Ball Z",
   dbs: "Dragon Ball Super",
@@ -53,7 +53,7 @@ export const ANIME_ABBREVIATIONS: Record<string, string> = {
 };
 
 // Common typos and keyword replacements
-export const COMMON_TYPOS: Record<string, string> = {
+const COMMON_TYPOS: Record<string, string> = {
   nartuo: "naruto",
   narutoo: "naruto",
   jujustu: "jujutsu",
@@ -82,7 +82,7 @@ export const COMMON_TYPOS: Record<string, string> = {
 /**
  * Strips punctuation and collapses extra whitespace.
  */
-export function cleanSearchText(text: string): string {
+function cleanSearchText(text: string): string {
   if (!text) return "";
   return text
     .replace(/[^\w\s]/gi, " ")
@@ -97,7 +97,7 @@ export function cleanSearchText(text: string): string {
  * 3. Strips disruptive punctuation while preserving alphanumerics
  * 4. Normalizes whitespace
  */
-export function normalizeSearchQuery(raw: string): string {
+function normalizeSearchQuery(raw: string): string {
   if (!raw) return "";
   const trimmed = raw.trim();
   const lower = trimmed.toLowerCase();
@@ -141,7 +141,7 @@ export function normalizeSearchQuery(raw: string): string {
  * Removes season, part, or cour suffixes (e.g. "season 2", "part 2", "2nd season", "cour 1")
  * so searches targeting sequels don't fail when upstream databases store only the base title.
  */
-export function stripSeasonSuffix(text: string): string {
+function stripSeasonSuffix(text: string): string {
   if (!text) return "";
   return text
     .replace(/\b(season\s*\d+|part\s*\d+|cour\s*\d+|\d+(st|nd|rd|th)\s*season)\b/gi, "")

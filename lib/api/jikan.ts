@@ -189,7 +189,7 @@ async function fetchKitsu<T>(endpoint: string): Promise<T> {
   return json;
 }
 
-export function mapJikanToAniList(jikan: JikanAnime): AniListAnime {
+function mapJikanToAniList(jikan: JikanAnime): AniListAnime {
   const images = jikan.images;
   const webp = images?.webp;
   const jpg = images?.jpg;

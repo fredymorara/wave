@@ -9,7 +9,7 @@ interface WaveLogoProps {
   showSubtitle?: boolean;
 }
 
-export function WaveLogoIcon({ className = "w-9 h-9" }: { className?: string }) {
+function WaveLogoIcon({ className = "w-9 h-9" }: { className?: string }) {
   return (
     <svg
       viewBox="0 0 100 100"
@@ -214,5 +214,3 @@ export function WaveLogo({
     </div>
   );
 }
-
-export default WaveLogo;

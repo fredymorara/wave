@@ -466,5 +466,3 @@ export default function ContinueWatchingClient() {
   );
 }
 
-export { ContinueWatchingClient };
-

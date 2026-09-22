@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Users, Eye, MessageSquare, Megaphone, Send, Clock, UserPlus, AlertCircle } from "lucide-react";
 import { timeAgo } from "@/lib/timeAgo";
+import { ConfirmModal } from "@/components/ui/ConfirmModal";
 
 // Types
 type TimeRange = "7d" | "30d" | "90d";
@@ -29,6 +30,7 @@ interface Broadcast {
 
 export default function AdminDashboard() {
   const [range, setRange] = useState<TimeRange>("7d");
+  const [showBroadcastConfirm, setShowBroadcastConfirm] = useState(false);
   const queryClient = useQueryClient();
 
   // Fetch Stats
@@ -84,12 +86,14 @@ export default function AdminDashboard() {
   const handleSendBroadcast = (e: React.FormEvent) => {
     e.preventDefault();
     if (!broadcastForm.title || !broadcastForm.message) return;
-    
-    if (confirm("Are you sure you want to send this broadcast to all users?")) {
-      setIsSending(true);
-      setBroadcastError("");
-      sendBroadcast.mutate(broadcastForm);
-    }
+    setShowBroadcastConfirm(true);
+  };
+
+  const confirmSendBroadcast = () => {
+    setShowBroadcastConfirm(false);
+    setIsSending(true);
+    setBroadcastError("");
+    sendBroadcast.mutate(broadcastForm);
   };
 
   // Helper for max value in charts
@@ -353,6 +357,17 @@ export default function AdminDashboard() {
           </>
         )}
       </section>
+
+      <ConfirmModal
+        isOpen={showBroadcastConfirm}
+        onClose={() => setShowBroadcastConfirm(false)}
+        onConfirm={confirmSendBroadcast}
+        title="Send Global Broadcast?"
+        description={`Are you sure you want to broadcast "${broadcastForm.title}" to all users? This will display as an announcement in their notification feeds.`}
+        confirmText="SEND BROADCAST"
+        variant="primary"
+        isLoading={isSending}
+      />
     </div>
   );
 }

@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import React, { useState, useMemo, useEffect, useCallback, useDeferredValue } from "react";
+import React, { useState, useMemo, useCallback, useDeferredValue } from "react";
 import { 
   Play, 
   Trash2, 
@@ -11,7 +11,6 @@ import {
   Search, 
   ArrowLeft, 
   CheckCircle2, 
-  AlertTriangle,
   RotateCcw,
   X
 } from "lucide-react";
@@ -19,6 +18,7 @@ import { useWatchStore, getAnimeResumeInfo, type WatchHistoryItem } from "@/stor
 import { timeAgo } from "@/lib/timeAgo";
 import { useMounted } from "@/hooks/useMounted";
 import { useSession } from "@/lib/auth-client";
+import { ConfirmModal } from "@/components/ui/ConfirmModal";
 
 function formatSeconds(sec?: number): string {
   if (!sec || Number.isNaN(sec) || sec < 0 || !Number.isFinite(sec)) return "0:00";
@@ -217,26 +217,6 @@ export default function ContinueWatchingClient() {
     }
   }, [clearHistory, session?.user]);
 
-  // Keyboard accessibility and body scroll lock for confirmation modal
-  useEffect(() => {
-    if (!showClearConfirm) return;
-
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === "Escape") {
-        setShowClearConfirm(false);
-      }
-    };
-
-    const originalOverflow = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
-    window.addEventListener("keydown", handleKeyDown);
-
-    return () => {
-      document.body.style.overflow = originalOverflow;
-      window.removeEventListener("keydown", handleKeyDown);
-    };
-  }, [showClearConfirm]);
-
   const allItems: WatchHistoryItem[] = useMemo(() => {
     return Object.values(history).sort(
       (a, b) => (b.timestamp || 0) - (a.timestamp || 0)
@@ -422,49 +402,15 @@ export default function ContinueWatchingClient() {
         )}
 
         {/* Confirmation Modal for Clear All */}
-        {showClearConfirm && (
-          <div 
-            className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4"
-            onClick={(e) => {
-              if (e.target === e.currentTarget) setShowClearConfirm(false);
-            }}
-            role="presentation"
-          >
-            <div 
-              role="dialog"
-              aria-modal="true"
-              aria-labelledby="clear-dialog-title"
-              aria-describedby="clear-dialog-desc"
-              className="bg-surface-container border border-neon-crimson p-6 max-w-md w-full clip-corner shadow-[0_0_30px_rgba(255,0,60,0.3)] flex flex-col gap-4 animate-in fade-in zoom-in-95 duration-200"
-            >
-              <div className="flex items-center gap-3 text-neon-crimson">
-                <AlertTriangle className="w-6 h-6" />
-                <h3 id="clear-dialog-title" className="font-headline-lg text-lg uppercase tracking-wider text-white">
-                  Clear All Watch History?
-                </h3>
-              </div>
-              <p id="clear-dialog-desc" className="text-sm text-on-surface-variant leading-relaxed">
-                This will wipe your entire local progress and watch order across all anime. This action cannot be undone.
-              </p>
-              <div className="flex items-center justify-end gap-3 pt-2">
-                <button
-                  type="button"
-                  onClick={() => setShowClearConfirm(false)}
-                  className="px-4 py-2 bg-surface-container-high hover:bg-surface-glass text-white font-label-caps text-xs clip-chip cursor-pointer"
-                >
-                  CANCEL
-                </button>
-                <button
-                  type="button"
-                  onClick={handleClearAll}
-                  className="px-4 py-2 bg-neon-crimson text-void-black hover:bg-white font-label-caps text-xs font-bold clip-chip cursor-pointer shadow-[0_0_10px_rgba(255,0,60,0.5)]"
-                >
-                  CONFIRM CLEAR
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
+        <ConfirmModal
+          isOpen={showClearConfirm}
+          onClose={() => setShowClearConfirm(false)}
+          onConfirm={handleClearAll}
+          title="Clear All Watch History?"
+          description="This will wipe your entire local progress and watch order across all anime. This action cannot be undone."
+          confirmText="CONFIRM CLEAR"
+          variant="danger"
+        />
 
         {/* Content Section: Cards or Empty State */}
         {displayedItems.length === 0 ? (

@@ -10,6 +10,7 @@ import { Grid } from 'ldrs/react';
 import 'ldrs/react/Grid.css';
 import { ProfileAnimeCard } from "@/components/profile/ProfileAnimeCard";
 import { useWatchStore } from "@/store/useWatchStore";
+import { ConfirmModal } from "@/components/ui/ConfirmModal";
 
 export default function ProfileClient() {
   const { data: session, isPending } = useSession();
@@ -28,12 +29,13 @@ export default function ProfileClient() {
   }, []);
   const historyItems = mounted ? Object.values(history).sort((a, b) => b.timestamp - a.timestamp) : [];
 
+  const [showClearConfirm, setShowClearConfirm] = useState(false);
+
   const handleClearHistory = async () => {
-    if (confirm("Clear all watch history?")) {
-      clearHistory();
-      if (session?.user) {
-        try { await fetch("/api/progress", { method: "DELETE" }); } catch (e) { console.error(e); }
-      }
+    clearHistory();
+    setShowClearConfirm(false);
+    if (session?.user) {
+      try { await fetch("/api/progress", { method: "DELETE" }); } catch (e) { console.error(e); }
     }
   };
 
@@ -173,8 +175,8 @@ export default function ProfileClient() {
                   <h3 className="font-headline-lg text-2xl text-white uppercase">Watch History</h3>
                   {historyItems.length > 0 && (
                     <button
-                      onClick={handleClearHistory}
-                      className="font-label-caps text-[11px] px-3 py-1.5 border border-neon-crimson/50 text-neon-crimson hover:bg-neon-crimson/10 transition-colors clip-chip"
+                      onClick={() => setShowClearConfirm(true)}
+                      className="font-label-caps text-[11px] px-3 py-1.5 border border-neon-crimson/50 text-neon-crimson hover:bg-neon-crimson/10 transition-colors clip-chip cursor-pointer"
                     >
                       Clear All
                     </button>
@@ -233,6 +235,16 @@ export default function ProfileClient() {
                     })}
                   </div>
                 )}
+
+                <ConfirmModal
+                  isOpen={showClearConfirm}
+                  onClose={() => setShowClearConfirm(false)}
+                  onConfirm={handleClearHistory}
+                  title="Clear All Watch History?"
+                  description="This will permanently wipe your entire playback progress and watch history from your account. This action cannot be undone."
+                  confirmText="CONFIRM CLEAR"
+                  variant="danger"
+                />
               </div>
             )}
 

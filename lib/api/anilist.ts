@@ -113,7 +113,8 @@ async function fetchAniList<T>(query: string, variables: Record<string, string |
   }
 
   const isClient = typeof window !== "undefined";
-  const url = isClient ? "/api/anilist" : ANILIST_API_URL;
+  // SURVIVAL MODE: Force direct API calls to AniList from the browser to bypass frozen Vercel functions
+  const url = isClient ? ANILIST_API_URL : ANILIST_API_URL;
   const headers = isClient
     ? { "Content-Type": "application/json", "Accept": "application/json" }
     : ANILIST_HEADERS;
@@ -177,44 +178,16 @@ async function fetchAniList<T>(query: string, variables: Record<string, string |
   return json.data;
 }
 
-async function fetchDbFallback<T>(params: Record<string, string | number>): Promise<T | null> {
-  try {
-    let baseUrl = "";
-    if (typeof window !== "undefined") {
-      baseUrl = window.location.origin;
-    } else if (process.env.NEXT_PUBLIC_SITE_URL) {
-      baseUrl = process.env.NEXT_PUBLIC_SITE_URL;
-    } else if (process.env.VERCEL_URL) {
-      baseUrl = `https://${process.env.VERCEL_URL}`;
-    } else {
-      baseUrl = "http://localhost:3000";
-    }
-
-    const url = new URL("/api/anime/db-fallback", baseUrl);
-    Object.entries(params).forEach(([k, v]) => url.searchParams.set(k, String(v)));
-
-    const res = await fetch(url.toString(), { cache: "no-store" });
-    if (!res.ok) return null;
-    return await res.json() as T;
-  } catch (e) {
-    console.warn("[DB Fallback API] Request failed:", e);
-    return null;
-  }
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+async function fetchDbFallback<T>(_params: Record<string, string | number>): Promise<T | null> {
+  // SURVIVAL MODE: Disable DB fallback to prevent Vercel function invocations
+  return null;
 }
 
-function writeThroughCache(anime: AniListAnime | AniListAnime[]): void {
-  if (typeof window === "undefined") return;
-  try {
-    const list = Array.isArray(anime) ? anime : [anime];
-    const safeList = list.filter(isSafeAnime);
-    if (safeList.length === 0) return;
-
-    fetch("/api/anime/cache-metadata", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ animeList: safeList }),
-    }).catch(() => {});
-  } catch {}
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+function writeThroughCache(_anime: AniListAnime | AniListAnime[]): void {
+  // SURVIVAL MODE: Disable cache writing to prevent Vercel function invocations
+  return;
 }
 
 export const anilistApi = {

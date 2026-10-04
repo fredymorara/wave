@@ -3,33 +3,43 @@
 import Image from "next/image";
 import Link from "next/link";
 import { Play, CalendarClock, ChevronLeft, ChevronRight } from "lucide-react";
+import { useTrendingAnime, useRecentEpisodes, useAniListBanners, useSchedule, useTopThisWeek } from "@/hooks/useAnime";
 import { useWatchStore, getAnimeResumeInfo } from "@/store/useWatchStore";
+import { useRef, useState, useEffect } from "react";
+import { AlertTriangle, X } from "lucide-react";
 import { timeAgo } from "@/lib/timeAgo";
 import { useMounted } from "@/hooks/useMounted";
 import { HeroCarousel } from "@/components/home/HeroCarousel";
-import { useRef } from "react";
-import type { AniListAnime } from "@/lib/api/anilist";
+import { Grid } from 'ldrs/react';
+import 'ldrs/react/Grid.css';
 
-interface HomeClientProps {
-  heroAnimeList: AniListAnime[];
-  trendingAnime: AniListAnime[];
-  recentEpisodes: AniListAnime[];
-  topThisWeek: AniListAnime[];
-  scheduleAnime: AniListAnime[];
-}
-
-export default function HomeClient({
-  heroAnimeList,
-  trendingAnime,
-  recentEpisodes,
-  topThisWeek,
-  scheduleAnime
-}: HomeClientProps) {
-  // Data passed from server component
+export default function HomeClient() {
+  const { data: heroAnimeList, isLoading: isHeroLoading } = useAniListBanners(10, 1);
+  const { data: trendingAnime, isLoading: isTrendingLoading } = useTrendingAnime(15, 2);
+  const { data: recentEpisodes } = useRecentEpisodes(20);
+  const { data: topThisWeek, isLoading: isTopThisWeekLoading } = useTopThisWeek(9);
+  const { data: scheduleAnime } = useSchedule(15);
 
   // Hydration safe store access
   const history = useWatchStore((state) => state.history);
   const mounted = useMounted();
+  const [showMaintenance, setShowMaintenance] = useState(false);
+
+  useEffect(() => {
+    if (!mounted) return;
+    const dismissed = sessionStorage.getItem("maintenance_dismissed");
+    if (!dismissed) {
+      const timer = setTimeout(() => {
+        setShowMaintenance(true);
+      }, 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [mounted]);
+
+  const dismissMaintenance = () => {
+    sessionStorage.setItem("maintenance_dismissed", "true");
+    setShowMaintenance(false);
+  };
 
   const trendingRef = useRef<HTMLDivElement>(null);
   const scheduleRef = useRef<HTMLDivElement>(null);
@@ -43,8 +53,47 @@ export default function HomeClient({
 
   const historyItems = Object.values(history).sort((a, b) => b.timestamp - a.timestamp).slice(0, 5);
 
+  if (isHeroLoading || isTrendingLoading || isTopThisWeekLoading) {
+    return (
+      <div className="flex-1 flex items-center justify-center min-h-screen bg-void-black">
+        <Grid size="60" speed="1" color="#FF003C" />
+      </div>
+    );
+  }
+
   return (
-    <div className="flex flex-col min-h-screen">
+    <div className="flex flex-col min-h-screen relative">
+      {/* Maintenance Popup */}
+      {mounted && showMaintenance && (
+        <div className="fixed inset-0 z-100 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
+          <div className="bg-surface-container border border-neon-crimson/30 max-w-md w-full p-6 shadow-[0_0_40px_rgba(255,0,60,0.15)] relative animate-in fade-in zoom-in duration-300">
+            <button 
+              onClick={dismissMaintenance}
+              className="absolute top-4 right-4 text-on-surface-variant hover:text-neon-crimson transition-colors"
+            >
+              <X className="w-5 h-5" />
+            </button>
+            <div className="flex items-center gap-4 mb-4">
+              <div className="w-12 h-12 rounded-full bg-neon-crimson/10 flex items-center justify-center border border-neon-crimson/20 shrink-0">
+                <AlertTriangle className="w-6 h-6 text-neon-crimson" />
+              </div>
+              <h2 className="font-headline-sm text-headline-sm text-on-surface uppercase tracking-wider">
+                System Notice
+              </h2>
+            </div>
+            <p className="text-on-surface-variant font-body-base leading-relaxed mb-6">
+              Maintenance is currently ongoing. Some features (like watchlists and comments) will be missing or not work for the following week. Core streaming remains unaffected.
+            </p>
+            <button 
+              onClick={dismissMaintenance}
+              className="w-full bg-neon-crimson hover:bg-neon-crimson/90 text-white font-label-caps tracking-widest text-sm py-3 transition-colors uppercase"
+            >
+              I Understand
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* Hero Section via AniList Banners */}
       {heroAnimeList && <HeroCarousel animeList={heroAnimeList} />}
 
